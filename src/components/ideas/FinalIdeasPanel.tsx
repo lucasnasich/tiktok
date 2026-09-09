@@ -1,0 +1,59 @@
+import { PageStack } from "@/components/AppShell";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ideas, type Idea, type IdeaStatus } from "@/content/ideas";
+import { IDEA_CARD_FIELDS } from "@/content/idea-step";
+
+const STATUS: Record<IdeaStatus, string> = {
+  captura: "Captura",
+  "en-copy": "En copy",
+  lista: "Lista",
+};
+
+const FIELD_KEYS: Record<string, keyof Idea> = {
+  Fuente: "fuente",
+  Señal: "signal",
+  Ángulo: "angulo",
+  Público: "publico",
+  Formato: "formato",
+  "Idea/Hook": "hook",
+};
+
+export function FinalIdeasPanel() {
+  return (
+    <PageStack>
+      {ideas.map((idea) => (
+        <Card key={idea.id} size="sm" className="ring-border/80">
+          <CardHeader>
+            <CardTitle className="text-[15px] tracking-tight">{idea.hook}</CardTitle>
+            <CardAction>
+              <Badge variant="secondary" className="text-[11px]">
+                {STATUS[idea.status]}
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <dl className="grid gap-2 sm:grid-cols-2">
+              {IDEA_CARD_FIELDS.map((field) => (
+                <div key={field} className="min-w-0">
+                  <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                    {field}
+                  </dt>
+                  <dd className="mt-0.5 text-[13px] leading-relaxed text-foreground">
+                    {idea[FIELD_KEYS[field]]}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </CardContent>
+        </Card>
+      ))}
+    </PageStack>
+  );
+}

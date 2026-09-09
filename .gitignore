@@ -1,4 +1,7 @@
 .env
 .env.*
 !.env.example
-.cursor/mcp.json
+.venv/
+.DS_Store
+node_modules/
+dist/

@@ -1,0 +1,38 @@
+---
+description: Workflow de contenido Mercantis — Figma, Buffer y reglas de publicación
+alwaysApply: true
+---
+
+# Mercantis content studio
+
+Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos).
+
+## Integraciones
+
+- **Figma**: crear y ensamblar creativos (slides, carruseles, overlays).
+- **Buffer**: programar y publicar. Nunca publicar al instante salvo pedido explícito.
+- Si existe una herramienta MCP para la tarea, usarla antes de pedir trabajo manual.
+
+## Workflow
+
+`Idea → Copy → Imágenes → Figma → Buffer → Publicación → Métricas`
+
+1. Capturar la idea en `src/content/`.
+2. Escribir copy (hook, slides, CTA).
+3. Generar o reusar imágenes en `assets/imagenes/`.
+4. Armar el creativo en Figma.
+5. Programar en Buffer (fecha/hora acordada).
+6. Recién después: publicación y métricas.
+
+## Publicación
+
+- No publicar inmediatamente.
+- No programar a “ahora” ni disparar un post live salvo que el usuario lo pida con claridad.
+- Default: draft o scheduled.
+
+## Source of truth
+
+- Visuales: `assets/`
+- Texto y metadata (ideas, prompts): `src/content/`
+- UI del studio: `src/`
+- Playbook humano: `docs/` (pestañas en la app)
