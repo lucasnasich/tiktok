@@ -1,6 +1,5 @@
 import { useCallback, useRef } from "react";
 
-import { InspirationPanel } from "@/components/ideas/InspirationPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   IDEA_CARD_FIELDS,
@@ -34,6 +33,9 @@ export function IdeaStepDocs() {
 
   return (
     <div ref={rootRef} className="space-y-4">
+      <p className="text-[14px] leading-relaxed text-muted-foreground">
+        Capturás una señal, elegís un ángulo y armás la ficha.
+      </p>
       <Tabs
         defaultValue={IDEA_SUBSTEPS[0].id}
         className="gap-4"
@@ -50,10 +52,6 @@ export function IdeaStepDocs() {
             </TabsTrigger>
           ))}
         </TabsList>
-
-        <TabsContent value="inspiracion" className="mt-0 flex-none">
-          <InspirationPanel onNestedTabChange={syncAccordionHeight} />
-        </TabsContent>
 
         <TabsContent value="senal" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">

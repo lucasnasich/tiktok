@@ -1,56 +1,119 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { IDEA_SOURCE_TABS } from "@/content/idea-sources";
-import { IDEA_INSPIRATION_SOURCES } from "@/content/idea-step";
+import { INSPIRATION_CONTAINER_CLASS, INSPIRATION_GRID_CLASS } from "@/components/ideas/inspiration-layout";
+import { AllInspirationsPanel } from "@/components/ideas/AllInspirationsPanel";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ClienteInspirationPanel } from "@/components/ideas/ClienteInspirationPanel";
+import { CreativeInspirationPanel } from "@/components/ideas/CreativeInspirationPanel";
+import { InspirationSourceFilter } from "@/components/ideas/InspirationSourceFilter";
+import { InspirationSwipeDeck } from "@/components/ideas/InspirationSwipeDeck";
+import { OrganicInspirationPanel } from "@/components/ideas/OrganicInspirationPanel";
+import {
+  buildInspirationFeed,
+  getInspirationSourceSummary,
+  isSwipeableSource,
+} from "@/content/inspiration-feed";
+import { IDEA_SOURCES, INSPIRATION_ALL_SOURCE_ID } from "@/content/idea-sources";
+import {
+  INSPIRATION_VIEW,
+  type InspirationViewId,
+} from "@/content/inspiration-view";
 
 type InspirationPanelProps = {
-  onNestedTabChange?: () => void;
+  activeSource: string;
+  view?: InspirationViewId;
+  onSourceChange?: (sourceId: string) => void;
+  showSourceFilterInline?: boolean;
+  onLayoutChange?: () => void;
 };
 
-export function InspirationPanel({ onNestedTabChange }: InspirationPanelProps) {
+function SourceTopicsGrid({ sourceId }: { sourceId: string }) {
+  const source = IDEA_SOURCES.find((entry) => entry.id === sourceId);
+  if (!source) return null;
+
+  return (
+    <div className={INSPIRATION_CONTAINER_CLASS}>
+      <div className={INSPIRATION_GRID_CLASS}>
+        {source.topics.map((topic) => (
+          <Card key={topic.id} size="sm" className="ring-border/80">
+            <CardHeader>
+              <CardTitle className="text-[15px] tracking-tight">{topic.label}</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <p className="text-[13px] leading-relaxed text-muted-foreground">
+                {topic.summary}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InspirationSourceContent({ sourceId }: { sourceId: string }) {
+  if (sourceId === INSPIRATION_ALL_SOURCE_ID) return <AllInspirationsPanel />;
+  if (sourceId === "cliente") return <ClienteInspirationPanel />;
+  if (sourceId === "organico") return <OrganicInspirationPanel />;
+  if (sourceId === "creativo") return <CreativeInspirationPanel />;
+  return <SourceTopicsGrid sourceId={sourceId} />;
+}
+
+export function InspirationPanel({
+  activeSource,
+  view = INSPIRATION_VIEW.listado.id,
+  onSourceChange,
+  showSourceFilterInline = false,
+  onLayoutChange,
+}: InspirationPanelProps) {
+  const summary = getInspirationSourceSummary(activeSource);
+  const feedItems = buildInspirationFeed(activeSource);
+  const canReview = isSwipeableSource(activeSource);
+  const isReviewView = view === INSPIRATION_VIEW.revisar.id;
+
+  if (isReviewView) {
+    return (
+      <div className="space-y-4">
+        {showSourceFilterInline && onSourceChange ? (
+          <div className="flex justify-end">
+            <InspirationSourceFilter
+              value={activeSource}
+              onChange={(next) => {
+                onSourceChange(next);
+                onLayoutChange?.();
+              }}
+            />
+          </div>
+        ) : null}
+
+        <p className="text-[14px] leading-relaxed text-muted-foreground">
+          {canReview
+            ? INSPIRATION_VIEW.revisar.description
+            : "Esta fuente no tiene referencias guardadas para revisar."}
+        </p>
+
+        {canReview ? <InspirationSwipeDeck items={feedItems} /> : null}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
-      <div>
-        <p className="mb-3 text-[14px] leading-relaxed text-muted-foreground">
-          Podés sacar ideas de:
-        </p>
-        <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
-          {IDEA_INSPIRATION_SOURCES.map((source) => (
-            <li key={source}>{source}</li>
-          ))}
-        </ul>
-      </div>
+      {showSourceFilterInline && onSourceChange ? (
+        <div className="flex justify-end">
+          <InspirationSourceFilter
+            value={activeSource}
+            onChange={(next) => {
+              onSourceChange(next);
+              onLayoutChange?.();
+            }}
+          />
+        </div>
+      ) : null}
 
-      <div className="border-t border-border pt-4">
-        <p className="mb-3 text-[13px] font-medium text-foreground">
-          Detalle por fuente
-        </p>
-        <Tabs
-          defaultValue={IDEA_SOURCE_TABS[0].id}
-          className="gap-3"
-          onValueChange={onNestedTabChange}
-        >
-          <TabsList className="h-auto w-full flex-wrap justify-start">
-            {IDEA_SOURCE_TABS.map((tab) => (
-              <TabsTrigger
-                key={tab.id}
-                value={tab.id}
-                className="px-2.5 text-[13px] font-medium tracking-tight"
-              >
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {IDEA_SOURCE_TABS.map((tab) => (
-            <TabsContent key={tab.id} value={tab.id} className="mt-0 flex-none">
-              <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
-                {tab.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </TabsContent>
-          ))}
-        </Tabs>
-      </div>
+      <p className="text-[14px] leading-relaxed text-muted-foreground">
+        {summary}
+      </p>
+
+      <InspirationSourceContent sourceId={activeSource} />
     </div>
   );
 }

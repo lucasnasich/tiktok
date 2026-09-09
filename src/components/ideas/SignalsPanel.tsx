@@ -3,11 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
-  CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getSourceLabel } from "@/content/idea-sources";
 import { signals } from "@/content/signals";
 
 export function SignalsPanel() {
@@ -21,15 +20,10 @@ export function SignalsPanel() {
             </CardTitle>
             <CardAction>
               <Badge variant="secondary" className="text-[11px]">
-                {signal.fuente}
+                {getSourceLabel(signal.sourceId)}
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="pt-0">
-            <CardDescription className="text-[13px] leading-relaxed">
-              Señal capturada
-            </CardDescription>
-          </CardContent>
         </Card>
       ))}
     </PageStack>

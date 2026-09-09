@@ -2,7 +2,7 @@ export type IdeaStatus = "captura" | "en-copy" | "lista";
 
 export type Idea = {
   id: string;
-  fuente: string;
+  sourceId: string;
   signal: string;
   angulo: string;
   publico: string;
@@ -14,7 +14,7 @@ export type Idea = {
 export const ideas: Idea[] = [
   {
     id: "impuesto-del-crecimiento",
-    fuente: "Cliente",
+    sourceId: "cliente",
     signal: "Vendieron más pero siguen más cansados operando el negocio.",
     angulo: "dolor",
     publico: "dueños de negocio",
@@ -24,7 +24,7 @@ export const ideas: Idea[] = [
   },
   {
     id: "sistema-unico",
-    fuente: "Ideación",
+    sourceId: "ideacion",
     signal: "Tienen ventas, stock y mensajes repartidos en lugares distintos.",
     angulo: "oportunidad",
     publico: "dueños de negocio",

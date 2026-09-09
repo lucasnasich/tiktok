@@ -10,7 +10,7 @@ export function WorkflowPipelineDiagram() {
         <div
           className="mx-auto flex min-w-max items-center justify-center"
           role="img"
-          aria-label="Pipeline: Idea, Copy, Imágenes, Figma, Buffer, Publicación, Métricas"
+          aria-label={`Pipeline: ${WORKFLOW_STEPS.map((step) => step.title).join(", ")}`}
         >
           {WORKFLOW_STEPS.map((step, index) => (
             <div key={step.id} className="flex items-center">

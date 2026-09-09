@@ -9,7 +9,7 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "idea",
     title: "Idea",
-    summary: "Inspiración → señal → ángulo → ficha de la idea.",
+    summary: "Señal → ángulo → ficha de la idea.",
     details: "",
   },
   {
@@ -30,7 +30,7 @@ Editás pidiéndole al agente en Cursor. El copy vive en src/content/ junto a la
     id: "imagenes",
     title: "Imágenes",
     summary: "Visuales 9:16 sin texto quemado, listas para Figma.",
-    details: `Generás o reusás fotos en assets/imagenes/. **Sin texto en la imagen** — el copy va encima en Figma.
+    details: `Generás o reusás fotos en assets/creativos/mercantis/. **Sin texto en la imagen** — el copy va encima en Figma.
 
 - Prompts en src/content/image-prompts.ts (source of truth).
 - Generación con **Cursor GenerateImage** (Nano Banana Pro) o assets ya aprobados.
@@ -70,18 +70,6 @@ Usá el MCP de Buffer cuando esté conectado. Si no, dejá el post en draft y pr
 **Output:** post programado, no publicado todavía.`,
   },
   {
-    id: "publicacion",
-    title: "Publicación",
-    summary: "Sale cuando toca, no antes.",
-    details: `El post va live en el horario programado. Este paso no lo dispara el agente por defecto.
-
-- Revisá en Buffer que el slot sea el acordado.
-- Si hay que mover fecha, cambiá el schedule — no publiques on-the-fly.
-- Una vez live, el creativo ya no se edita en Figma para ese post; iterás en la próxima pieza.
-
-**Output:** contenido publicado en TikTok.`,
-  },
-  {
     id: "metricas",
     title: "Métricas",
     summary: "Después mirás resultados y decidís qué repetir.",
@@ -96,3 +84,13 @@ No optimices en caliente el mismo día del lanzamiento salvo que algo esté clar
 **Output:** decisión informada para la siguiente idea (repetir ángulo, cambiar hook, otro CTA).`,
   },
 ];
+
+export const INSPIRATION_WORKFLOW_DETAILS = `Inspiración corre **en paralelo** al pipeline. No es un paso posterior a Métricas: vas recopilando input mientras producís.
+
+**Qué es:** señales reales que pueden convertirse en ideas — dolores de clientes, posts orgánicos, referencias creativas, ads de competidores, tendencias, datos propios.
+
+**Cómo se usa:** filtrás por fuente, revisás referencias y las llevás a Ideas cuando aparece un ángulo. No hace falta “cerrar” inspiración antes de escribir copy.
+
+**Dónde vive:** pantalla **Inspiración** del studio y archivos en \`src/content/\`. La media descargada queda en \`assets/inspiracion/media/\` (local).
+
+**Output:** biblioteca de referencias etiquetadas por fuente, lista para alimentar la etapa de Idea.`;

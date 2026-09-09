@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { ideas, type Idea, type IdeaStatus } from "@/content/ideas";
+import { getSourceLabel } from "@/content/idea-sources";
 import { IDEA_CARD_FIELDS } from "@/content/idea-step";
 
 const STATUS: Record<IdeaStatus, string> = {
@@ -16,14 +17,24 @@ const STATUS: Record<IdeaStatus, string> = {
   lista: "Lista",
 };
 
-const FIELD_KEYS: Record<string, keyof Idea> = {
-  Fuente: "fuente",
-  Señal: "signal",
-  Ángulo: "angulo",
-  Público: "publico",
-  Formato: "formato",
-  "Idea/Hook": "hook",
-};
+function getFieldValue(idea: Idea, field: string) {
+  switch (field) {
+    case "Fuente":
+      return getSourceLabel(idea.sourceId);
+    case "Señal":
+      return idea.signal;
+    case "Ángulo":
+      return idea.angulo;
+    case "Público":
+      return idea.publico;
+    case "Formato":
+      return idea.formato;
+    case "Idea/Hook":
+      return idea.hook;
+    default:
+      return "";
+  }
+}
 
 export function FinalIdeasPanel() {
   return (
@@ -46,7 +57,7 @@ export function FinalIdeasPanel() {
                     {field}
                   </dt>
                   <dd className="mt-0.5 text-[13px] leading-relaxed text-foreground">
-                    {idea[FIELD_KEYS[field]]}
+                    {getFieldValue(idea, field)}
                   </dd>
                 </div>
               ))}

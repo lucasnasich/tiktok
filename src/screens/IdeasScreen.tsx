@@ -1,15 +1,30 @@
 import { Playground } from "@/components/AppShell";
 import { AnglesPanel } from "@/components/ideas/AnglesPanel";
 import { FinalIdeasPanel } from "@/components/ideas/FinalIdeasPanel";
-import { InspirationPanel } from "@/components/ideas/InspirationPanel";
 import { SignalsPanel } from "@/components/ideas/SignalsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ideas } from "@/content/ideas";
 import { IDEA_SCREEN_TABS } from "@/content/idea-step";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import {
+  STUDIO_PREFERENCE_DEFAULTS,
+  STUDIO_PREFERENCE_KEYS,
+  parseIdeasTab,
+} from "@/lib/studio-preferences";
 
 export function IdeasScreen() {
+  const [activeTab, setActiveTab] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.ideasTab,
+    STUDIO_PREFERENCE_DEFAULTS.ideasTab,
+    parseIdeasTab,
+  );
+
   return (
-    <Tabs defaultValue="idea" className="flex h-full min-h-0 flex-1 flex-col">
+    <Tabs
+      value={activeTab}
+      onValueChange={setActiveTab}
+      className="flex h-full min-h-0 flex-1 flex-col"
+    >
       <Playground
         title="Ideas"
         meta={`${ideas.length}`}
@@ -27,9 +42,6 @@ export function IdeasScreen() {
           </TabsList>
         }
       >
-        <TabsContent value="inspiracion" className="mt-0 pb-8">
-          <InspirationPanel />
-        </TabsContent>
         <TabsContent value="senales" className="mt-0 pb-8">
           <SignalsPanel />
         </TabsContent>

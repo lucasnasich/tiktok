@@ -1,4 +1,4 @@
-import { BookOpen, Images, Lightbulb } from "lucide-react";
+import { BookOpen, Images, Lightbulb, Sparkles, Target } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { MercantisIconBold } from "@/components/MercantisIcon";
@@ -16,7 +16,9 @@ import {
 
 const MAIN_NAV = [
   { to: "/", label: "Ideas", icon: Lightbulb, end: true },
-  { to: "/imagenes", label: "Imágenes", icon: Images, end: false },
+  { to: "/inspiracion", label: "Inspiración", icon: Sparkles, end: true },
+  { to: "/imagenes", label: "Imágenes", icon: Images, end: true },
+  { to: "/competidores", label: "Competidores", icon: Target, end: true },
 ] as const;
 
 const DOCS_NAV = {
@@ -57,8 +59,8 @@ function NavItem({
 export function AppSidebar() {
   return (
     <Sidebar collapsible="none" className="h-svh shrink-0 overflow-hidden border-r border-sidebar-border">
-      <SidebarHeader className="relative h-[var(--header-height)] justify-center px-4">
-        <div className="flex min-w-0 items-center gap-2 px-2">
+      <SidebarHeader className="relative h-[var(--header-height)] justify-center px-3">
+        <div className="flex min-w-0 items-center gap-2 px-1">
           <MercantisIconBold className="size-5 shrink-0 text-foreground" />
           <span className="truncate text-[15px] font-semibold tracking-tight text-foreground">
             Studio

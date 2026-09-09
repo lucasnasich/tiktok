@@ -5,3 +5,21 @@
 .DS_Store
 node_modules/
 dist/
+
+# Media de inspiración descargada en tu máquina (videos, carruseles)
+assets/inspiracion/media/**
+!assets/inspiracion/media/.gitkeep
+
+# Assets de competidores (local / pendrive)
+assets/competidores/logos/**
+!assets/competidores/logos/.gitkeep
+assets/competidores/documentos/**
+!assets/competidores/documentos/.gitkeep
+
+# Índices generados desde archivos locales
+src/content/inspiration-media.ts
+src/content/competitor-documents.ts
+src/content/competitor-logos.ts
+
+# Binarios de descarga (opcional, se bajan solos)
+scripts/bin/

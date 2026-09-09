@@ -13,16 +13,20 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 - **Buffer**: programar y publicar. Nunca publicar al instante salvo pedido explícito.
 - Si existe una herramienta MCP para la tarea, usarla antes de pedir trabajo manual.
 
+## Inspiración
+
+Proceso **continuo**, paralelo al pipeline. Recopilás input por fuente en **Inspiración** (`src/content/inspirations.ts`).
+
 ## Workflow
 
-`Idea → Copy → Imágenes → Figma → Buffer → Publicación → Métricas`
+`Idea → Copy → Imágenes → Figma → Buffer → Métricas`
 
 1. Capturar la idea en `src/content/`.
 2. Escribir copy (hook, slides, CTA).
 3. Generar o reusar imágenes en `assets/imagenes/`.
 4. Armar el creativo en Figma.
 5. Programar en Buffer (fecha/hora acordada).
-6. Recién después: publicación y métricas.
+6. Métricas cuando el post estuvo un tiempo live.
 
 ## Publicación
 
@@ -36,3 +40,18 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 - Texto y metadata (ideas, prompts): `src/content/`
 - UI del studio: `src/`
 - Playbook humano: `docs/` (pestañas en la app)
+
+## Assets (estructura)
+
+- `assets/creativos/mercantis/` — slides propios
+- `assets/inspiracion/media/` — posts descargados (local, no repo)
+- `assets/competidores/logos/` — logos (local, no repo)
+- `assets/competidores/documentos/` — PDFs (local, no repo)
+- Paths centralizados en `scripts/asset-paths.mjs`
+
+## Media de inspiración (local)
+
+- Para pasar a otra compu: copiar `assets/inspiracion/media/` (+ documentos si aplica) y correr `npm run inspiration:sync`.
+- Los scripts `inspiration:ig` / `inspiration:tt` **no re-descargan** si la media ya existe; `--force` solo si hace falta otra bajada.
+- Competidores: pantalla propia en sidebar (`/competidores`), datos en `competitor-inspirations.ts`
+- Detalle: `docs/inspiracion-local.md`

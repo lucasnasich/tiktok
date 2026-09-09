@@ -1,0 +1,143 @@
+import { creativeInspirations } from "@/content/creative-inspirations";
+import { imagePrompts } from "@/content/image-prompts";
+import { inspirationMedia } from "@/content/inspiration-media";
+import { organicInspirations } from "@/content/organic-inspirations";
+
+export type GalleryAsset = {
+  src: string;
+  name: string;
+  prompt: string | null;
+};
+
+export type GalleryGroup = {
+  id: string;
+  label: string;
+  assets: GalleryAsset[];
+};
+
+export type GalleryItem =
+  | {
+      kind: "group";
+      id: string;
+      label: string;
+      assets: GalleryAsset[];
+    }
+  | {
+      kind: "single";
+      id: string;
+      asset: GalleryAsset;
+    };
+
+export const GALLERY_MODE = {
+  creativos: { id: "creativos", label: "Creativos" },
+  inspiracion: { id: "inspiracion", label: "Inspiración" },
+} as const;
+
+export type GalleryModeId =
+  (typeof GALLERY_MODE)[keyof typeof GALLERY_MODE]["id"];
+
+const mercantisModules = import.meta.glob(
+  "../../assets/creativos/mercantis/*.{png,jpg,jpeg,webp}",
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+) as Record<string, string>;
+
+function slideOrder(path: string): number {
+  const match = path.match(/slide-(\d+)/i) ?? path.match(/(\d+)\./);
+  return match ? Number(match[1]) : 0;
+}
+
+function assetFromPath(path: string, src: string): GalleryAsset {
+  const name = path.split("/").at(-1) ?? path;
+  return {
+    src,
+    name,
+    prompt: imagePrompts[name] ?? null,
+  };
+}
+
+function mercantisGroup(): GalleryGroup {
+  const assets = Object.entries(mercantisModules)
+    .sort(([a], [b]) => slideOrder(a) - slideOrder(b))
+    .map(([path, src]) => assetFromPath(path, src));
+
+  return {
+    id: "mercantis-carrusel",
+    label: "Mercantis — carrusel base",
+    assets,
+  };
+}
+
+function inspirationTitle(id: string): string {
+  const creative = creativeInspirations.find((item) => item.id === id);
+  if (creative) return creative.title;
+
+  const organic = organicInspirations.find(
+    (item) => item.kind === "post" && item.id === id,
+  );
+  if (organic && organic.kind === "post") return organic.title;
+
+  return id;
+}
+
+function inspirationItems(): GalleryItem[] {
+  return Object.entries(inspirationMedia)
+    .map(([id, slides]) => {
+      const images = slides.filter((slide) => slide.kind === "image");
+      if (images.length === 0) return null;
+
+      if (images.length === 1) {
+        return {
+          kind: "single" as const,
+          id,
+          asset: {
+            src: images[0].url,
+            name: id,
+            prompt: null,
+          },
+        };
+      }
+
+      return {
+        kind: "group" as const,
+        id,
+        label: inspirationTitle(id),
+        assets: images.map((slide, index) => ({
+          src: slide.url,
+          name: `${id}-${String(index + 1).padStart(2, "0")}`,
+          prompt: null,
+        })),
+      };
+    })
+    .filter((item): item is GalleryItem => item !== null);
+}
+
+function creativosItems(): GalleryItem[] {
+  return [
+    {
+      kind: "group",
+      ...mercantisGroup(),
+    },
+  ];
+}
+
+export function galleryItemsForMode(mode: GalleryModeId): GalleryItem[] {
+  return mode === GALLERY_MODE.creativos.id
+    ? creativosItems()
+    : inspirationItems();
+}
+
+export function galleryImageCountForItems(items: GalleryItem[]): number {
+  return items.reduce(
+    (total, item) =>
+      total + (item.kind === "group" ? item.assets.length : 1),
+    0,
+  );
+}
+
+export function galleryGroupCountForItems(items: GalleryItem[]): number {
+  return items.filter((item) => item.kind === "group").length;
+}

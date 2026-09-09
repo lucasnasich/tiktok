@@ -1,58 +1,38 @@
-import { Check, Copy, Image as ImageIcon, LayoutGrid } from "lucide-react";
+import { Check, Copy, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
 
 import { Playground } from "@/components/AppShell";
-import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  ColumnSelector,
+  type ColumnCount,
+} from "@/components/ColumnSelector";
+import { GalleryModeFilter } from "@/components/gallery/GalleryModeFilter";
+import { Button } from "@/components/ui/button";
+import { usePersistedState } from "@/hooks/use-persisted-state";
+import {
+  galleryGroupCountForItems,
+  galleryImageCountForItems,
+  galleryItemsForMode,
+  type GalleryAsset,
+  type GalleryItem,
+} from "@/lib/gallery";
+import { copyImageToClipboard } from "@/lib/copy-image-to-clipboard";
+import {
+  STUDIO_PREFERENCE_DEFAULTS,
+  STUDIO_PREFERENCE_KEYS,
+  parseGalleryMode,
+  parseGridColumns,
+} from "@/lib/studio-preferences";
 import { cn } from "@/lib/utils";
-import { assets, type Asset } from "@/lib/images";
 
-const COLUMN_OPTIONS = [
-  { value: 3, label: "3 columnas" },
-  { value: 4, label: "4 columnas" },
-] as const;
-
-type ColumnCount = (typeof COLUMN_OPTIONS)[number]["value"];
-
-function ColumnSelector({
-  value,
-  onChange,
-}: {
-  value: ColumnCount;
-  onChange: (value: ColumnCount) => void;
-}) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon-sm" aria-label="Columnas">
-          <LayoutGrid className="size-4" strokeWidth={1.75} />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-36">
-        <DropdownMenuRadioGroup
-          value={String(value)}
-          onValueChange={(next) => onChange(Number(next) as ColumnCount)}
-        >
-          {COLUMN_OPTIONS.map((option) => (
-            <DropdownMenuRadioItem key={option.value} value={String(option.value)}>
-              {option.label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
+function gallerySlideWidth(columns: ColumnCount): string {
+  return `max(15rem, calc((100vw - var(--sidebar-width, 200px)) / ${columns}))`;
 }
 
-function GalleryTile({ asset }: { asset: Asset }) {
+function GalleryTile({ asset }: { asset: GalleryAsset }) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
+  const [copyImageError, setCopyImageError] = useState(false);
 
   async function copyPrompt() {
     if (!asset.prompt) return;
@@ -62,24 +42,32 @@ function GalleryTile({ asset }: { asset: Asset }) {
   }
 
   async function copyImage() {
-    const response = await fetch(asset.src);
-    const blob = await response.blob();
-    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
-    setCopiedImage(true);
-    window.setTimeout(() => setCopiedImage(false), 1500);
+    try {
+      await copyImageToClipboard(asset.src);
+      setCopyImageError(false);
+      setCopiedImage(true);
+      window.setTimeout(() => setCopiedImage(false), 1500);
+    } catch {
+      setCopiedImage(false);
+      setCopyImageError(true);
+      window.setTimeout(() => setCopyImageError(false), 2000);
+    }
   }
 
-  const showActions = copiedPrompt || copiedImage;
+  const showActions = copiedPrompt || copiedImage || copyImageError;
 
   return (
-    <div className="group relative aspect-[9/16] bg-muted">
-      <div className="relative size-full overflow-hidden">
-        <img src={asset.src} alt="" className="size-full object-cover" />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity group-hover:opacity-100"
-        />
-      </div>
+    <div className="group relative w-full">
+      <img
+        src={asset.src}
+        alt=""
+        className="block w-full h-auto"
+        draggable={false}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity group-hover:opacity-100"
+      />
 
       <div
         className={cn(
@@ -121,7 +109,11 @@ function GalleryTile({ asset }: { asset: Asset }) {
             <ImageIcon className="size-3 shrink-0" strokeWidth={2} />
           )}
           <span className="leading-none">
-            {copiedImage ? "Copiado" : "Copiar imagen"}
+            {copyImageError
+              ? "No se pudo copiar"
+              : copiedImage
+                ? "Copiado"
+                : "Copiar imagen"}
           </span>
         </Button>
       </div>
@@ -129,24 +121,133 @@ function GalleryTile({ asset }: { asset: Asset }) {
   );
 }
 
+function GallerySlide({
+  asset,
+  slideWidth,
+}: {
+  asset: GalleryAsset;
+  slideWidth: string;
+}) {
+  return (
+    <div className="shrink-0" style={{ width: slideWidth }}>
+      <GalleryTile asset={asset} />
+    </div>
+  );
+}
+
+function GalleryCarouselRow({
+  assets,
+  slideWidth,
+}: {
+  assets: GalleryAsset[];
+  slideWidth: string;
+}) {
+  return (
+    <div className="overflow-x-auto overscroll-x-contain">
+      <div className="flex w-max items-start">
+        {assets.map((asset) => (
+          <GallerySlide key={asset.src} asset={asset} slideWidth={slideWidth} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function GalleryGroupRow({
+  item,
+  columns,
+}: {
+  item: Extract<GalleryItem, { kind: "group" }>;
+  columns: ColumnCount;
+}) {
+  const slideWidth = gallerySlideWidth(columns);
+
+  return (
+    <section className="bg-background">
+      <p className="border-b border-border bg-muted/40 px-4 py-2 text-[12px] font-medium text-foreground/80">
+        {item.label}
+        <span className="ml-2 font-normal text-muted-foreground">
+          {item.assets.length} slides
+        </span>
+      </p>
+      <GalleryCarouselRow assets={item.assets} slideWidth={slideWidth} />
+    </section>
+  );
+}
+
+function GallerySingleRow({
+  item,
+  columns,
+}: {
+  item: Extract<GalleryItem, { kind: "single" }>;
+  columns: ColumnCount;
+}) {
+  const slideWidth = gallerySlideWidth(columns);
+
+  return (
+    <section className="bg-background">
+      <GalleryCarouselRow assets={[item.asset]} slideWidth={slideWidth} />
+    </section>
+  );
+}
+
+function GalleryItemRow({
+  item,
+  columns,
+}: {
+  item: GalleryItem;
+  columns: ColumnCount;
+}) {
+  if (item.kind === "single") {
+    return <GallerySingleRow item={item} columns={columns} />;
+  }
+
+  return <GalleryGroupRow item={item} columns={columns} />;
+}
+
 export function GalleryScreen() {
-  const [columns, setColumns] = useState<ColumnCount>(4);
+  const [mode, setMode] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.galleryMode,
+    STUDIO_PREFERENCE_DEFAULTS.galleryMode,
+    parseGalleryMode,
+  );
+  const [columns, setColumns] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.gridColumns,
+    STUDIO_PREFERENCE_DEFAULTS.gridColumns,
+    parseGridColumns,
+  );
+  const items = galleryItemsForMode(mode);
+  const imageCount = galleryImageCountForItems(items);
+  const groupCount = galleryGroupCountForItems(items);
+
+  const meta =
+    groupCount > 0
+      ? `${imageCount} · ${groupCount} series`
+      : `${imageCount}`;
 
   return (
     <Playground
       title="Imágenes"
-      meta={`${assets.length}`}
+      meta={meta}
       fullWidth
-      actions={<ColumnSelector value={columns} onChange={setColumns} />}
+      actions={
+        <div className="flex items-center gap-2">
+          <GalleryModeFilter value={mode} onChange={setMode} />
+          <ColumnSelector value={columns} onChange={setColumns} />
+        </div>
+      }
     >
-      <div
-        className="grid gap-px bg-white"
-        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
-      >
-        {assets.map((asset) => (
-          <GalleryTile key={asset.src} asset={asset} />
-        ))}
-      </div>
+      {items.length === 0 ? (
+        <p className="px-5 py-8 text-[14px] text-muted-foreground">
+          No hay imágenes en este modo todavía.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-px bg-border">
+          {items.map((item) => (
+            <GalleryItemRow key={item.id} item={item} columns={columns} />
+          ))}
+        </div>
+      )}
     </Playground>
   );
 }

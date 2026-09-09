@@ -1,4 +1,5 @@
 import { IdeaStepDocs } from "@/components/IdeaStepDocs";
+import { InspirationCard } from "@/components/InspirationCard";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import {
   Accordion,
@@ -8,9 +9,16 @@ import {
 } from "@/components/ui/accordion";
 import { WORKFLOW_STEPS } from "@/content/workflow-steps";
 
+function WorkflowStepContent({ stepId, details }: { stepId: string; details: string }) {
+  if (stepId === "idea") return <IdeaStepDocs />;
+  return <MarkdownContent content={details} />;
+}
+
 export function WorkflowDocs() {
   return (
     <div className="space-y-8">
+      <InspirationCard />
+
       <section>
         <h2 className="mb-3 text-[15px] font-medium tracking-tight text-foreground">
           Pasos
@@ -29,11 +37,7 @@ export function WorkflowDocs() {
                 </span>
               </AccordionTrigger>
               <AccordionContent className="text-[14px] text-muted-foreground">
-                {step.id === "idea" ? (
-                  <IdeaStepDocs />
-                ) : (
-                  <MarkdownContent content={step.details} />
-                )}
+                <WorkflowStepContent stepId={step.id} details={step.details} />
               </AccordionContent>
             </AccordionItem>
           ))}
