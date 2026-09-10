@@ -1,4 +1,4 @@
-import { IdeaStepDocs } from "@/components/IdeaStepDocs";
+import { ProposalStepDocs } from "@/components/ProposalStepDocs";
 import { InspirationCard } from "@/components/InspirationCard";
 import { MarkdownContent } from "@/components/MarkdownContent";
 import { WorkflowPipelineDiagram } from "@/components/WorkflowPipelineDiagram";
@@ -11,7 +11,7 @@ import {
 import { WORKFLOW_STEPS } from "@/content/workflow-steps";
 
 function WorkflowStepContent({ stepId, details }: { stepId: string; details: string }) {
-  if (stepId === "idea") return <IdeaStepDocs />;
+  if (stepId === "propuestas") return <ProposalStepDocs />;
   return <MarkdownContent content={details} />;
 }
 

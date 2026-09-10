@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { GridFourIcon, ScanIcon } from "@phosphor-icons/react";
 
 import { Playground } from "@/components/AppShell";
@@ -5,12 +6,18 @@ import { ColumnSelector } from "@/components/ColumnSelector";
 import { InspirationPanel } from "@/components/ideas/InspirationPanel";
 import { InspirationFormatFilter } from "@/components/ideas/InspirationFormatFilter";
 import { InspirationSourceFilter } from "@/components/ideas/InspirationSourceFilter";
+import { InspirationDetailSheet } from "@/components/inspiration/InspirationDetailSheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   INSPIRATION_VIEW,
   type InspirationViewId,
 } from "@/content/inspiration-view";
+import { plannedSlots } from "@/content/planned-slots";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { usePlanningConfig } from "@/hooks/use-planning-config";
+import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
+import { toIsoDate } from "@/lib/planning-dates";
+import { getPlanningHorizonSlots } from "@/lib/planning-generator";
 import {
   STUDIO_PREFERENCE_DEFAULTS,
   STUDIO_PREFERENCE_KEYS,
@@ -21,6 +28,8 @@ import {
 } from "@/lib/studio-preferences";
 
 export function InspirationScreen() {
+  const { accounts } = usePlanningConfig();
+  const [referenceKey, setReferenceKey] = useSheetSearchParam("reference");
   const [activeSource, setActiveSource] = usePersistedState(
     STUDIO_PREFERENCE_KEYS.inspirationSource,
     STUDIO_PREFERENCE_DEFAULTS.inspirationSource,
@@ -40,6 +49,11 @@ export function InspirationScreen() {
     STUDIO_PREFERENCE_KEYS.inspirationFormat,
     STUDIO_PREFERENCE_DEFAULTS.inspirationFormat,
     parseInspirationFormat,
+  );
+  const todayIso = toIsoDate(new Date());
+  const slots = useMemo(
+    () => getPlanningHorizonSlots(plannedSlots, accounts, todayIso),
+    [accounts, todayIso],
   );
 
   const isListView = view === INSPIRATION_VIEW.listado.id;
@@ -89,6 +103,15 @@ export function InspirationScreen() {
         activeFormat={activeFormat}
         view={view}
         columns={columns}
+        onOpenReference={setReferenceKey}
+      />
+      <InspirationDetailSheet
+        referenceKey={referenceKey}
+        slots={slots}
+        open={Boolean(referenceKey)}
+        onOpenChange={(open) => {
+          if (!open) setReferenceKey(null);
+        }}
       />
     </Playground>
   );

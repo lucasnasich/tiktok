@@ -9,12 +9,14 @@ export function PlanningDayColumn({
   todayIso,
   compact = false,
   className,
+  onOpenSlot,
 }: {
   date: string;
   slots: PlanningSlot[];
   todayIso: string;
   compact?: boolean;
   className?: string;
+  onOpenSlot?: (slot: PlanningSlot) => void;
 }) {
   const isToday = date === todayIso;
 
@@ -66,7 +68,9 @@ export function PlanningDayColumn({
             {compact ? "—" : "Sin slots planificados."}
           </p>
         ) : (
-          slots.map((slot) => <PlanningSlotCard key={slot.id} slot={slot} />)
+          slots.map((slot) => (
+            <PlanningSlotCard key={slot.id} slot={slot} onOpen={onOpenSlot} />
+          ))
         )}
       </div>
     </section>

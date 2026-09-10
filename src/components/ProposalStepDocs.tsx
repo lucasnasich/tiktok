@@ -2,13 +2,13 @@ import { useCallback, useRef } from "react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  IDEA_CARD_FIELDS,
-  IDEA_FINAL_EXAMPLE,
-  IDEA_FINAL_FORMULA,
-  IDEA_SIGNAL_EXAMPLE,
-  IDEA_SUBSTEPS,
+  PROPOSAL_CARD_FIELDS,
+  PROPOSAL_FINAL_EXAMPLE,
+  PROPOSAL_FINAL_FORMULA,
+  PROPOSAL_SIGNAL_EXAMPLE,
+  PROPOSAL_SUBSTEPS,
   angles,
-} from "@/content/idea-step";
+} from "@/content/proposal-step";
 
 function useAccordionHeightSync() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -28,23 +28,22 @@ function useAccordionHeightSync() {
   return { rootRef, syncAccordionHeight };
 }
 
-export function IdeaStepDocs() {
+export function ProposalStepDocs() {
   const { rootRef, syncAccordionHeight } = useAccordionHeightSync();
 
   return (
     <div ref={rootRef} className="space-y-4">
       <p className="text-[14px] leading-relaxed text-muted-foreground">
-        Un slot ya trae cuenta, plataformas, fecha, rol, pilar y formato. Idea
-        sólo decide qué contar: fuente, ángulo, concepto y hook. Puede haber
-        varias candidatas; una se selecciona.
+        El Studio prepara el SlotSpec. Cursor desarrolla las propuestas. El
+        usuario elige. El Studio no genera copy.
       </p>
       <Tabs
-        defaultValue={IDEA_SUBSTEPS[0].id}
+        defaultValue={PROPOSAL_SUBSTEPS[0].id}
         className="gap-4"
         onValueChange={syncAccordionHeight}
       >
         <TabsList className="h-auto w-full flex-wrap justify-start">
-          {IDEA_SUBSTEPS.map((step, index) => (
+          {PROPOSAL_SUBSTEPS.map((step, index) => (
             <TabsTrigger
               key={step.id}
               value={step.id}
@@ -57,42 +56,27 @@ export function IdeaStepDocs() {
 
         <TabsContent value="slot" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
-            El flujo parte del calendario: elegís un slot y creás la idea. El
-            brief del slot (cuenta, rol, pilar, formato, plataformas, fecha/hora)
-            queda fijo.
+            El flujo parte del calendario: click en un slot abre el sheet. El
+            brief (cuenta, rol, pilar, formato, plataformas, fecha/hora) queda
+            fijo. El spec suma inspiración, Brain e historial.
           </p>
         </TabsContent>
 
         <TabsContent value="fuente" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
-            Tres orígenes posibles:
+            El camino principal es elegir una referencia recomendada. Dirección
+            personalizada es escape hatch. El Brain no es una fuente: es
+            contexto obligatorio de todas.
           </p>
-          <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
-            <li>
-              <span className="font-medium text-foreground">Inspiración</span>
-              {" — "}una referencia del Studio.
-            </li>
-            <li>
-              <span className="font-medium text-foreground">Mercantis Brain</span>
-              {" — "}producto, dolor, historia, founder, filosofía, etc.
-            </li>
-            <li>
-              <span className="font-medium text-foreground">Manual</span>
-              {" — "}una señal o instrucción escrita.
-            </li>
-          </ul>
           <blockquote className="border-l-2 border-border py-0.5 pl-4 text-[14px] leading-relaxed text-muted-foreground italic">
-            “{IDEA_SIGNAL_EXAMPLE}”
+            “{PROPOSAL_SIGNAL_EXAMPLE}”
           </blockquote>
-          <p className="text-[14px] leading-relaxed text-muted-foreground">
-            Aunque la fuente inicial sea Inspiración o Manual, el agente consulta
-            el Brain cuando hace falta adaptar la idea a hechos reales.
-          </p>
         </TabsContent>
 
         <TabsContent value="angulo" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
-            Cómo vas a encarar la señal. El formato ya viene del slot.
+            Cursor elige/propone el ángulo dentro de la misión. El formato ya
+            viene del slot.
           </p>
           <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
             {angles.map((angle) => (
@@ -105,22 +89,22 @@ export function IdeaStepDocs() {
           </ul>
         </TabsContent>
 
-        <TabsContent value="idea" className="mt-0 flex-none space-y-4">
+        <TabsContent value="propuesta" className="mt-0 flex-none space-y-4">
           <div>
             <p className="mb-2 text-[13px] font-medium text-foreground">Fórmula</p>
             <p className="text-[14px] leading-relaxed text-muted-foreground">
-              {IDEA_FINAL_FORMULA}
+              {PROPOSAL_FINAL_FORMULA}
             </p>
           </div>
 
           <blockquote className="border-l-2 border-border py-0.5 pl-4 text-[14px] leading-relaxed text-muted-foreground italic">
-            {IDEA_FINAL_EXAMPLE}
+            {PROPOSAL_FINAL_EXAMPLE}
           </blockquote>
 
           <div className="border-t border-border pt-4">
             <p className="mb-2 text-[13px] font-medium text-foreground">Ficha</p>
             <p className="text-[14px] leading-relaxed text-muted-foreground">
-              {IDEA_CARD_FIELDS.join(" | ")}
+              {PROPOSAL_CARD_FIELDS.join(" | ")}
             </p>
           </div>
         </TabsContent>

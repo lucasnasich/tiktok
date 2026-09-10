@@ -41,7 +41,7 @@ A esa base técnica suma un interés personal fuerte por dibujo, diseño de inte
 4. transición hacia datos mediante una Diplomatura en Ciencia de Datos;
 5. trabajo como ingeniero de datos en **Core BI**;
 6. trabajo como ingeniero de datos en **Naranja X**;
-7. etapa de emprendimiento con Curval;
+7. etapa de emprendimiento con Curbal;
 8. trabajos freelance;
 9. creación de Mercantis.
 
@@ -58,7 +58,7 @@ Antes había probado, entre otras cosas:
 - organización de eventos;
 - numerosos proyectos personales que no llegaron a desarrollarse por completo, muchas veces por falta de presupuesto para contratar desarrollo.
 
-Curval fue la experiencia de startup más estructurada inmediatamente anterior a Mercantis y la primera que construyó en profundidad junto con Carla.
+Curbal fue la experiencia de startup más estructurada inmediatamente anterior a Mercantis y la primera que construyó en profundidad junto con Carla.
 
 Para Lucas, emprender no es una actividad circunstancial sino **una forma de vida** y el tipo de trabajo que más le apasiona.
 
@@ -127,7 +127,7 @@ Según el relato actual:
 
 1. primer trabajo en **Biologic**;
 2. paso a **Conexia**;
-3. etapa emprendiendo junto con Lucas en **Curval**;
+3. etapa emprendiendo junto con Lucas en **Curbal**;
 4. experiencia posterior en **Mercado Libre**;
 5. Mercantis como proyecto actual.
 
@@ -157,11 +157,11 @@ Lucas y Carla son **pareja**.
 
 Se conocieron a través de contactos en común: un amigo de Lucas tenía una hermana que era muy amiga de Carla. Finalmente se cruzaron casualmente en el departamento de un amigo y allí comenzaron a conocerse.
 
-La relación personal es anterior a Mercantis y ambos atravesaron juntos las etapas de Curval, freelance y Mercantis.
+La relación personal es anterior a Mercantis y ambos atravesaron juntos las etapas de Curbal, freelance y Mercantis.
 
 ## Primera experiencia trabajando juntos
 
-La primera vez que emprendieron juntos fue en **Curval**.
+La primera vez que emprendieron juntos fue en **Curbal**.
 
 Lucas comenzó el proyecto y Carla se fue involucrando hasta entusiasmarse lo suficiente como para dejar su trabajo y sumarse. Esa experiencia funcionó como entrenamiento conjunto de producto, tecnología, startup, adquisición y **fracaso económico** antes de Mercantis.
 

@@ -9,21 +9,36 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 
 ## Integraciones
 
-- **Figma**: crear y ensamblar creativos (slides, carruseles, overlays).
+- **Figma**: ensamblaje final del creativo (slides, carruseles, overlays). El usuario dirige.
 - **Buffer**: programar y publicar. Nunca publicar al instante salvo pedido explícito.
 - Si existe una herramienta MCP para la tarea, usarla antes de pedir trabajo manual.
+
+## Quién hace qué
+
+- **STUDIO** = prepara la especificación exacta de qué contenido hay que hacer.
+- **CURSOR** = realiza el desarrollo creativo completo.
+- **USUARIO** = toma decisiones y hace la dirección/ensamblaje visual.
+- **FIGMA** = ensamblaje final.
+- **BUFFER** = publicación/programación.
+
+El Studio no genera ideas, hooks, storytelling, copy ni captions. Eso lo hace Cursor cuando el usuario se lo pide.
+
+El Studio no llama IA ni ejecuta Cursor desde la app.
 
 ## Mercantis Brain (`knowledge/mercantis/`)
 
 Fuente de verdad sobre **la empresa Mercantis** (producto, historia, marca, pricing, claims). Distinto de `docs/` (cómo funciona el Studio) y de `src/content/` (operación editorial).
 
-Antes de generar idea, hook, copy, anuncio, brief, claim, comparación o contenido de producto:
+**Toda ejecución creativa de Mercantis debe consultar el Mercantis Brain.** Sin excepción. El Brain no es una fuente de señal alternativa: es contexto obligatorio (audiencia, dolores, posicionamiento, historia, fundadores, filosofía, marca, tono, claims, límites, clientes, mercados, estrategia). Incluso un meme o una tendencia se adapta con esa información.
 
-1. Identificar qué información hace falta.
+Cuando el usuario pide desarrollar un slot:
+
+1. Leer el SlotSpec (PlanningSlot + inspiración + historial + restricciones).
 2. Consultar `knowledge/mercantis/README.md`.
-3. Abrir **sólo** los documentos de dominio relevantes.
+3. Abrir **sólo** los documentos citados en `brainRefs`.
 4. Usar `knowledge/mercantis/MASTER.md` cuando haga falta contexto transversal o haya ambigüedad.
 5. Para features, pricing, trial, GoCuotas, integraciones o roadmap: verificar `claims.md` + `funcionalidades.md` + `roadmap.md`.
+6. Recién ahí escribir Proposals en `src/content/proposals.ts`.
 
 Nunca inventar: features, pricing, mercados, integraciones, clientes, métricas, resultados, historia, roadmap ni datos de fundadores.
 
@@ -33,9 +48,13 @@ Estados: `live` / `in-development` / `planned` / `vision` / `historical` / `hypo
 
 Cuenta oficial: seria, pulida, no memes. Satélites: más libertad de alcance. Institucional: no política partidaria. Conservar voseo/identidad argentina.
 
+Cursor **no** decide arbitrariamente qué objetivo, pilar, formato, frecuencia o cuenta toca. Eso lo preparó el Studio.
+
 ## Inspiración
 
-Proceso **continuo**, paralelo al pipeline. No es un paso previo obligatorio: alimenta Idea.
+Biblioteca paralela al pipeline. En el trabajo diario el SlotDetailSheet recomienda referencias; no hace falta ir a Inspiración, memorizar y volver.
+
+Dos dimensiones: **origen** (de dónde viene) y **tipo** (Sugerencia / Ejemplo). No mezclarlas.
 
 En el sidebar: **Inspiración** (primera sección) → Referencias y Competidores.
 
@@ -44,27 +63,28 @@ En el sidebar: **Inspiración** (primera sección) → Referencias y Competidore
 
 ## Workflow
 
-`Planificación → Idea → Producción → Publicación → Métricas`
+`Planificación → Propuestas → Producción → Publicación → Métricas`
 
-Inspiración y Mercantis Brain alimentan Idea en paralelo.
+Navegación del Studio (no reorganizar): `Inspiración → Planificación → Propuestas → Producción`
 
-Navegación del Studio: `Inspiración → Planificación → Ideas → Producción`
-
-1. Configurar cuentas / perfiles y dejar que el motor complete el calendario (`planned-slots.ts` + generador). Mix de roles **semanal** según `roleTargets`.
-2. Desde un slot, capturar la idea: fuente + ángulo → concepto + hook. Consultar el Brain. No volver a decidir formato, rol ni pilar.
-3. Producción convierte la idea seleccionada en pieza. Hoy: imágenes en `assets/` / galería.
-4. Figma y Buffer son superficies futuras de Producción / Publicación.
-5. Métricas cuando el post estuvo un tiempo live.
+1. Configurar el perfil (piloto: Mercantis oficial) y dejar que el motor complete el calendario (`planned-slots.ts` + generador). Mix de roles **semanal** según `roleTargets`.
+2. Click en un slot abre SlotDetailSheet. Elegir inspiración. El Studio arma el SlotSpec. Pedirle a Cursor que desarrolle.
+3. Cursor escribe Proposals completas. El usuario selecciona una.
+4. El usuario ensambla en Figma con copy de Cursor + visuales + sistema Mercantis.
+5. Buffer programa. Métricas cuando el post estuvo un tiempo live.
 
 Planificación → Cuenta · Plataforma · Hora · Rol · Pilar · Formato  
-Idea → Fuente · Señal · Ángulo → Concepto · Hook  
+SlotSpec → Inspiración + Brain + restricciones  
+Cursor → Proposal (concepto, hook, narrativa, copy, CTA, caption)  
 Una pieza = un slot con `platforms[]` (no duplicar por red).
+
+El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `?slot=`, `?reference=`, `?proposal=`.
 
 ## Taxonomías (no mezclar capas)
 
 - **Rol** (para qué): `src/content/content-roles.ts` — alcance, valor, prueba, conversión, marca, comunidad
 - **Pilar** (de qué): `src/content/planning-pillars.ts` — taxonomía global Mercantis + pilares extra por cuenta (`estudiantes` solo Study)
-- **Ángulo** (cómo contamos): `src/content/angles.ts`
+- **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
 - **Formato** (cómo mostramos): `src/content/formats.ts`
 
 Migración de pilares legacy: `PLANNING_PILLAR_MIGRATION` en `planning-pillars.ts` (ej. `whatsapp` → `ventas-atencion`).
@@ -78,7 +98,7 @@ Migración de pilares legacy: `PLANNING_PILLAR_MIGRATION` en `planning-pillars.t
 ## Source of truth
 
 - Visuales: `assets/`
-- Texto y metadata (planificación, ideas, prompts): `src/content/`
+- Texto y metadata (planificación, propuestas, prompts): `src/content/`
 - UI del studio: `src/`
 - Playbook humano (cómo funciona el Studio): `docs/` (pestañas en la app)
 - Hechos sobre Mercantis (empresa, producto, marca): `knowledge/mercantis/`

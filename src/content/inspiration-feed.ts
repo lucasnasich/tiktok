@@ -1,3 +1,4 @@
+import type { ContentRoleId } from "@/content/content-roles";
 import {
   CLIENTE_INSPIRATION_TYPE_LABELS,
   clientInspirations,
@@ -9,8 +10,15 @@ import {
   INSPIRATION_ALL_SOURCE_ID,
 } from "@/content/idea-sources";
 import type { InspirationMediaSlide } from "@/content/inspiration-links";
+import type {
+  InspirationMaterialType,
+  InspirationOrigin,
+} from "@/content/inspiration-taxonomy";
 import { matchesFormatFilter } from "@/content/formats";
 import { organicInspirations } from "@/content/organic-inspirations";
+import { classifyInspiration } from "@/lib/inspiration-classify";
+import { decodeHtmlEntities } from "@/lib/html-entities";
+import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 
 export type InspirationFeedKind =
   | "cliente"
@@ -34,6 +42,16 @@ export type InspirationFeedItem = {
   author?: string;
   typeLabel?: string;
   formatIds?: string[];
+  origin: InspirationOrigin;
+  materialType: InspirationMaterialType;
+  signal?: string;
+  pillarAffinities?: string[];
+  roleAffinities?: ContentRoleId[];
+  formatAffinities?: string[];
+  angleAffinities?: string[];
+  creativeMechanism?: string;
+  sourceAccount?: string;
+  notes?: string[];
 };
 
 const SWIPEABLE_SOURCE_IDS = ["cliente", "organico", "creativo"] as const;
@@ -45,24 +63,80 @@ export function isSwipeableSource(sourceId: string) {
   );
 }
 
+export function inspirationTypeOf(
+  item: Pick<InspirationFeedItem, "materialType">,
+): InspirationMaterialType {
+  return item.materialType;
+}
+
 function feedKey(sourceId: string, id: string) {
   return `${sourceId}:${id}`;
+}
+
+function summarizeSignal(
+  item: Pick<InspirationFeedItem, "quote" | "postText" | "note" | "title">,
+) {
+  const text = (item.quote || item.postText || item.note || item.title || "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (text.length <= 180) return text || undefined;
+  return `${text.slice(0, 179).trim()}…`;
+}
+
+function withClassification(
+  item: Omit<InspirationFeedItem, "origin" | "materialType">,
+): InspirationFeedItem {
+  const classified = { ...item, ...classifyInspiration(item) };
+  return {
+    ...classified,
+    signal: item.signal ?? summarizeSignal(classified),
+    sourceAccount: item.sourceAccount ?? item.author,
+  };
+}
+
+export function applyInspirationOverride(
+  item: InspirationFeedItem,
+  override?: InspirationMetaOverride,
+): InspirationFeedItem {
+  if (!override) return item;
+  return {
+    ...item,
+    origin: override.origin ?? item.origin,
+    materialType: override.materialType ?? item.materialType,
+    signal: override.signal ?? item.signal,
+    pillarAffinities: override.pillarAffinities ?? item.pillarAffinities,
+    roleAffinities: override.roleAffinities ?? item.roleAffinities,
+    formatAffinities: override.formatAffinities ?? item.formatAffinities,
+    angleAffinities: override.angleAffinities ?? item.angleAffinities,
+    creativeMechanism: override.creativeMechanism ?? item.creativeMechanism,
+    sourceAccount: override.sourceAccount ?? item.sourceAccount,
+    notes: override.notes ?? item.notes,
+  };
+}
+
+export function hydrateInspirationFeed(
+  items: InspirationFeedItem[],
+  overrides: Record<string, InspirationMetaOverride> = {},
+): InspirationFeedItem[] {
+  return items.map((item) => applyInspirationOverride(item, overrides[item.key]));
 }
 
 function buildClienteFeed(): InspirationFeedItem[] {
   const sourceId = "cliente";
   const sourceLabel = getSourceLabel(sourceId);
 
-  return clientInspirations.map((item) => ({
-    key: feedKey(sourceId, item.id),
-    sourceId,
-    sourceLabel,
-    kind: "cliente",
-    title: CLIENTE_INSPIRATION_TYPE_LABELS[item.type],
-    quote: item.text,
-    note: item.context,
-    typeLabel: CLIENTE_INSPIRATION_TYPE_LABELS[item.type],
-  }));
+  return clientInspirations.map((item) =>
+    withClassification({
+      key: feedKey(sourceId, item.id),
+      sourceId,
+      sourceLabel,
+      kind: "cliente",
+      title: CLIENTE_INSPIRATION_TYPE_LABELS[item.type],
+      quote: item.text,
+      note: item.context,
+      typeLabel: CLIENTE_INSPIRATION_TYPE_LABELS[item.type],
+    }),
+  );
 }
 
 function buildOrganicFeed(): InspirationFeedItem[] {
@@ -71,7 +145,7 @@ function buildOrganicFeed(): InspirationFeedItem[] {
 
   return organicInspirations.map((item) => {
     if (item.kind === "comment") {
-      return {
+      return withClassification({
         key: feedKey(sourceId, item.id),
         sourceId,
         sourceLabel,
@@ -80,15 +154,15 @@ function buildOrganicFeed(): InspirationFeedItem[] {
         quote: item.text,
         url: item.postUrl,
         platform: item.platform,
-      };
+      });
     }
 
-    return {
+    return withClassification({
       key: feedKey(sourceId, item.id),
       sourceId,
       sourceLabel,
       kind: "organico-post",
-      title: item.title,
+      title: decodeHtmlEntities(item.title),
       note: item.note,
       url: item.url,
       media: item.media,
@@ -96,7 +170,7 @@ function buildOrganicFeed(): InspirationFeedItem[] {
       postText: item.postText,
       author: item.author,
       formatIds: item.formatIds,
-    };
+    });
   });
 }
 
@@ -104,20 +178,22 @@ function buildCreativeFeed(): InspirationFeedItem[] {
   const sourceId = "creativo";
   const sourceLabel = getSourceLabel(sourceId);
 
-  return creativeInspirations.map((item) => ({
-    key: feedKey(sourceId, item.id),
-    sourceId,
-    sourceLabel,
-    kind: "creativo",
-    title: item.title,
-    note: item.note,
-    url: item.url,
-    media: item.media,
-    platform: item.platform,
-    postText: item.postText,
-    author: item.author,
-    formatIds: item.formatIds,
-  }));
+  return creativeInspirations.map((item) =>
+    withClassification({
+      key: feedKey(sourceId, item.id),
+      sourceId,
+      sourceLabel,
+      kind: "creativo",
+      title: decodeHtmlEntities(item.title),
+      note: item.note,
+      url: item.url,
+      media: item.media,
+      platform: item.platform,
+      postText: item.postText,
+      author: item.author,
+      formatIds: item.formatIds,
+    }),
+  );
 }
 
 const FEED_BUILDERS: Record<string, () => InspirationFeedItem[]> = {
@@ -137,7 +213,12 @@ export function buildInspirationFeed(
 
   if (!formatId) return items;
 
-  return items.filter((item) => matchesFormatFilter(item.formatIds, formatId));
+  return items.filter((item) =>
+    matchesFormatFilter(
+      [...(item.formatIds ?? []), ...(item.formatAffinities ?? [])],
+      formatId,
+    ),
+  );
 }
 
 export function getInspirationSourceSummary(sourceId: string) {
@@ -146,4 +227,15 @@ export function getInspirationSourceSummary(sourceId: string) {
   }
 
   return IDEA_SOURCES.find((source) => source.id === sourceId)?.summary ?? "";
+}
+
+export function getInspirationByKey(
+  key: string,
+  overrides: Record<string, InspirationMetaOverride> = {},
+): InspirationFeedItem | undefined {
+  const item = buildInspirationFeed(INSPIRATION_ALL_SOURCE_ID).find(
+    (entry) => entry.key === key,
+  );
+  if (!item) return undefined;
+  return applyInspirationOverride(item, overrides[key]);
 }

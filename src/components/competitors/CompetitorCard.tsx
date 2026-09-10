@@ -128,7 +128,7 @@ export function CompetitorCard({
             <br />
             <span className="font-medium text-foreground/80">Opera en:</span>{" "}
             <span aria-label={mercantisMarkets.join(", ")}>
-              {formatCountryFlags(mercantisMarkets)}
+              {formatCountryFlags([...mercantisMarkets])}
             </span>
           </p>
         </div>

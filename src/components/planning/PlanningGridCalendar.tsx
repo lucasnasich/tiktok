@@ -17,11 +17,13 @@ export function PlanningGridCalendar({
   dates,
   slots,
   todayIso,
+  onOpenSlot,
 }: {
   view: PlanningViewId;
   dates: string[];
   slots: PlanningSlot[];
   todayIso: string;
+  onOpenSlot?: (slot: PlanningSlot) => void;
 }) {
   const grouped = groupSlotsByDate(slots, dates);
   const isDayView = view === PLANNING_VIEW.day.id;
@@ -40,6 +42,7 @@ export function PlanningGridCalendar({
           date={date}
           slots={grouped[date] ?? []}
           todayIso={todayIso}
+          onOpenSlot={onOpenSlot}
           className={cn(
             "min-h-[calc(100vh-14rem)]",
             !isDayView && "min-h-[12rem] lg:min-h-[calc(100vh-14rem)]",

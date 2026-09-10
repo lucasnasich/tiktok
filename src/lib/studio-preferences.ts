@@ -2,7 +2,6 @@ import type { ColumnCount } from "@/components/ColumnSelector";
 import { GALLERY_MODE, type GalleryModeId } from "@/lib/gallery";
 import { INSPIRATION_ALL_SOURCE } from "@/content/idea-sources";
 import { INSPIRATION_ALL_FORMATS_ID } from "@/content/formats";
-import { PLANNING_ALL_ACCOUNTS_ID } from "@/content/planning-accounts";
 import {
   PLANNING_MODE,
   type PlanningModeId,
@@ -51,7 +50,9 @@ export function parseCompetitorCountry(raw: unknown): string | undefined {
 
 export function parseInspirationView(raw: unknown): string | undefined {
   const ids = Object.values(INSPIRATION_VIEW).map((v) => v.id);
-  return typeof raw === "string" && ids.includes(raw) ? raw : undefined;
+  return typeof raw === "string" && ids.includes(raw as (typeof ids)[number])
+    ? raw
+    : undefined;
 }
 
 export function parseInspirationSource(raw: unknown): string | undefined {
@@ -106,7 +107,7 @@ export const STUDIO_PREFERENCE_DEFAULTS = {
   inspirationView: INSPIRATION_VIEW.revisar.id,
   inspirationFormat: INSPIRATION_ALL_FORMATS_ID,
   ideasTab: "idea",
-  planningAccount: PLANNING_ALL_ACCOUNTS_ID,
+  planningAccount: "mercantis-oficial",
   planningView: PLANNING_VIEW.week.id,
   planningMode: PLANNING_MODE.calendar.id,
   galleryMode: GALLERY_MODE.creativos.id,

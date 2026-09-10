@@ -16,18 +16,37 @@ const ROLE_CHIP_CLASS: Record<string, string> = {
 export function PlanningSlotChip({
   slot,
   showAccount = false,
+  onOpen,
 }: {
   slot: PlanningSlot;
   showAccount?: boolean;
+  onOpen?: (slot: PlanningSlot) => void;
 }) {
+  const label = `${getContentRoleLabel(slot.roleId)} · ${getPlanningPillarLabel(slot.pillarId)}`;
+  const className = cn(
+    "truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight",
+    ROLE_CHIP_CLASS[slot.roleId],
+    onOpen && "cursor-pointer hover:ring-1 hover:ring-foreground/20",
+  );
+
+  if (onOpen) {
+    return (
+      <button
+        type="button"
+        className={cn(className, "w-full text-left")}
+        title={label}
+        onClick={() => onOpen(slot)}
+      >
+        {showAccount
+          ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
+          : null}
+        {getPlanningPillarLabel(slot.pillarId)}
+      </button>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight",
-        ROLE_CHIP_CLASS[slot.roleId],
-      )}
-      title={`${getContentRoleLabel(slot.roleId)} · ${getPlanningPillarLabel(slot.pillarId)}`}
-    >
+    <div className={className} title={label}>
       {showAccount
         ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
         : null}

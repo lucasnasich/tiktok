@@ -26,6 +26,11 @@ import {
   type PlanningAccount,
 } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import {
+  buildOfficialRecommendedSettings,
+  hasEditorialMix,
+} from "@/content/planning-presets";
+import { profileSettingsToAccount } from "@/content/planning-profiles";
 import type { PlanningConfigApi } from "@/hooks/use-planning-config";
 import { WEEKDAY_LABELS } from "@/lib/planning-dates";
 
@@ -275,18 +280,48 @@ export function PlanningConfigPanel({
         <div className="space-y-4 px-5 py-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <p className="max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-              Cada cuenta usa un perfil. Cambiá el perfil desde acá o en la
-              pestaña Perfiles; el calendario se actualiza al instante.
+              Cada cuenta usa un perfil. Terminen primero Mercantis oficial: el
+              calendario se actualiza al instante.
             </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => openAssistant()}
-            >
-              <SparkleIcon className="size-3.5" />
-              Crear / editar perfil
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              {(() => {
+                const official = accounts.find(
+                  (account) => account.id === "mercantis-oficial",
+                );
+                if (!official || hasEditorialMix(official)) return null;
+                const base = planningAccounts.find(
+                  (account) => account.id === "mercantis-oficial",
+                );
+                if (!base) return null;
+                return (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      saveAccountAsProfile(
+                        profileSettingsToAccount(
+                          base,
+                          buildOfficialRecommendedSettings(),
+                        ),
+                        "Perfil · Mercantis oficial",
+                      );
+                      markSetupCompleted();
+                    }}
+                  >
+                    Activar perfil recomendado
+                  </Button>
+                );
+              })()}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => openAssistant()}
+              >
+                <SparkleIcon className="size-3.5" />
+                Crear / editar perfil
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
             {accounts.map((account) => {

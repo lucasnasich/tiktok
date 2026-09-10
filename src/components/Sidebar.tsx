@@ -52,7 +52,7 @@ const MAIN_NAV: NavEntry[] = [
     ],
   },
   { to: "/planificacion", label: "Planificación", icon: CalendarBlankIcon, end: true },
-  { to: "/ideas", label: "Ideas", icon: LightbulbIcon, end: true },
+  { to: "/propuestas", label: "Propuestas", icon: LightbulbIcon, end: true },
   {
     to: "/produccion",
     label: "Producción",

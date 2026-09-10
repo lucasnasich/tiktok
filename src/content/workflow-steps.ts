@@ -9,79 +9,79 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "planificacion",
     title: "Planificación",
-    summary: "El motor genera qué falta producir según el perfil orgánico.",
+    summary: "El perfil se convierte en slots: cuenta, hora, rol, pilar y formato.",
     details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-**Configuración**: por cuenta definís plataformas, posts/día, días activos, horarios y % por rol/pilar/formato. Los límites de repetición son internos del motor.
+**Perfil** (empezando por Mercantis oficial): plataformas, días, cantidad, horarios, mix de roles/pilares/formatos y variedad. Se configura con presets, no todos los días.
 
 **Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 
 Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Formato**.
 
-Los \`roleTargets\` del perfil gobiernan el mix **semanal**. No hay composición fija por día ni alternancia prueba/conversión en un tercer slot.
+El usuario **no** vuelve a elegir esas variables al trabajar el slot.
+
+Los \`roleTargets\` del perfil gobiernan el mix **semanal**.
 
 Esta planificación es **orgánica**. Ads es una iteración futura distinta.
 
 **Capas del contenido** (no mezclar):
 - **Rol** = para qué publicamos (\`content-roles.ts\`)
 - **Pilar** = de qué hablamos (\`planning-pillars.ts\`)
-- **Ángulo** = cómo lo contamos (\`angles.ts\`) — se asigna en Idea
+- **Ángulo** = cómo lo contamos (\`angles.ts\`) — lo propone Cursor en las Proposals
 - **Formato** = cómo lo mostramos (\`formats.ts\`)
 
-Ejemplos: Alcance → Ventas y atención → Dolor → Captura de chat · Prueba → Automatización e IA → Storytelling → Demo
-
-- Bloque **Qué falta**: brechas vs. mix semanal del perfil.
-
-**Inspiración** y **Mercantis Brain** alimentan Idea en paralelo; no reemplazan Planificación.
-
-**Output:** slots listos para convertirse en ideas.`,
+**Output:** slots listos para abrir en el SlotDetailSheet.`,
   },
   {
-    id: "idea",
-    title: "Idea",
-    summary: "Fuente + ángulo → concepto y hook, anclados al slot.",
-    details: `Tomás un PlanningSlot y decidís **qué contar**. No volvés a elegir cuenta, público, plataformas, rol, pilar ni formato.
+    id: "propuestas",
+    title: "Propuestas",
+    summary: "El Studio arma el SlotSpec. Cursor desarrolla. El usuario elige.",
+    details: `El Studio **no genera** concepto, hook, storytelling ni copy.
 
-Flujo: Calendario → slot → Crear idea.
+Flujo:
 
-Tres fuentes:
-- **Inspiración**: una referencia del Studio.
-- **Mercantis Brain**: materia prima propia (producto, dolor, historia, founder…).
-- **Manual**: una señal o instrucción escrita.
+1. Abrís un slot (sheet, calendario detrás).
+2. El Studio recomienda inspiración compatible.
+3. Elegís una referencia (\`Usar esta\`) o una dirección personalizada.
+4. El Studio ensambla el **SlotSpec** (misión + Brain + historial + restricciones).
+5. \`Preparar para Cursor\` deja el spec en \`ready-for-cursor\`.
+6. Le pedís a Cursor: “Desarrollá propuestas para este slot.”
+7. Cursor escribe Proposals completas (concepto, hook, narrativa, copy, CTA, caption).
+8. Elegís una. Queda lista para ensamblar en Figma.
 
-Aunque la fuente inicial sea Inspiración o Manual, el agente consulta el Brain cuando hay que adaptar la idea a hechos reales de Mercantis.
+Mercantis Brain es contexto **obligatorio**, no una fuente de señal.
 
-Un slot puede tener varias **candidatas** y una **seleccionada**. El ángulo, el concepto y el hook viven en la idea.
+Una Proposal ya no es solo concepto + hook: puede traer todo el contenido textual de la pieza.
 
-**Output:** idea seleccionada lista para Producción.`,
+**Output:** propuesta seleccionada lista para ensamblaje.`,
   },
   {
     id: "produccion",
     title: "Producción",
-    summary: "Convierte la idea seleccionada en una pieza.",
-    details: `Producción toma la idea seleccionada y arma la pieza. Hoy la superficie implementada es **Imágenes**.
+    summary: "Copy de Cursor + visuales + criterio del usuario → creativo.",
+    details: `Producción toma la propuesta seleccionada y arma la pieza.
+
+Hoy la superficie implementada es **Imágenes**. Figma es el ensamblaje final: el usuario dirige composición.
 
 **Imágenes:** visuales 9:16 sin texto quemado, listas para Figma.
 - Prompts en \`src/content/image-prompts.ts\`.
 - Galería del studio: hover → **Copiar prompt**.
 - Naming: mercantis-slide-NN-descripcion.png.
 
-Más adelante esta etapa va a contener Copy, Figma y el armado hacia Buffer. No hay pantallas vacías para esas superficies todavía.
+Los assets pueden relacionarse más adelante con Slot/Proposal. No hay DAM.
 
-**Output actual:** PNGs por slide, mismo ratio, estilo coherente.`,
+**Output actual:** PNGs por slide y copy listo para Figma.`,
   },
   {
     id: "publicacion",
     title: "Publicación",
-    summary: "Programás la pieza con fecha y hora acordada.",
+    summary: "Programás la pieza con fecha y hora del slot.",
     details: `Buffer es el calendario de publicación. **Nunca publicar al instante** salvo pedido explícito tuyo.
+
+Creativo + caption + plataformas + fecha/hora del Slot = publicación programada.
 
 - Default: **draft** o **scheduled** con fecha futura.
 - No programar a “ahora” ni disparar un post live sin que lo pidas con claridad.
-- Caption, hashtags y assets desde el export de Figma.
-- Canal: TikTok (y otros si aplica).
-
-Usá el MCP de Buffer cuando esté conectado. Si no, dejá el post en draft y programá manual.
 
 **Output:** post programado, no publicado todavía.`,
   },
@@ -93,25 +93,35 @@ Usá el MCP de Buffer cuando esté conectado. Si no, dejá el post en draft y pr
 
 - Views, saves, shares, comentarios — lo que TikTok muestre para ese formato.
 - ¿El hook agarró? ¿La gente llegó al CTA?
-- Anotá aprendizajes en la idea o en una nota para el próximo ciclo.
 
-No optimices en caliente el mismo día del lanzamiento salvo que algo esté claramente roto.
-
-**Output:** decisión informada para la siguiente idea (repetir ángulo, cambiar hook, otro CTA).`,
+**Output:** decisión informada para el próximo ciclo.`,
   },
 ];
 
-export const INSPIRATION_WORKFLOW_DETAILS = `Inspiración corre **en paralelo** al pipeline. No es un paso previo obligatorio: alimenta Idea.
+export const INSPIRATION_WORKFLOW_DETAILS = `Inspiración es una **biblioteca**, no un paso previo obligatorio.
 
-En el Studio vive como sección propia, primera del sidebar, con dos subsecciones:
+Durante el trabajo diario el SlotDetailSheet trae referencias recomendadas. No hace falta ir a Inspiración, memorizar y volver.
 
-- **Referencias**: biblioteca de posts/ads/links (\`src/content/\`). Listado / Revisar, filtro por fuente y formato, columnas. Media en \`assets/inspiracion/media/\` (local).
-- **Competidores**: marcas del mapa competitivo. Filtro país, orden, columnas. Datos en \`competitor-inspirations.ts\`.
+Dos dimensiones distintas:
 
-**Output:** señales y referencias etiquetadas, listas para una idea.`;
+- **Origen**: de dónde viene (competidor, creador, marca, cliente, orgánico, pauta, tendencia, referencia visual, otro).
+- **Tipo**: Sugerencia (alguien plantea algo para hacer) o Ejemplo (una pieza real ya publicada).
 
-export const BRAIN_WORKFLOW_DETAILS = `El **Mercantis Brain** (\`knowledge/mercantis/\`) es contexto real de la empresa, no un paso del workflow.
+El matching slot → inspiración es determinístico: compatibilidad + afinidades − uso − recencia − repetición. El Studio aconseja; no bloquea reutilizar.
 
-Alimenta Idea (y más adelante Copy) con producto, dolores, historia, claims y límites. Consultar \`README.md\` y sólo los documentos de dominio relevantes. Nunca inventar lo que no esté ahí.
+**Output:** referencias etiquetadas, listas para elegir en el slot.`;
 
-Opcionalmente una idea puede guardar \`brainRefs\` (archivos usados como respaldo).`;
+export const BRAIN_WORKFLOW_DETAILS = `El **Mercantis Brain** (\`knowledge/mercantis/\`) es contexto real y **obligatorio**.
+
+No es Inspiración. No es una fuente de señal. No es un paso del pipeline.
+
+Toda ejecución creativa de Cursor consulta el Brain. El SlotSpec incluye \`brainRefs\` y restricciones editoriales.
+
+Antes de desarrollar propuestas:
+1. leer el SlotSpec (PlanningSlot + inspiración + historial);
+2. consultar \`knowledge/mercantis/README.md\`;
+3. abrir **sólo** los documentos citados en el spec;
+4. usar \`MASTER.md\` si hay ambigüedad transversal;
+5. recién ahí escribir candidatas.
+
+Nunca inventar lo que no esté ahí.`;

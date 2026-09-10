@@ -1,6 +1,10 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import { planningAccounts } from "@/content/planning-accounts";
+import {
+  DEFAULT_FORMAT_TARGETS,
+  DEFAULT_PILLAR_TARGETS_OFFICIAL,
+} from "@/content/planning-defaults";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { normalizePillarId } from "@/content/planning-pillars";
 import {
@@ -207,7 +211,21 @@ function pickFromTargets(
 ): string {
   const entries = Object.entries(targets).filter(([, weight]) => weight > 0);
   if (entries.length === 0) {
-    return Object.keys(targets)[0] ?? "producto-mercantis";
+    const fallback =
+      kind === "format"
+        ? DEFAULT_FORMAT_TARGETS
+        : DEFAULT_PILLAR_TARGETS_OFFICIAL;
+    if (targets === fallback) {
+      return kind === "format" ? "x-razones" : "producto-mercantis";
+    }
+    return pickFromTargets(
+      fallback,
+      counts,
+      context,
+      kind,
+      seed,
+      limits,
+    );
   }
 
   const scored = entries

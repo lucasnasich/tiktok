@@ -2,18 +2,27 @@
 
 La documentación interactiva del pipeline vive en el tab **Workflow** del studio.
 
-Pasos: `Planificación → Idea → Producción → Publicación → Métricas`
+Pasos: `Planificación → Propuestas → Producción → Publicación → Métricas`
 
-**Inspiración** y **Mercantis Brain** alimentan Idea en paralelo; no son pasos del pipeline.
+**Quién hace qué**
 
-La navegación del sidebar, en cambio, muestra primero Inspiración porque es una fuente permanente:
+- **Studio** = prepara la especificación (perfil, slot, inspiración recomendada, SlotSpec).
+- **Cursor** = desarrollo creativo (ángulo, concepto, hook, narrativa, copy, CTA, caption).
+- **Usuario** = elige y dirige el ensamblaje visual.
+- **Figma** = ensamblaje final del creativo.
+- **Buffer** = publicación/programación.
 
-`Inspiración → Planificación → Ideas → Producción`
+En una frase: el Studio prepara, Cursor crea, el usuario decide y ensambla.
+
+La navegación del sidebar no cambia:
+
+`Inspiración → Planificación → Propuestas → Producción`
+
+El detalle de entidades (slot, referencia, propuesta) abre en **Sheet** lateral, con el listado/calendario detrás.
 
 Planificación decide: Cuenta → Plataforma → Hora → Rol → Pilar → Formato.  
-Idea decide: Fuente/señal → Ángulo → Concepto + Hook.
-
-Producción convierte la idea seleccionada en una pieza. Hoy la superficie live es Imágenes.
+El SlotSpec combina eso + inspiración elegida + Mercantis Brain.  
+Cursor desarrolla las Proposals. El usuario selecciona una.
 
 ## Capas del contenido (no mezclar)
 
@@ -22,17 +31,11 @@ Producción convierte la idea seleccionada en una pieza. Hoy la superficie live 
 | Rol | ¿Para qué publicamos? | `src/content/content-roles.ts` | Planificación |
 | Pilar | ¿De qué hablamos? | `src/content/planning-pillars.ts` | Planificación |
 | Formato | ¿Cómo lo mostramos? | `src/content/formats.ts` | Planificación |
-| Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` | Idea |
+| Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` | Cursor, en la Proposal |
 
-Ejemplos:
-- Alcance → Ventas y atención → Dolor → Captura de chat
-- Prueba → Automatización e IA → Storytelling → Demo
+Hechos sobre Mercantis (producto, marca, claims): `knowledge/mercantis/` — contexto obligatorio para Cursor, no una fuente de señal.
 
-Los pilares globales de Mercantis están en `planning-pillars.ts`. Pilares extra por cuenta (ej. `estudiantes` en Study) se definen aparte.
-
-Hechos sobre Mercantis (producto, marca, claims): `knowledge/mercantis/` — no mezclar con taxonomías de `src/content/`.
-
-El detalle de cada paso (qué hace, output, reglas) está en `src/content/workflow-steps.ts` y se muestra en acordeones en la app.
+El detalle de cada paso está en `src/content/workflow-steps.ts`.
 
 ## Reglas de publicación
 

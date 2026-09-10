@@ -13,7 +13,13 @@ import {
 
 const SOURCE_LABEL = getSourceLabel("organico");
 
-function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
+function OrganicInspirationCard({
+  item,
+  onOpen,
+}: {
+  item: OrganicInspiration;
+  onOpen?: () => void;
+}) {
   if (item.kind === "comment") {
     return (
       <InspirationCommentCard
@@ -23,6 +29,7 @@ function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
           text: item.text,
           postUrl: item.postUrl,
         }}
+        onOpen={onOpen}
       />
     );
   }
@@ -42,6 +49,7 @@ function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
         note: item.note,
         formatIds: item.formatIds,
       }}
+      onOpen={onOpen}
     />
   );
 }
@@ -49,9 +57,11 @@ function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
 export function OrganicInspirationPanel({
   columns,
   activeFormat,
+  onOpenReference,
 }: {
   columns: ColumnCount;
   activeFormat?: string;
+  onOpenReference?: (key: string) => void;
 }) {
   const items = organicInspirations.filter((item) =>
     matchesFormatFilter(
@@ -79,7 +89,13 @@ export function OrganicInspirationPanel({
   return (
     <div className={inspirationGridClass(columns)}>
       {items.map((item) => (
-        <OrganicInspirationCard key={item.id} item={item} />
+        <OrganicInspirationCard
+          key={item.id}
+          item={item}
+          onOpen={
+            onOpenReference ? () => onOpenReference(`organico:${item.id}`) : undefined
+          }
+        />
       ))}
     </div>
   );

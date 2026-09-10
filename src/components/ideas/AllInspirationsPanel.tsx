@@ -14,11 +14,23 @@ import { organicInspirations } from "@/content/organic-inspirations";
 
 function ClienteCard({
   item,
+  onOpen,
 }: {
   item: (typeof clientInspirations)[number];
+  onOpen?: () => void;
 }) {
   return (
-    <Card size="sm" className="h-full rounded-none p-3 ring-0">
+    <Card
+      size="sm"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      className={
+        onOpen
+          ? "h-full cursor-pointer rounded-none p-3 ring-0 transition-colors hover:bg-muted/40"
+          : "h-full rounded-none p-3 ring-0"
+      }
+    >
       <CardHeader className="gap-2">
         <Badge variant="secondary" className="w-fit text-[11px]">
           Cliente · {CLIENTE_INSPIRATION_TYPE_LABELS[item.type]}
@@ -41,9 +53,11 @@ function ClienteCard({
 export function AllInspirationsPanel({
   columns,
   activeFormat,
+  onOpenReference,
 }: {
   columns: ColumnCount;
   activeFormat?: string;
+  onOpenReference?: (key: string) => void;
 }) {
   const formatId = activeFormat ?? "all";
   const filteredOrganic = organicInspirations.filter((item) =>
@@ -86,7 +100,15 @@ export function AllInspirationsPanel({
     <div className={inspirationGridClass(columns)}>
         {showCliente
           ? clientInspirations.map((item) => (
-          <ClienteCard key={`cliente-${item.id}`} item={item} />
+          <ClienteCard
+            key={`cliente-${item.id}`}
+            item={item}
+            onOpen={
+              onOpenReference
+                ? () => onOpenReference(`cliente:${item.id}`)
+                : undefined
+            }
+          />
         ))
           : null}
 
@@ -100,6 +122,11 @@ export function AllInspirationsPanel({
                 text: item.text,
                 postUrl: item.postUrl,
               }}
+              onOpen={
+                onOpenReference
+                  ? () => onOpenReference(`organico:${item.id}`)
+                  : undefined
+              }
             />
           ) : (
             <InspirationLinkCard
@@ -117,6 +144,11 @@ export function AllInspirationsPanel({
                 note: item.note,
                 formatIds: item.formatIds,
               }}
+              onOpen={
+                onOpenReference
+                  ? () => onOpenReference(`organico:${item.id}`)
+                  : undefined
+              }
             />
           ),
         )}
@@ -125,6 +157,11 @@ export function AllInspirationsPanel({
           <InspirationLinkCard
             key={`creativo-${item.id}`}
             item={{ ...item, sourceLabel: getSourceLabel("creativo") }}
+            onOpen={
+              onOpenReference
+                ? () => onOpenReference(`creativo:${item.id}`)
+                : undefined
+            }
           />
       ))}
     </div>

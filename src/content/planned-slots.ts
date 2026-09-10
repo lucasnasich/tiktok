@@ -21,7 +21,7 @@ export type PlanningSlot = {
   pillarId: string;
   /** ID de `formats.ts` */
   formatId: string;
-  /** ID de `angles.ts` — se asigna al pasar a Idea */
+  /** ID de `angles.ts` — se asigna al pasar a Propuestas */
   angleId?: string;
   status: PlanningSlotStatus;
   /** Post asociado cuando ya existe en producción/publicación */

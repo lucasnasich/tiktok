@@ -7,7 +7,7 @@
 
 :root {
   --header-height: 3.5rem;
-  --sidebar-width: 200px;
+  --sidebar-width: 180px;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

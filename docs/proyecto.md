@@ -3,7 +3,7 @@
 | Qué | Dónde |
 |-----|--------|
 | Imágenes, videos, audio | `assets/` |
-| Ideas, copies, prompts, taxonomías | `src/content/` |
+| Propuestas, copies, prompts, taxonomías | `src/content/` |
 | La app (UI) | `src/` |
 | Reglas del agente | `.cursor/rules/mercantis-content.mdc` |
 | Cómo funciona el Studio | `docs/` |
@@ -11,7 +11,8 @@
 
 El Mercantis Brain se navega en Documentación → pestaña **Mercantis**. Índice: `knowledge/mercantis/README.md`. Backup integral: `MASTER.md`.
 
-Antes de copy/claims de producto, consultar el Brain. No inventar features ni pricing.
+Toda ejecución creativa de contenido consulta el Brain. No inventar features ni pricing.
 
-Navegación del Studio: Inspiración (Referencias / Competidores) → Planificación → Ideas → Producción (Imágenes).
+Navegación del Studio: Inspiración (Referencias / Competidores) → Planificación → Propuestas → Producción (Imágenes).
 
+El Studio prepara el SlotSpec. Cursor desarrolla las Proposals. El usuario elige y ensambla en Figma.

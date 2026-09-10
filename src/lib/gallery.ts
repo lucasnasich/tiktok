@@ -8,6 +8,9 @@ export type GalleryAsset = {
   name: string;
   prompt: string | null;
   sourceUrl?: string;
+  /** Relación futura con Slot/Proposal. No es un DAM. */
+  slotId?: string;
+  proposalId?: string;
 };
 
 export type GalleryGroup = {
@@ -85,37 +88,40 @@ function inspirationTitle(id: string): string {
 }
 
 function inspirationItems(): GalleryItem[] {
-  return Object.entries(inspirationMedia)
-    .map(([id, slides]) => {
-      const images = slides.filter((slide) => slide.kind === "image");
-      if (images.length === 0) return null;
+  const items: GalleryItem[] = [];
 
-      if (images.length === 1) {
-        return {
-          kind: "single" as const,
-          id,
-          asset: {
-            src: images[0].url,
-            name: id,
-            prompt: null,
-            sourceUrl: images[0].sourceUrl,
-          },
-        };
-      }
+  for (const [id, slides] of Object.entries(inspirationMedia)) {
+    const images = slides.filter((slide) => slide.kind === "image");
+    if (images.length === 0) continue;
 
-      return {
-        kind: "group" as const,
+    if (images.length === 1) {
+      items.push({
+        kind: "single",
         id,
-        label: inspirationTitle(id),
-        assets: images.map((slide, index) => ({
-          src: slide.url,
-          name: `${id}-${String(index + 1).padStart(2, "0")}`,
+        asset: {
+          src: images[0].url,
+          name: id,
           prompt: null,
-          sourceUrl: slide.sourceUrl,
-        })),
-      };
-    })
-    .filter((item): item is GalleryItem => item !== null);
+          sourceUrl: images[0].sourceUrl,
+        },
+      });
+      continue;
+    }
+
+    items.push({
+      kind: "group",
+      id,
+      label: inspirationTitle(id),
+      assets: images.map((slide, index) => ({
+        src: slide.url,
+        name: `${id}-${String(index + 1).padStart(2, "0")}`,
+        prompt: null,
+        sourceUrl: slide.sourceUrl,
+      })),
+    });
+  }
+
+  return items;
 }
 
 function creativosItems(): GalleryItem[] {

@@ -7,11 +7,9 @@ export const ALL_MERCANTIS_MARKETS: readonly MercantisMarket[] =
   COMPETITOR_FILTER_COUNTRIES;
 
 const AR: MercantisMarket = "Argentina";
-const BO: MercantisMarket = "Bolivia";
 const CL: MercantisMarket = "Chile";
 const CO: MercantisMarket = "Colombia";
 const CR: MercantisMarket = "Costa Rica";
-const EC: MercantisMarket = "Ecuador";
 const SV: MercantisMarket = "El Salvador";
 const GT: MercantisMarket = "Guatemala";
 const HN: MercantisMarket = "Honduras";
@@ -19,8 +17,6 @@ const MX: MercantisMarket = "México";
 const PA: MercantisMarket = "Panamá";
 const PY: MercantisMarket = "Paraguay";
 const PE: MercantisMarket = "Perú";
-const PR: MercantisMarket = "Puerto Rico";
-const DO: MercantisMarket = "República Dominicana";
 const UY: MercantisMarket = "Uruguay";
 
 const CENTROAMERICA: readonly MercantisMarket[] = [

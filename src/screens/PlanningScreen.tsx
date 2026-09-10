@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 import { Playground } from "@/components/AppShell";
 import { PlanningAccountFilter } from "@/components/planning/PlanningAccountFilter";
@@ -7,13 +7,18 @@ import { PlanningConfigPanel } from "@/components/planning/PlanningConfigPanel";
 import { PlanningGapsPanel } from "@/components/planning/PlanningGapsPanel";
 import { PlanningModeTabs } from "@/components/planning/PlanningModeTabs";
 import { PlanningViewFilter } from "@/components/planning/PlanningViewFilter";
+import { SlotDetailSheet } from "@/components/planning/SlotDetailSheet";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { PLANNING_MODE, type PlanningModeId } from "@/content/planning-mode";
 import type { PlanningViewId } from "@/content/planning-view";
-import { plannedSlots } from "@/content/planned-slots";
+import { plannedSlots, type PlanningSlot } from "@/content/planned-slots";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
-import { getCalendarSlots } from "@/lib/planning-generator";
+import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
+import {
+  getCalendarSlots,
+  getPlanningHorizonSlots,
+} from "@/lib/planning-generator";
 import {
   computePlanningInsights,
   filterSlotsByAccount,
@@ -51,7 +56,7 @@ export function PlanningScreen() {
     STUDIO_PREFERENCE_DEFAULTS.planningAccount,
     parsePlanningAccount,
   );
-  const [focusDateIso, setFocusDateIso] = usePersistedState(
+  const [focusDateIso] = usePersistedState(
     STUDIO_PREFERENCE_KEYS.planningWeekStart,
     defaultFocusIso,
     parsePlanningWeekStart,
@@ -61,6 +66,7 @@ export function PlanningScreen() {
     STUDIO_PREFERENCE_DEFAULTS.planningView as PlanningViewId,
     (raw) => parsePlanningView(raw) as PlanningViewId | undefined,
   );
+  const [selectedSlotId, setSelectedSlotId] = useSheetSearchParam("slot");
 
   const focusDate = useMemo(
     () => parseIsoDate(focusDateIso),
@@ -87,6 +93,11 @@ export function PlanningScreen() {
     );
   }, [dates, planningAccountsConfig]);
 
+  const horizonSlots = useMemo(
+    () => getPlanningHorizonSlots(plannedSlots, planningAccountsConfig, todayIso),
+    [planningAccountsConfig, todayIso],
+  );
+
   const visibleSlots = useMemo(() => {
     const inRange = filterSlotsByDates(calendarSlots, dates);
     return filterSlotsByAccount(inRange, accountId);
@@ -103,6 +114,33 @@ export function PlanningScreen() {
       }),
     [accountId, calendarSlots, dates, planningAccountsConfig, todayIso],
   );
+
+  const selectedSlot = useMemo(
+    () =>
+      horizonSlots.find((slot) => slot.id === selectedSlotId) ??
+      calendarSlots.find((slot) => slot.id === selectedSlotId),
+    [calendarSlots, horizonSlots, selectedSlotId],
+  );
+
+  const siblingSlots = useMemo(() => {
+    if (!selectedSlot) return [];
+    return horizonSlots
+      .filter((slot) => slot.accountId === selectedSlot.accountId)
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(b.date) || a.time.localeCompare(b.time),
+      );
+  }, [horizonSlots, selectedSlot]);
+
+  const siblingIndex = selectedSlot
+    ? siblingSlots.findIndex((slot) => slot.id === selectedSlot.id)
+    : -1;
+
+  useEffect(() => {
+    if (selectedSlotId && mode === PLANNING_MODE.config.id) {
+      setMode(PLANNING_MODE.calendar.id);
+    }
+  }, [mode, selectedSlotId, setMode]);
 
   const periodLabel = formatPeriodLabel(view, focusDate);
   const meta =
@@ -149,6 +187,29 @@ export function PlanningScreen() {
                 monthDays={monthDays}
                 slots={visibleSlots}
                 todayIso={todayIso}
+                onOpenSlot={(slot: PlanningSlot) => setSelectedSlotId(slot.id)}
+              />
+              <SlotDetailSheet
+                slot={selectedSlot}
+                slots={horizonSlots}
+                open={Boolean(selectedSlot)}
+                onOpenChange={(open) => {
+                  if (!open) setSelectedSlotId(null);
+                }}
+                onPrev={
+                  siblingIndex > 0
+                    ? () => setSelectedSlotId(siblingSlots[siblingIndex - 1].id)
+                    : undefined
+                }
+                onNext={
+                  siblingIndex >= 0 && siblingIndex < siblingSlots.length - 1
+                    ? () => setSelectedSlotId(siblingSlots[siblingIndex + 1].id)
+                    : undefined
+                }
+                prevDisabled={siblingIndex <= 0}
+                nextDisabled={
+                  siblingIndex < 0 || siblingIndex >= siblingSlots.length - 1
+                }
               />
             </div>
           </div>

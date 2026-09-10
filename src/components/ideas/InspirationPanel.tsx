@@ -22,6 +22,7 @@ type InspirationPanelProps = {
   onSourceChange?: (sourceId: string) => void;
   showSourceFilterInline?: boolean;
   onLayoutChange?: () => void;
+  onOpenReference?: (key: string) => void;
 };
 
 function SourceTopicsGrid({
@@ -56,25 +57,46 @@ function InspirationSourceContent({
   sourceId,
   activeFormat,
   columns,
+  onOpenReference,
 }: {
   sourceId: string;
   activeFormat?: string;
   columns: ColumnCount;
+  onOpenReference?: (key: string) => void;
 }) {
   if (sourceId === INSPIRATION_ALL_SOURCE_ID) {
     return (
-      <AllInspirationsPanel columns={columns} activeFormat={activeFormat} />
+      <AllInspirationsPanel
+        columns={columns}
+        activeFormat={activeFormat}
+        onOpenReference={onOpenReference}
+      />
     );
   }
-  if (sourceId === "cliente") return <ClienteInspirationPanel columns={columns} />;
+  if (sourceId === "cliente") {
+    return (
+      <ClienteInspirationPanel
+        columns={columns}
+        onOpenReference={onOpenReference}
+      />
+    );
+  }
   if (sourceId === "organico") {
     return (
-      <OrganicInspirationPanel columns={columns} activeFormat={activeFormat} />
+      <OrganicInspirationPanel
+        columns={columns}
+        activeFormat={activeFormat}
+        onOpenReference={onOpenReference}
+      />
     );
   }
   if (sourceId === "creativo") {
     return (
-      <CreativeInspirationPanel columns={columns} activeFormat={activeFormat} />
+      <CreativeInspirationPanel
+        columns={columns}
+        activeFormat={activeFormat}
+        onOpenReference={onOpenReference}
+      />
     );
   }
   return <SourceTopicsGrid sourceId={sourceId} columns={columns} />;
@@ -88,6 +110,7 @@ export function InspirationPanel({
   onSourceChange,
   showSourceFilterInline = false,
   onLayoutChange,
+  onOpenReference,
 }: InspirationPanelProps) {
   const feedItems = buildInspirationFeed(activeSource, activeFormat);
   const canReview = isSwipeableSource(activeSource);
@@ -137,6 +160,7 @@ export function InspirationPanel({
         sourceId={activeSource}
         activeFormat={activeFormat}
         columns={columns}
+        onOpenReference={onOpenReference}
       />
     </>
   );

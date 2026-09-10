@@ -21,7 +21,7 @@ export function InspirationCard() {
           <span className="flex min-w-0 flex-col items-start gap-0.5 pr-2 text-left">
             <span className="font-medium text-foreground">Inspiración</span>
             <span className="text-[13px] font-normal text-muted-foreground">
-              Fuente paralela — Referencias y Competidores alimentan Idea.
+              Biblioteca paralela — el slot trae las recomendaciones al trabajo diario.
             </span>
           </span>
         </AccordionTrigger>
@@ -34,7 +34,7 @@ export function InspirationCard() {
           <span className="flex min-w-0 flex-col items-start gap-0.5 pr-2 text-left">
             <span className="font-medium text-foreground">Mercantis Brain</span>
             <span className="text-[13px] font-normal text-muted-foreground">
-              Contexto real de la empresa — no es un paso del pipeline.
+              Contexto obligatorio de Cursor — no es un paso del pipeline.
             </span>
           </span>
         </AccordionTrigger>

@@ -1,7 +1,7 @@
 import { getAngleLabel } from "@/content/angles";
 import type { ContentRoleId } from "@/content/content-roles";
 import { getContentRoleLabel } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
+import { getFormatById } from "@/content/formats";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   PLANNING_ALL_ACCOUNTS_ID,
@@ -123,15 +123,19 @@ function detectTargetDrift(
   const dominantFormat = [...formatCounts.entries()].sort(
     (a, b) => b[1] - a[1],
   )[0];
+  const dominantFormatDef = dominantFormat
+    ? getFormatById(dominantFormat[0])
+    : undefined;
   if (
     dominantFormat &&
+    dominantFormatDef &&
     dominantFormat[1] >= account.repetitionLimits.maxSameFormatInPeriod
   ) {
     insights.push({
       id: `${account.id}-format-${dominantFormat[0]}`,
       kind: "warning",
       accountId: account.id,
-      message: `Repetimos mucho el formato ${getFormatLabel(dominantFormat[0])} (${account.label})`,
+      message: `Repetimos mucho el formato ${dominantFormatDef.label} (${account.label})`,
     });
   }
 

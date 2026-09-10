@@ -1,5 +1,3 @@
-import { Link } from "react-router-dom";
-
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
@@ -12,10 +10,12 @@ import {
   type PlanningSlot,
 } from "@/content/planned-slots";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useIdeas } from "@/hooks/use-ideas";
-import { selectedIdeaForSlot } from "@/lib/ideas-store";
+import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
+import { useProposals } from "@/hooks/use-proposals";
+import { useSlotSpecs } from "@/hooks/use-slot-specs";
+import { selectedProposalForSlot } from "@/lib/proposals-store";
+import { deriveSlotWorkflowStatus } from "@/lib/slot-workflow";
 import { cn } from "@/lib/utils";
 
 const ROLE_BADGE_CLASS: Record<string, string> = {
@@ -32,13 +32,40 @@ const PLATFORM_LABELS: Record<string, string> = {
   instagram: "IG",
 };
 
-export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
-  const { ideas } = useIdeas();
-  const selected = selectedIdeaForSlot(ideas, slot.id);
+export function PlanningSlotCard({
+  slot,
+  onOpen,
+}: {
+  slot: PlanningSlot;
+  onOpen?: (slot: PlanningSlot) => void;
+}) {
+  const { proposals } = useProposals();
+  const { getRecord } = useSlotSpecs();
+  const selected = selectedProposalForSlot(proposals, slot.id);
+  const workflow = deriveSlotWorkflowStatus(slot.id, getRecord(slot.id), proposals);
   const distributionType = getSlotDistributionType(slot);
 
   return (
-    <Card size="sm" className="ring-border/80">
+    <Card
+      size="sm"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen ? () => onOpen(slot) : undefined}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen(slot);
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        "ring-border/80",
+        onOpen && "cursor-pointer transition-colors hover:bg-muted/40",
+      )}
+    >
       <CardHeader className="gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <Badge
@@ -49,6 +76,9 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
             )}
           >
             {getContentRoleLabel(slot.roleId)}
+          </Badge>
+          <Badge variant="outline" className="text-[11px]">
+            {SLOT_WORKFLOW_STATUS_LABELS[workflow]}
           </Badge>
           <Badge variant="outline" className="text-[11px]">
             {PLANNING_SLOT_STATUS_LABELS[slot.status]}
@@ -75,9 +105,13 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
         </p>
         {selected ? (
           <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Idea: {selected.hook}
+            Propuesta: {selected.hook}
           </p>
-        ) : null}
+        ) : (
+          <p className="text-[12px] text-muted-foreground">
+            {SLOT_WORKFLOW_STATUS_LABELS[workflow]}
+          </p>
+        )}
         {slot.postId ? (
           <p className="text-[11px] font-medium text-muted-foreground">
             Post: {slot.postId}
@@ -88,11 +122,6 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
             {slot.notes}
           </p>
         ) : null}
-        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-          <Link to={`/ideas?slot=${encodeURIComponent(slot.id)}`}>
-            {selected ? "Ver ideas" : "Crear idea"}
-          </Link>
-        </Button>
       </CardContent>
     </Card>
   );

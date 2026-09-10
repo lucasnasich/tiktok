@@ -37,7 +37,7 @@ import {
 import { cn } from "@/lib/utils";
 
 function gallerySlideWidth(columns: ColumnCount): string {
-  return `max(15rem, calc((100vw - var(--sidebar-width, 200px)) / ${columns}))`;
+  return `max(15rem, calc((100vw - var(--sidebar-width, 180px)) / ${columns}))`;
 }
 
 function GalleryTile({

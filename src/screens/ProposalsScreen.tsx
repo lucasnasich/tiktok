@@ -1,16 +1,16 @@
 import { useMemo } from "react";
 
 import { Playground } from "@/components/AppShell";
-import { IdeasBoard } from "@/components/ideas/IdeasBoard";
+import { ProposalsBoard } from "@/components/proposals/ProposalsBoard";
 import { plannedSlots } from "@/content/planned-slots";
-import { useIdeas } from "@/hooks/use-ideas";
+import { useProposals } from "@/hooks/use-proposals";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
 import { getPlanningHorizonSlots } from "@/lib/planning-generator";
 import { toIsoDate } from "@/lib/planning-dates";
 
-export function IdeasScreen() {
+export function ProposalsScreen() {
   const { accounts } = usePlanningConfig();
-  const { ideas } = useIdeas();
+  const { proposals } = useProposals();
   const todayIso = toIsoDate(new Date());
   const slots = useMemo(
     () => getPlanningHorizonSlots(plannedSlots, accounts, todayIso),
@@ -18,8 +18,8 @@ export function IdeasScreen() {
   );
 
   return (
-    <Playground title="Ideas" meta={`${ideas.length}`}>
-      <IdeasBoard slots={slots} todayIso={todayIso} />
+    <Playground title="Propuestas" meta={`${proposals.length}`}>
+      <ProposalsBoard slots={slots} todayIso={todayIso} />
     </Playground>
   );
 }

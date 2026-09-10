@@ -1,3 +1,4 @@
+import type { ContentRoleId } from "@/content/content-roles";
 import type { DistributionType } from "@/content/planned-slots";
 
 /** Horarios disponibles por defecto para asignar piezas. */
@@ -41,6 +42,21 @@ export const DEFAULT_PILLAR_TARGETS_STUDY: Record<string, number> = {
   "mercado-tendencias": 15,
   "operacion-gestion": 10,
 };
+
+/** Mix de roles — cuenta oficial (suma 100). */
+export const DEFAULT_ROLE_TARGETS_OFFICIAL: Partial<
+  Record<ContentRoleId, number>
+> = {
+  alcance: 35,
+  valor: 25,
+  prueba: 15,
+  conversion: 5,
+  marca: 10,
+  comunidad: 10,
+};
+
+/** Plataformas por defecto de la cuenta oficial. */
+export const DEFAULT_OFFICIAL_PLATFORMS = ["tiktok", "instagram"] as const;
 
 /** Formatos con peso inicial razonable (suma ~100). */
 export const DEFAULT_FORMAT_TARGETS: Record<string, number> = {

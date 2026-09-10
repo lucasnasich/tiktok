@@ -3,6 +3,7 @@ import {
   getPlanningAccountLabel,
   planningAccounts,
   type PlanningAccount,
+  type PlanningPlatform,
 } from "@/content/planning-accounts";
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
@@ -14,9 +15,11 @@ import {
 } from "@/content/planning-profiles";
 import type { DistributionType } from "@/content/planned-slots";
 import type { RepetitionLimits } from "@/content/planning-accounts";
+import { fillOfficialEditorialGaps } from "@/content/planning-presets";
 import type { PlanningWizardSession } from "@/lib/planning-wizard-session";
 
 export type PlanningAccountOverride = {
+  platforms?: PlanningPlatform[];
   postsPerDay?: number;
   activeDays?: number[];
   timeSlots?: string[];
@@ -114,8 +117,10 @@ export function getEffectivePlanningAccounts(
 ): PlanningAccount[] {
   return planningAccounts.map((account) => {
     const profile = getProfileForAccount(store, account.id);
-    if (!profile) return account;
-    return mergePlanningAccount(account, profile.settings);
+    const resolved = profile
+      ? mergePlanningAccount(account, profile.settings)
+      : account;
+    return fillOfficialEditorialGaps(resolved);
   });
 }
 
@@ -202,6 +207,7 @@ export function parsePlanningConfigStore(raw: unknown): PlanningConfigStore {
   if (!raw || typeof raw !== "object") return EMPTY_PLANNING_CONFIG;
   const data = raw as LegacyPlanningConfigStore & {
     wizardSessions?: Record<string, PlanningWizardSession>;
+    profiles?: PlanningProfile[];
   };
 
   if (!data.version || data.version < 3) {
@@ -239,6 +245,7 @@ export function parsePlanningConfigStore(raw: unknown): PlanningConfigStore {
 
 export function accountToOverride(account: PlanningAccount): PlanningAccountOverride {
   return {
+    platforms: [...account.platforms],
     postsPerDay: account.postsPerDay,
     activeDays: [...account.activeDays],
     timeSlots: [...account.timeSlots],

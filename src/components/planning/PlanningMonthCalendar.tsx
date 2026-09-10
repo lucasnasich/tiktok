@@ -12,10 +12,12 @@ export function PlanningMonthCalendar({
   days,
   slots,
   todayIso,
+  onOpenSlot,
 }: {
   days: MonthCalendarDay[];
   slots: PlanningSlot[];
   todayIso: string;
+  onOpenSlot?: (slot: PlanningSlot) => void;
 }) {
   const dates = days.map((day) => day.iso);
   const grouped = groupSlotsByDate(slots, dates);
@@ -73,7 +75,12 @@ export function PlanningMonthCalendar({
 
               <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
                 {daySlots.slice(0, 3).map((slot) => (
-                  <PlanningSlotChip key={slot.id} slot={slot} showAccount />
+                  <PlanningSlotChip
+                    key={slot.id}
+                    slot={slot}
+                    showAccount
+                    onOpen={onOpenSlot}
+                  />
                 ))}
                 {daySlots.length > 3 ? (
                   <span className="text-[10px] text-muted-foreground">

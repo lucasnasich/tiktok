@@ -22,6 +22,7 @@ export type PlanningProfile = {
 
 function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
   return {
+    platforms: [...account.platforms],
     postsPerDay: account.postsPerDay,
     activeDays: [...account.activeDays],
     timeSlots: [...account.timeSlots],
@@ -57,6 +58,7 @@ export function profileSettingsToAccount(
 ): PlanningAccount {
   return {
     ...baseAccount,
+    platforms: settings.platforms ?? baseAccount.platforms,
     postsPerDay: settings.postsPerDay ?? baseAccount.postsPerDay,
     activeDays: settings.activeDays ?? baseAccount.activeDays,
     timeSlots: settings.timeSlots ?? baseAccount.timeSlots,

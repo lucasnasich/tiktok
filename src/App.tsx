@@ -1,6 +1,6 @@
 import { IconContext } from "@phosphor-icons/react";
 import type { CSSProperties } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { PHOSPHOR_ICON_DEFAULTS } from "@/components/icons/icon-defaults";
 
@@ -10,22 +10,36 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { CompetitorsScreen } from "@/screens/CompetitorsScreen";
 import { GalleryScreen } from "@/screens/GalleryScreen";
 import { DocsScreen } from "@/screens/DocsScreen";
-import { IdeasScreen } from "@/screens/IdeasScreen";
 import { InspirationScreen } from "@/screens/InspirationScreen";
 import { PlanningScreen } from "@/screens/PlanningScreen";
-import { IdeasProvider } from "@/hooks/use-ideas";
+import { ProposalsScreen } from "@/screens/ProposalsScreen";
+import { ProposalsProvider } from "@/hooks/use-proposals";
+import { SlotSpecsProvider } from "@/hooks/use-slot-specs";
+import { InspirationOverridesProvider } from "@/hooks/use-inspiration-overrides";
+
+function LegacyIdeasRedirect() {
+  const location = useLocation();
+  return (
+    <Navigate
+      to={{ pathname: "/propuestas", search: location.search }}
+      replace
+    />
+  );
+}
 
 export function App() {
   return (
     <BrowserRouter>
       <TooltipProvider>
         <IconContext.Provider value={PHOSPHOR_ICON_DEFAULTS}>
-        <IdeasProvider>
+        <ProposalsProvider>
+        <SlotSpecsProvider>
+        <InspirationOverridesProvider>
         <SidebarProvider
           className="h-svh overflow-hidden"
           style={
             {
-              "--sidebar-width": "220px",
+              "--sidebar-width": "180px",
               "--header-height": "3.5rem",
             } as CSSProperties
           }
@@ -40,7 +54,8 @@ export function App() {
                   element={<CompetitorsScreen />}
                 />
                 <Route path="/planificacion" element={<PlanningScreen />} />
-                <Route path="/ideas" element={<IdeasScreen />} />
+                <Route path="/propuestas" element={<ProposalsScreen />} />
+                <Route path="/ideas" element={<LegacyIdeasRedirect />} />
                 <Route
                   path="/produccion"
                   element={<Navigate to="/produccion/imagenes" replace />}
@@ -64,7 +79,9 @@ export function App() {
             </div>
           </SidebarInset>
         </SidebarProvider>
-        </IdeasProvider>
+        </InspirationOverridesProvider>
+        </SlotSpecsProvider>
+        </ProposalsProvider>
         </IconContext.Provider>
       </TooltipProvider>
     </BrowserRouter>

@@ -10,9 +10,11 @@ const SOURCE_LABEL = getSourceLabel("creativo");
 export function CreativeInspirationPanel({
   columns,
   activeFormat,
+  onOpenReference,
 }: {
   columns: ColumnCount;
   activeFormat?: string;
+  onOpenReference?: (key: string) => void;
 }) {
   const items = creativeInspirations.filter((item) =>
     matchesFormatFilter(item.formatIds, activeFormat ?? "all"),
@@ -40,6 +42,9 @@ export function CreativeInspirationPanel({
         <InspirationLinkCard
           key={item.id}
           item={{ ...item, sourceLabel: SOURCE_LABEL }}
+          onOpen={
+            onOpenReference ? () => onOpenReference(`creativo:${item.id}`) : undefined
+          }
         />
       ))}
     </div>

@@ -24,9 +24,22 @@ import {
 } from "@/content/planning-accounts";
 import {
   formatProfileRoleSummary,
+  profileSettingsToAccount,
   type PlanningProfile,
 } from "@/content/planning-profiles";
-import { DEFAULT_TIME_SLOTS } from "@/content/planning-defaults";
+import {
+  DEFAULT_TIME_SLOTS,
+} from "@/content/planning-defaults";
+import {
+  OFFICIAL_ROLE_MIX_PRESETS,
+  VARIETY_PRESETS,
+  buildOfficialRecommendedSettings,
+  hasEditorialMix,
+  officialFormatIds,
+  officialPillarPriorities,
+  varietyPresetIdFor,
+} from "@/content/planning-presets";
+import type { PlanningPlatform } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
@@ -272,9 +285,24 @@ function resolveWizardInitialState({
 
   const profileId =
     preferredProfileId ?? getAssignedProfileId(preferredAccountId);
-  const draft = profileId
+  let draft = profileId
     ? getAccountDraftFromProfile(preferredAccountId, profileId)
     : getAccountDraft(preferredAccountId);
+  let pillarPriorities = buildPillarPrioritiesFromTargets(draft);
+  let selectedFormats = new Set(Object.keys(draft.formatTargets));
+
+  if (
+    preferredAccountId === "mercantis-oficial" &&
+    !hasEditorialMix(draft)
+  ) {
+    const base = planningAccounts.find((account) => account.id === preferredAccountId)!;
+    draft = profileSettingsToAccount(base, buildOfficialRecommendedSettings());
+    pillarPriorities = {
+      ...officialPillarPriorities(),
+      ...buildPillarPrioritiesFromTargets(draft),
+    };
+    selectedFormats = new Set(officialFormatIds());
+  }
 
   let profileLabel = "Mi perfil";
   if (!profileId) {
@@ -293,8 +321,8 @@ function resolveWizardInitialState({
     selectedProfileId: profileId,
     profileLabel,
     draft,
-    pillarPriorities: buildPillarPrioritiesFromTargets(draft),
-    selectedFormats: new Set(Object.keys(draft.formatTargets)),
+    pillarPriorities,
+    selectedFormats: new Set(selectedFormats),
   };
 }
 
@@ -538,9 +566,9 @@ export function PlanningSetupWizard({
 
       {step.id === "welcome" && (
         <GuideCallout>
-          El calendario no reemplaza Ideas ni Inspiración: solo te propone
-          huecos con rol, pilar y formato. Después, en Idea, elegís fuente,
-          ángulo, concepto y hook.
+          El calendario arma slots con cuenta, hora, rol, pilar y formato. Después
+          elegís inspiración, el Studio prepara el spec y Cursor desarrolla las
+          propuestas. Arrancamos por Mercantis oficial.
         </GuideCallout>
       )}
 
@@ -562,12 +590,33 @@ export function PlanningSetupWizard({
                 <p className="font-medium text-foreground">{account.label}</p>
                 <p className="mt-1 text-[13px] text-muted-foreground">
                   {account.type === "official"
-                    ? "Cuenta principal · TikTok + Instagram"
+                    ? "Cuenta piloto · TikTok + Instagram"
                     : `Satélite · ${account.platforms.map((p) => p.toUpperCase()).join(" + ")}`}
                 </p>
               </button>
             ))}
           </div>
+
+          {accountId === "mercantis-oficial" ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const base = planningAccounts.find((account) => account.id === accountId)!;
+                const next = profileSettingsToAccount(
+                  base,
+                  buildOfficialRecommendedSettings(),
+                );
+                setDraft(next);
+                setPillarPriorities(officialPillarPriorities());
+                setSelectedFormats(new Set(officialFormatIds()));
+                setProfileLabel("Perfil · Mercantis oficial");
+              }}
+            >
+              Usar preset oficial
+            </Button>
+          ) : null}
 
           {compatibleProfiles.length > 0 ? (
             <div>
@@ -610,6 +659,26 @@ export function PlanningSetupWizard({
 
       {step.id === "rhythm" && (
         <div className="space-y-5">
+          <div>
+            <p className="mb-2 text-[13px] font-medium">Plataformas</p>
+            <GuideCallout>
+              Una pieza puede salir en varias plataformas a la vez. No cuenta doble.
+            </GuideCallout>
+            <MultiChoice
+              className="mt-3"
+              values={draft.platforms}
+              onChange={(values) => {
+                if (values.length === 0) return;
+                updateDraft({
+                  platforms: values as PlanningPlatform[],
+                });
+              }}
+              options={[
+                { value: "tiktok", label: "TikTok" },
+                { value: "instagram", label: "Instagram" },
+              ]}
+            />
+          </div>
           <div>
             <p className="mb-2 text-[13px] font-medium">Piezas por día</p>
             <GuideCallout>{RHYTHM_COPY.postsPerDay}</GuideCallout>
@@ -670,6 +739,22 @@ export function PlanningSetupWizard({
             recién ahí pedís acción (conversión). Los porcentajes gobiernan
             la semana, no cada día.
           </GuideCallout>
+
+          {accountId === "mercantis-oficial" ? (
+            <div className="flex flex-wrap gap-2">
+              {OFFICIAL_ROLE_MIX_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => updateDraft({ roleTargets: preset.roleTargets })}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          ) : null}
 
           <div className="space-y-3">
             {contentRoles.map((role) => {
@@ -791,6 +876,16 @@ export function PlanningSetupWizard({
             Elegí los formatos que querés rotar ({getSetupFormats().length}{" "}
             disponibles). Mejor pocos bien distribuidos que marcar todos.
           </GuideCallout>
+          {accountId === "mercantis-oficial" ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedFormats(new Set(officialFormatIds()))}
+            >
+              Usar formatos recomendados
+            </Button>
+          ) : null}
           <div className="grid gap-2 sm:grid-cols-2">
             {getSetupFormats().map((format) => {
               const active = selectedFormats.has(format.id);
@@ -852,6 +947,31 @@ export function PlanningSetupWizard({
 
       {step.id === "review" && (
         <div className="space-y-4">
+          <div>
+            <p className="mb-2 text-[13px] font-medium">Variedad</p>
+            <p className="mb-2 text-[12px] text-muted-foreground">
+              El motor no bloquea repetición: solo baja prioridad cuando se satura.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {VARIETY_PRESETS.map((preset) => (
+                <Button
+                  key={preset.id}
+                  type="button"
+                  size="sm"
+                  variant={
+                    varietyPresetIdFor(draft.repetitionLimits) === preset.id
+                      ? "default"
+                      : "outline"
+                  }
+                  onClick={() =>
+                    updateDraft({ repetitionLimits: preset.limits })
+                  }
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          </div>
           <div>
             <p className="mb-2 text-[13px] font-medium">Nombre del perfil</p>
             <Input

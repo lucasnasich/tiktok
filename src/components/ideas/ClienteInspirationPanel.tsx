@@ -8,9 +8,25 @@ import {
   type ClienteInspiration,
 } from "@/content/client-inspirations";
 
-function ClienteInspirationCard({ item }: { item: ClienteInspiration }) {
+function ClienteInspirationCard({
+  item,
+  onOpen,
+}: {
+  item: ClienteInspiration;
+  onOpen?: () => void;
+}) {
   return (
-    <Card size="sm" className="h-full rounded-none p-3 ring-0">
+    <Card
+      size="sm"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      className={
+        onOpen
+          ? "h-full cursor-pointer rounded-none p-3 ring-0 transition-colors hover:bg-muted/40"
+          : "h-full rounded-none p-3 ring-0"
+      }
+    >
       <CardHeader className="gap-2">
         <Badge variant="secondary" className="w-fit text-[11px]">
           {CLIENTE_INSPIRATION_TYPE_LABELS[item.type]}
@@ -28,7 +44,13 @@ function ClienteInspirationCard({ item }: { item: ClienteInspiration }) {
   );
 }
 
-export function ClienteInspirationPanel({ columns }: { columns: ColumnCount }) {
+export function ClienteInspirationPanel({
+  columns,
+  onOpenReference,
+}: {
+  columns: ColumnCount;
+  onOpenReference?: (key: string) => void;
+}) {
   if (clientInspirations.length === 0) {
     return (
       <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
@@ -40,7 +62,13 @@ export function ClienteInspirationPanel({ columns }: { columns: ColumnCount }) {
   return (
     <div className={inspirationGridClass(columns)}>
       {clientInspirations.map((item) => (
-        <ClienteInspirationCard key={item.id} item={item} />
+        <ClienteInspirationCard
+          key={item.id}
+          item={item}
+          onOpen={
+            onOpenReference ? () => onOpenReference(`cliente:${item.id}`) : undefined
+          }
+        />
       ))}
     </div>
   );

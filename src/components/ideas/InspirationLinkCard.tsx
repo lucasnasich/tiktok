@@ -10,11 +10,34 @@ import type {
   InspirationLinkItem,
 } from "@/content/inspiration-links";
 
-export function InspirationLinkCard({ item }: { item: InspirationLinkItem }) {
+export function InspirationLinkCard({
+  item,
+  onOpen,
+}: {
+  item: InspirationLinkItem;
+  onOpen?: () => void;
+}) {
   return (
     <Card
       size="sm"
-      className="group/card gap-0 overflow-hidden rounded-none p-0 ring-0"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            }
+          : undefined
+      }
+      className={
+        onOpen
+          ? "group/card cursor-pointer gap-0 overflow-hidden rounded-none p-0 ring-0 transition-colors hover:bg-muted/40"
+          : "group/card gap-0 overflow-hidden rounded-none p-0 ring-0"
+      }
     >
       <div className="relative overflow-hidden group/preview">
         <InspirationLinkPreview
@@ -45,9 +68,35 @@ export function InspirationLinkCard({ item }: { item: InspirationLinkItem }) {
   );
 }
 
-export function InspirationCommentCard({ item }: { item: InspirationCommentItem }) {
+export function InspirationCommentCard({
+  item,
+  onOpen,
+}: {
+  item: InspirationCommentItem;
+  onOpen?: () => void;
+}) {
   return (
-    <Card size="sm" className="h-full rounded-none p-3 ring-0">
+    <Card
+      size="sm"
+      role={onOpen ? "button" : undefined}
+      tabIndex={onOpen ? 0 : undefined}
+      onClick={onOpen}
+      onKeyDown={
+        onOpen
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpen();
+              }
+            }
+          : undefined
+      }
+      className={
+        onOpen
+          ? "h-full cursor-pointer rounded-none p-3 ring-0 transition-colors hover:bg-muted/40"
+          : "h-full rounded-none p-3 ring-0"
+      }
+    >
       <CardHeader className="gap-2 p-0">
         <Badge variant="secondary" className="w-fit text-[11px]">
           Comentario · {item.platform}

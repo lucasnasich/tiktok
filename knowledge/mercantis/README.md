@@ -6,7 +6,7 @@ El Mercantis Brain es la **fuente de verdad** sobre Mercantis para humanos y age
 
 ## Para qué existe
 
-Para que un agente pueda generar ideas, hooks, copy, briefs, claims, comparaciones y decisiones editoriales **basadas en información real**, sin inventar features, pricing, mercados, clientes, métricas, historia ni roadmap.
+Para que un agente pueda generar propuestas, hooks, copy, briefs, claims, comparaciones y decisiones editoriales **basadas en información real**, sin inventar features, pricing, mercados, clientes, métricas, historia ni roadmap.
 
 También para que Mercantis no pierda contexto con el tiempo: razones, errores, números aproximados, matices y decisiones.
 
@@ -72,7 +72,7 @@ Cuando importe para contenido:
 | Si necesitás saber sobre... | Consultá |
 |---|---|
 | Qué es Mercantis, el problema, la categoría | `empresa.md` |
-| Origen, Curval, primera venta, presión financiera | `historia.md` |
+| Origen, Curbal, primera venta, presión financiera | `historia.md` |
 | Lucas y Carla, roles, cómo se conocieron | `fundadores.md` |
 | Nombre, Odisea, Argonautas, logo, estética, referencias | `marca.md` |
 | Filosofía de producto, Apple, límites, autonomía de IA | `filosofia.md` |
