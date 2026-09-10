@@ -169,10 +169,3 @@ a {
     @apply font-sans;
   }
 }
-
-/* TikTok / YouTube en Inspiración */
-.inspiration-social-embed .rsme-embed {
-  overflow: visible !important;
-  height: auto !important;
-  max-height: none !important;
-}

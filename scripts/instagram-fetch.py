@@ -5,11 +5,16 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 import sys
 import urllib.request
 from pathlib import Path
 
 import instaloader
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from media_fetch_utils import file_has_audio, run_yt_dlp
 
 
 def shortcode_from_url(url: str) -> str:
@@ -75,18 +80,51 @@ def existing_manifest(out_dir: Path) -> list[dict[str, str]]:
     return manifest
 
 
+def canonical_url(shortcode: str) -> str:
+    return f"https://www.instagram.com/p/{shortcode}/"
+
+
+def ensure_video_has_audio(video_path: Path, source_url: str, root: Path) -> None:
+    if file_has_audio(video_path):
+        return
+
+    out_dir = video_path.parent
+    backup = out_dir / "_video_no_audio.bak"
+    if video_path.exists():
+        shutil.move(str(video_path), backup)
+
+    try:
+        run_yt_dlp(source_url, out_dir / "video.%(ext)s", root)
+    except SystemExit:
+        if backup.is_file() and not video_path.is_file():
+            shutil.move(str(backup), video_path)
+        raise
+
+    if backup.is_file():
+        backup.unlink()
+
+    if not file_has_audio(video_path):
+        raise SystemExit(f"El video de Instagram no tiene audio: {video_path.name}")
+
+
 def fetch_post(url: str, out_dir: Path, force: bool = False) -> dict:
     shortcode = shortcode_from_url(url)
     post_id = f"ig-{shortcode.lower()}"
+    root = Path(__file__).resolve().parent.parent
+    source_url = canonical_url(shortcode)
 
     if not force and has_local_media(out_dir):
-        return {
-            "shortcode": shortcode,
-            "id": post_id,
-            "url": f"https://www.instagram.com/p/{shortcode}/",
-            "files": existing_manifest(out_dir),
-            "skipped": True,
-        }
+        video_path = out_dir / "video.mp4"
+        if video_path.is_file() and not file_has_audio(video_path):
+            force = True
+        else:
+            return {
+                "shortcode": shortcode,
+                "id": post_id,
+                "url": source_url,
+                "files": existing_manifest(out_dir),
+                "skipped": True,
+            }
 
     loader = instaloader.Instaloader()
     post = instaloader.Post.from_shortcode(loader.context, shortcode)
@@ -99,6 +137,7 @@ def fetch_post(url: str, out_dir: Path, force: bool = False) -> dict:
             if node.is_video:
                 path = out_dir / f"{prefix}.mp4"
                 download(node.video_url, path)
+                ensure_video_has_audio(path, source_url, root)
                 files.append({"kind": "video", "file": str(path)})
                 continue
 
@@ -109,6 +148,7 @@ def fetch_post(url: str, out_dir: Path, force: bool = False) -> dict:
     elif post.is_video:
         video_path = out_dir / "video.mp4"
         download(post.video_url, video_path)
+        ensure_video_has_audio(video_path, source_url, root)
         poster_path = out_dir / "poster.jpg"
         download(post.url, poster_path)
         files.append(
@@ -127,7 +167,7 @@ def fetch_post(url: str, out_dir: Path, force: bool = False) -> dict:
     return {
         "shortcode": shortcode,
         "id": f"ig-{shortcode.lower()}",
-        "url": f"https://www.instagram.com/p/{shortcode}/",
+        "url": source_url,
         "files": files,
     }
 

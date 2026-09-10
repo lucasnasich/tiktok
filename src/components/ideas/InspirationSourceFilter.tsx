@@ -1,4 +1,4 @@
-import { ListFilter } from "lucide-react";
+import { FunnelIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +30,7 @@ export function InspirationSourceFilter({
           size="icon-sm"
           aria-label={`Fuente: ${activeLabel}`}
         >
-          <ListFilter className="size-4" strokeWidth={1.75} />
+          <FunnelIcon className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-40">

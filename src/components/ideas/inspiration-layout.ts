@@ -1,6 +1,12 @@
-/** Contenedor para que el grid responda al ancho del Playground, no solo al viewport. */
-export const INSPIRATION_CONTAINER_CLASS = "@container";
+import type { ColumnCount } from "@/components/ColumnSelector";
+import { cn } from "@/lib/utils";
 
-/** Hasta 3 columnas cuando el área de contenido lo permite (~640px+). */
-export const INSPIRATION_GRID_CLASS =
-  "grid grid-cols-1 gap-3 @min-[28rem]:grid-cols-2 @min-[40rem]:grid-cols-3";
+export function inspirationGridClass(columns: ColumnCount) {
+  return cn("grid gap-px bg-border", columns === 3 ? "grid-cols-3" : "grid-cols-4");
+}
+
+export const inspirationMediaOverlayButtonClass =
+  "absolute z-30 flex size-7 items-center justify-center rounded-md bg-black/60 text-white backdrop-blur-[2px] transition-opacity hover:bg-black/75";
+
+export const inspirationMediaOverlayButtonHiddenClass =
+  "pointer-events-none opacity-0";

@@ -1,4 +1,9 @@
-import { Globe, Instagram } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
+import {
+  GlobeIcon,
+  InstagramLogoIcon,
+  TiktokLogoIcon,
+} from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,18 +45,18 @@ export function CompetitorCard({
 
   const links = [
     item.instagramUrl
-      ? { label: "Instagram", url: item.instagramUrl, icon: Instagram }
+      ? { label: "Instagram", url: item.instagramUrl, icon: InstagramLogoIcon }
       : null,
     item.websiteUrl
-      ? { label: "Web", url: item.websiteUrl, icon: Globe }
+      ? { label: "Web", url: item.websiteUrl, icon: GlobeIcon }
       : null,
     item.tiktokUrl
-      ? { label: "TikTok", url: item.tiktokUrl, icon: Globe }
+      ? { label: "TikTok", url: item.tiktokUrl, icon: TiktokLogoIcon }
       : null,
   ].filter(Boolean) as {
     label: string;
     url: string;
-    icon: typeof Instagram;
+    icon: Icon;
   }[];
 
   const mercantisMarkets = getCompetitorMercantisMarkets(item.id);
@@ -138,7 +143,7 @@ export function CompetitorCard({
             className="h-8 w-full rounded-lg border-border/80 bg-background text-[12px] font-semibold shadow-sm transition-colors hover:border-foreground hover:bg-foreground hover:text-background"
           >
             <a href={link.url} target="_blank" rel="noopener noreferrer">
-              <link.icon className="size-3.5" strokeWidth={1.75} />
+              <link.icon className="size-3.5" />
               {link.label}
             </a>
           </Button>

@@ -3,6 +3,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { ASSET_PATHS } from "./asset-paths.mjs";
+import {
+  ensureSlideSourceMeta,
+  loadInspirationUrlsFromContent,
+  readPostMeta,
+  sourceUrlForFile,
+} from "./inspiration-source-meta.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const assetsRoot = ASSET_PATHS.inspirationMedia;
@@ -46,6 +52,10 @@ function listMediaFiles(dir) {
     }));
 }
 
+function escapeTsString(value) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 function buildMediaTs(mediaById) {
   const importLines = [];
   const importMap = new Map();
@@ -61,18 +71,22 @@ function buildMediaTs(mediaById) {
 
   const entries = Object.entries(mediaById).map(([id, slides]) => {
     const mappedSlides = slides.map((slide) => {
+      const sourceUrlField = slide.sourceUrl
+        ? `, sourceUrl: "${escapeTsString(slide.sourceUrl)}"`
+        : "";
+
       if (slide.kind === "image") {
         const ref = addImport(slide.file);
-        return `{ kind: "image", url: ${ref} }`;
+        return `{ kind: "image", url: ${ref}${sourceUrlField} }`;
       }
 
       const videoRef = addImport(slide.file);
       if (slide.poster) {
         const posterRef = addImport(slide.poster);
-        return `{ kind: "video", url: ${videoRef}, poster: ${posterRef} }`;
+        return `{ kind: "video", url: ${videoRef}, poster: ${posterRef}${sourceUrlField} }`;
       }
 
-      return `{ kind: "video", url: ${videoRef} }`;
+      return `{ kind: "video", url: ${videoRef}${sourceUrlField} }`;
     });
 
     return `  "${id}": [\n    ${mappedSlides.join(",\n    ")}\n  ]`;
@@ -94,13 +108,26 @@ if (!fs.existsSync(assetsRoot)) {
   fs.mkdirSync(assetsRoot, { recursive: true });
 }
 
+const inspirationUrls = loadInspirationUrlsFromContent(root);
 const mediaById = {};
+
 for (const id of fs.readdirSync(assetsRoot)) {
   if (id.startsWith(".")) continue;
   const dir = path.join(assetsRoot, id);
   if (!fs.statSync(dir).isDirectory()) continue;
   if (id === "_tmp") continue;
-  const slides = listMediaFiles(dir);
+
+  const meta = ensureSlideSourceMeta(dir, readPostMeta(dir));
+  const fallbackUrl = inspirationUrls[id];
+  const slides = listMediaFiles(dir).map((slide) => ({
+    ...slide,
+    sourceUrl: sourceUrlForFile(
+      meta,
+      path.basename(slide.file),
+      fallbackUrl,
+    ),
+  }));
+
   if (slides.length > 0) mediaById[id] = slides;
 }
 

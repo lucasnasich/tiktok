@@ -1,4 +1,4 @@
-import { LayoutGrid } from "lucide-react";
+import { GridFourIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ export function ColumnSelector({ value, onChange }: ColumnSelectorProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="icon-sm" aria-label="Columnas">
-          <LayoutGrid className="size-4" strokeWidth={1.75} />
+          <GridFourIcon className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-36">

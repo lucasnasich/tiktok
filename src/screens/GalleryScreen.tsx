@@ -1,20 +1,31 @@
-import { Check, Copy, Image as ImageIcon } from "lucide-react";
-import { useState } from "react";
+import {
+  ArrowSquareOutIcon,
+  CheckIcon,
+  CopyIcon,
+  ImageIcon,
+} from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
 
 import { Playground } from "@/components/AppShell";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import {
   ColumnSelector,
   type ColumnCount,
 } from "@/components/ColumnSelector";
 import { GalleryModeFilter } from "@/components/gallery/GalleryModeFilter";
 import { Button } from "@/components/ui/button";
+import { useImageLightbox } from "@/hooks/use-image-lightbox";
 import { usePersistedState } from "@/hooks/use-persisted-state";
+import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
 import {
+  buildGalleryLightboxCatalog,
   galleryGroupCountForItems,
   galleryImageCountForItems,
   galleryItemsForMode,
+  galleryRowsForItems,
   type GalleryAsset,
   type GalleryItem,
+  type GalleryRow,
 } from "@/lib/gallery";
 import { copyImageToClipboard } from "@/lib/copy-image-to-clipboard";
 import {
@@ -29,7 +40,13 @@ function gallerySlideWidth(columns: ColumnCount): string {
   return `max(15rem, calc((100vw - var(--sidebar-width, 200px)) / ${columns}))`;
 }
 
-function GalleryTile({ asset }: { asset: GalleryAsset }) {
+function GalleryTile({
+  asset,
+  onOpen,
+}: {
+  asset: GalleryAsset;
+  onOpen: () => void;
+}) {
   const [copiedPrompt, setCopiedPrompt] = useState(false);
   const [copiedImage, setCopiedImage] = useState(false);
   const [copyImageError, setCopyImageError] = useState(false);
@@ -58,12 +75,19 @@ function GalleryTile({ asset }: { asset: GalleryAsset }) {
 
   return (
     <div className="group relative w-full">
-      <img
-        src={asset.src}
-        alt=""
-        className="block w-full h-auto"
-        draggable={false}
-      />
+      <button
+        type="button"
+        onClick={onOpen}
+        className="block w-full cursor-pointer"
+        aria-label="Ver imagen en grande"
+      >
+        <img
+          src={asset.src}
+          alt=""
+          className="block w-full h-auto"
+          draggable={false}
+        />
+      </button>
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity group-hover:opacity-100"
@@ -71,11 +95,31 @@ function GalleryTile({ asset }: { asset: GalleryAsset }) {
 
       <div
         className={cn(
-          "absolute top-1/2 left-1/2 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1.5",
+          "absolute top-1/2 left-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col gap-1.5",
           "opacity-0 group-hover:opacity-100 focus-within:opacity-100",
           showActions && "opacity-100",
         )}
+        onClick={(event) => event.stopPropagation()}
       >
+        {asset.sourceUrl ? (
+          <Button
+            type="button"
+            variant="secondary"
+            size="xs"
+            aria-label="Abrir origen"
+            className="gap-1.5 border-0 bg-black/55 p-1.5 text-[10px] text-white shadow-none hover:bg-black/70"
+            asChild
+          >
+            <a
+              href={asset.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ArrowSquareOutIcon className="size-3 shrink-0" />
+              <span className="leading-none">Ver origen</span>
+            </a>
+          </Button>
+        ) : null}
         {asset.prompt ? (
           <Button
             type="button"
@@ -86,9 +130,9 @@ function GalleryTile({ asset }: { asset: GalleryAsset }) {
             className="gap-1.5 border-0 bg-black/55 p-1.5 text-[10px] text-white shadow-none hover:bg-black/70"
           >
             {copiedPrompt ? (
-              <Check className="size-3 shrink-0" strokeWidth={2} />
+              <CheckIcon className="size-3 shrink-0" />
             ) : (
-              <Copy className="size-3 shrink-0" strokeWidth={2} />
+              <CopyIcon className="size-3 shrink-0" />
             )}
             <span className="leading-none">
               {copiedPrompt ? "Copiado" : "Copiar prompt"}
@@ -104,9 +148,9 @@ function GalleryTile({ asset }: { asset: GalleryAsset }) {
           className="gap-1.5 border-0 bg-black/55 p-1.5 text-[10px] text-white shadow-none hover:bg-black/70"
         >
           {copiedImage ? (
-            <Check className="size-3 shrink-0" strokeWidth={2} />
+            <CheckIcon className="size-3 shrink-0" />
           ) : (
-            <ImageIcon className="size-3 shrink-0" strokeWidth={2} />
+            <ImageIcon className="size-3 shrink-0" />
           )}
           <span className="leading-none">
             {copyImageError
@@ -124,13 +168,15 @@ function GalleryTile({ asset }: { asset: GalleryAsset }) {
 function GallerySlide({
   asset,
   slideWidth,
+  onOpen,
 }: {
   asset: GalleryAsset;
   slideWidth: string;
+  onOpen: () => void;
 }) {
   return (
     <div className="shrink-0" style={{ width: slideWidth }}>
-      <GalleryTile asset={asset} />
+      <GalleryTile asset={asset} onOpen={onOpen} />
     </div>
   );
 }
@@ -138,15 +184,22 @@ function GallerySlide({
 function GalleryCarouselRow({
   assets,
   slideWidth,
+  onOpenImage,
 }: {
   assets: GalleryAsset[];
   slideWidth: string;
+  onOpenImage: (index: number) => void;
 }) {
   return (
     <div className="overflow-x-auto overscroll-x-contain">
       <div className="flex w-max items-start">
-        {assets.map((asset) => (
-          <GallerySlide key={asset.src} asset={asset} slideWidth={slideWidth} />
+        {assets.map((asset, index) => (
+          <GallerySlide
+            key={asset.src}
+            asset={asset}
+            slideWidth={slideWidth}
+            onOpen={() => onOpenImage(index)}
+          />
         ))}
       </div>
     </div>
@@ -156,9 +209,11 @@ function GalleryCarouselRow({
 function GalleryGroupRow({
   item,
   columns,
+  onOpenImage,
 }: {
   item: Extract<GalleryItem, { kind: "group" }>;
   columns: ColumnCount;
+  onOpenImage: (itemId: string, index: number) => void;
 }) {
   const slideWidth = gallerySlideWidth(columns);
 
@@ -170,39 +225,65 @@ function GalleryGroupRow({
           {item.assets.length} slides
         </span>
       </p>
-      <GalleryCarouselRow assets={item.assets} slideWidth={slideWidth} />
+      <GalleryCarouselRow
+        assets={item.assets}
+        slideWidth={slideWidth}
+        onOpenImage={(index) => onOpenImage(item.id, index)}
+      />
     </section>
   );
 }
 
-function GallerySingleRow({
-  item,
+function GallerySinglesGrid({
+  items,
   columns,
+  onOpenImage,
 }: {
-  item: Extract<GalleryItem, { kind: "single" }>;
+  items: Extract<GalleryItem, { kind: "single" }>[];
   columns: ColumnCount;
+  onOpenImage: (itemId: string, index: number) => void;
 }) {
-  const slideWidth = gallerySlideWidth(columns);
-
   return (
     <section className="bg-background">
-      <GalleryCarouselRow assets={[item.asset]} slideWidth={slideWidth} />
+      <div className={cn(inspirationGridClass(columns), "bg-border")}>
+        {items.map((item) => (
+          <GalleryTile
+            key={item.id}
+            asset={item.asset}
+            onOpen={() => onOpenImage(item.id, 0)}
+          />
+        ))}
+      </div>
     </section>
   );
 }
 
-function GalleryItemRow({
-  item,
+function GalleryRowSection({
+  row,
   columns,
+  onOpenImage,
 }: {
-  item: GalleryItem;
+  row: GalleryRow;
   columns: ColumnCount;
+  onOpenImage: (itemId: string, index: number) => void;
 }) {
-  if (item.kind === "single") {
-    return <GallerySingleRow item={item} columns={columns} />;
+  if (row.kind === "singles") {
+    return (
+      <GallerySinglesGrid
+        items={row.items}
+        columns={columns}
+        onOpenImage={onOpenImage}
+      />
+    );
   }
 
-  return <GalleryGroupRow item={item} columns={columns} />;
+  return (
+    <GalleryGroupRow
+      item={row.item}
+      columns={columns}
+      onOpenImage={onOpenImage}
+    />
+  );
 }
 
 export function GalleryScreen() {
@@ -216,9 +297,21 @@ export function GalleryScreen() {
     STUDIO_PREFERENCE_DEFAULTS.gridColumns,
     parseGridColumns,
   );
+  const lightbox = useImageLightbox();
   const items = galleryItemsForMode(mode);
+  const rows = useMemo(() => galleryRowsForItems(items), [items]);
+  const lightboxCatalog = useMemo(
+    () => buildGalleryLightboxCatalog(items),
+    [items],
+  );
   const imageCount = galleryImageCountForItems(items);
   const groupCount = galleryGroupCountForItems(items);
+
+  function openGalleryImage(itemId: string, localIndex: number) {
+    const startIndex = lightboxCatalog.startIndexByItemId[itemId];
+    if (startIndex === undefined) return;
+    lightbox.openAt(lightboxCatalog.images, startIndex + localIndex);
+  }
 
   const meta =
     groupCount > 0
@@ -243,11 +336,28 @@ export function GalleryScreen() {
         </p>
       ) : (
         <div className="flex flex-col gap-px bg-border">
-          {items.map((item) => (
-            <GalleryItemRow key={item.id} item={item} columns={columns} />
+          {rows.map((row) => (
+            <GalleryRowSection
+              key={
+                row.kind === "group"
+                  ? row.item.id
+                  : `singles-${row.items.map((item) => item.id).join("-")}`
+              }
+              row={row}
+              columns={columns}
+              onOpenImage={openGalleryImage}
+            />
           ))}
         </div>
       )}
+
+      <ImageLightbox
+        open={lightbox.open}
+        images={lightbox.images}
+        index={lightbox.index}
+        onClose={lightbox.close}
+        onIndexChange={lightbox.setIndex}
+      />
     </Playground>
   );
 }

@@ -11,6 +11,16 @@ import sys
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from media_fetch_utils import (
+    TIKTOK_FORMAT_CANDIDATES,
+    file_has_audio,
+    file_is_hevc,
+    file_is_h264,
+    run_yt_dlp,
+)
+
 
 def gallery_dl_bin() -> str:
     candidates = [
@@ -27,16 +37,6 @@ def gallery_dl_bin() -> str:
         "  pip3 install gallery-dl --break-system-packages\n"
         "  # o: pip3 install -r scripts/requirements.txt --break-system-packages",
     )
-
-
-def yt_dlp_bin(root: Path) -> Path:
-    bundled = root / "scripts/bin/yt-dlp"
-    if bundled.is_file():
-        return bundled
-    which = shutil.which("yt-dlp")
-    if which:
-        return Path(which)
-    raise SystemExit("Falta yt-dlp para videos de TikTok.")
 
 
 def resolve_url(url: str) -> str:
@@ -78,23 +78,21 @@ def download_with_gallery_dl(url: str, tmp_dir: Path) -> list[Path]:
 
 
 def download_with_yt_dlp(url: str, out_dir: Path, root: Path) -> list[Path]:
-    out_dir.mkdir(parents=True, exist_ok=True)
-    output = out_dir / "video.%(ext)s"
-    command = [
-        str(yt_dlp_bin(root)),
-        "--no-playlist",
-        "-f",
-        "best[acodec!=none]/bestvideo*+bestaudio/best",
-        "--merge-output-format",
-        "mp4",
-        "-o",
-        str(output),
+    files = run_yt_dlp(
         url,
-    ]
-    result = subprocess.run(command, capture_output=True, text=True)
-    if result.returncode != 0:
-        raise SystemExit(result.stderr or result.stdout or "yt-dlp falló")
-    return [path for path in out_dir.iterdir() if path.is_file()]
+        out_dir / "video.%(ext)s",
+        root,
+        formats=TIKTOK_FORMAT_CANDIDATES,
+    )
+    video = files[0]
+    if file_is_hevc(video) and not file_is_h264(video):
+        files = run_yt_dlp(
+            url,
+            out_dir / "video.%(ext)s",
+            root,
+            formats=("download",),
+        )
+    return files
 
 
 def has_local_media(out_dir: Path) -> bool:
@@ -122,7 +120,12 @@ def normalize_files(raw_files: list[Path], out_dir: Path) -> list[dict[str, str]
 
     if videos:
         video_dest = out_dir / "video.mp4"
-        shutil.move(str(videos[0]), video_dest)
+        if videos[0] != video_dest:
+            shutil.move(str(videos[0]), video_dest)
+        if not file_has_audio(video_dest):
+            raise SystemExit(
+                f"El video descargado no tiene audio: {video_dest.name}",
+            )
         manifest.append({"kind": "video", "file": str(video_dest)})
 
         if images:
@@ -172,12 +175,18 @@ def fetch_post(url: str, out_dir: Path, root: Path, force: bool = False) -> dict
     post_id = post_id_from_url(url)
 
     if not force and has_local_media(out_dir):
-        return {
-            "id": f"tt-{post_id}",
-            "url": url,
-            "files": existing_manifest(out_dir),
-            "skipped": True,
-        }
+        video_path = out_dir / "video.mp4"
+        if video_path.is_file() and (
+            not file_has_audio(video_path) or file_is_hevc(video_path)
+        ):
+            force = True
+        else:
+            return {
+                "id": f"tt-{post_id}",
+                "url": url,
+                "files": existing_manifest(out_dir),
+                "skipped": True,
+            }
 
     if is_video_post(url):
         if out_dir.exists():

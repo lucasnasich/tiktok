@@ -37,6 +37,14 @@ function getFieldValue(idea: Idea, field: string) {
 }
 
 export function FinalIdeasPanel() {
+  if (ideas.length === 0) {
+    return (
+      <p className="text-[14px] leading-relaxed text-muted-foreground">
+        Todavía no hay ideas armadas.
+      </p>
+    );
+  }
+
   return (
     <PageStack>
       {ideas.map((idea) => (

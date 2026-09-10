@@ -1,15 +1,15 @@
+import type { ColumnCount } from "@/components/ColumnSelector";
 import { InspirationCommentCard, InspirationLinkCard } from "@/components/ideas/InspirationLinkCard";
-import {
-  INSPIRATION_CONTAINER_CLASS,
-  INSPIRATION_GRID_CLASS,
-} from "@/components/ideas/inspiration-layout";
+import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
   CLIENTE_INSPIRATION_TYPE_LABELS,
   clientInspirations,
 } from "@/content/client-inspirations";
+import { getSourceLabel } from "@/content/idea-sources";
 import { creativeInspirations } from "@/content/creative-inspirations";
+import { matchesFormatFilter } from "@/content/formats";
 import { organicInspirations } from "@/content/organic-inspirations";
 
 function ClienteCard({
@@ -18,7 +18,7 @@ function ClienteCard({
   item: (typeof clientInspirations)[number];
 }) {
   return (
-    <Card size="sm" className="h-full ring-border/80">
+    <Card size="sm" className="h-full rounded-none p-3 ring-0">
       <CardHeader className="gap-2">
         <Badge variant="secondary" className="w-fit text-[11px]">
           Cliente · {CLIENTE_INSPIRATION_TYPE_LABELS[item.type]}
@@ -38,28 +38,59 @@ function ClienteCard({
   );
 }
 
-export function AllInspirationsPanel() {
-  const hasContent =
-    clientInspirations.length > 0 ||
-    organicInspirations.length > 0 ||
-    creativeInspirations.length > 0;
+export function AllInspirationsPanel({
+  columns,
+  activeFormat,
+}: {
+  columns: ColumnCount;
+  activeFormat?: string;
+}) {
+  const formatId = activeFormat ?? "all";
+  const filteredOrganic = organicInspirations.filter((item) =>
+    matchesFormatFilter(
+      item.kind === "post" ? item.formatIds : undefined,
+      formatId,
+    ),
+  );
+  const filteredCreative = creativeInspirations.filter((item) =>
+    matchesFormatFilter(item.formatIds, formatId),
+  );
+  const showCliente = formatId === "all";
 
-  if (!hasContent) {
+  const hasContent =
+    (showCliente && clientInspirations.length > 0) ||
+    filteredOrganic.length > 0 ||
+    filteredCreative.length > 0;
+
+  if (
+    clientInspirations.length === 0 &&
+    organicInspirations.length === 0 &&
+    creativeInspirations.length === 0
+  ) {
     return (
-      <p className="text-[14px] leading-relaxed text-muted-foreground">
+      <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
         Todavía no hay referencias guardadas.
       </p>
     );
   }
 
-  return (
-    <div className={INSPIRATION_CONTAINER_CLASS}>
-      <div className={INSPIRATION_GRID_CLASS}>
-        {clientInspirations.map((item) => (
-          <ClienteCard key={`cliente-${item.id}`} item={item} />
-        ))}
+  if (!hasContent) {
+    return (
+      <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
+        Ninguna referencia con ese formato.
+      </p>
+    );
+  }
 
-        {organicInspirations.map((item) =>
+  return (
+    <div className={inspirationGridClass(columns)}>
+        {showCliente
+          ? clientInspirations.map((item) => (
+          <ClienteCard key={`cliente-${item.id}`} item={item} />
+        ))
+          : null}
+
+        {filteredOrganic.map((item) =>
           item.kind === "comment" ? (
             <InspirationCommentCard
               key={`organico-${item.id}`}
@@ -76,20 +107,26 @@ export function AllInspirationsPanel() {
               item={{
                 id: item.id,
                 platform: item.platform,
+                sourceLabel: getSourceLabel("organico"),
                 url: item.url,
                 title: item.title,
                 previewImage: item.previewImage,
                 media: item.media,
+                postText: item.postText,
+                author: item.author,
                 note: item.note,
+                formatIds: item.formatIds,
               }}
             />
           ),
         )}
 
-        {creativeInspirations.map((item) => (
-          <InspirationLinkCard key={`creativo-${item.id}`} item={item} />
-        ))}
-      </div>
+        {filteredCreative.map((item) => (
+          <InspirationLinkCard
+            key={`creativo-${item.id}`}
+            item={{ ...item, sourceLabel: getSourceLabel("creativo") }}
+          />
+      ))}
     </div>
   );
 }

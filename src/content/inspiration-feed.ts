@@ -9,6 +9,7 @@ import {
   INSPIRATION_ALL_SOURCE_ID,
 } from "@/content/idea-sources";
 import type { InspirationMediaSlide } from "@/content/inspiration-links";
+import { matchesFormatFilter } from "@/content/formats";
 import { organicInspirations } from "@/content/organic-inspirations";
 
 export type InspirationFeedKind =
@@ -29,7 +30,10 @@ export type InspirationFeedItem = {
   media?: InspirationMediaSlide[];
   platform?: string;
   quote?: string;
+  postText?: string;
+  author?: string;
   typeLabel?: string;
+  formatIds?: string[];
 };
 
 const SWIPEABLE_SOURCE_IDS = ["cliente", "organico", "creativo"] as const;
@@ -89,6 +93,9 @@ function buildOrganicFeed(): InspirationFeedItem[] {
       url: item.url,
       media: item.media,
       platform: item.platform,
+      postText: item.postText,
+      author: item.author,
+      formatIds: item.formatIds,
     };
   });
 }
@@ -107,6 +114,9 @@ function buildCreativeFeed(): InspirationFeedItem[] {
     url: item.url,
     media: item.media,
     platform: item.platform,
+    postText: item.postText,
+    author: item.author,
+    formatIds: item.formatIds,
   }));
 }
 
@@ -116,12 +126,18 @@ const FEED_BUILDERS: Record<string, () => InspirationFeedItem[]> = {
   creativo: buildCreativeFeed,
 };
 
-export function buildInspirationFeed(sourceId: string): InspirationFeedItem[] {
-  if (sourceId === INSPIRATION_ALL_SOURCE_ID) {
-    return SWIPEABLE_SOURCE_IDS.flatMap((id) => FEED_BUILDERS[id]?.() ?? []);
-  }
+export function buildInspirationFeed(
+  sourceId: string,
+  formatId?: string,
+): InspirationFeedItem[] {
+  const items =
+    sourceId === INSPIRATION_ALL_SOURCE_ID
+      ? SWIPEABLE_SOURCE_IDS.flatMap((id) => FEED_BUILDERS[id]?.() ?? [])
+      : FEED_BUILDERS[sourceId]?.() ?? [];
 
-  return FEED_BUILDERS[sourceId]?.() ?? [];
+  if (!formatId) return items;
+
+  return items.filter((item) => matchesFormatFilter(item.formatIds, formatId));
 }
 
 export function getInspirationSourceSummary(sourceId: string) {

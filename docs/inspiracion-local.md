@@ -5,7 +5,7 @@
 ```
 assets/
   creativos/mercantis/     # slides propios (en el repo)
-  inspiracion/media/       # posts descargados ig-*, tt-* (local, no repo)
+  inspiracion/media/       # posts descargados ig-*, tt-*, x-* (local, no repo)
   competidores/logos/      # logos (local, no repo)
   competidores/documentos/ # PDFs (local, no repo)
 ```
@@ -32,7 +32,10 @@ El índice `src/content/inspiration-media.ts` se **genera solo en tu compu** (`n
 ```bash
 npm run inspiration:ig -- <url-instagram>
 npm run inspiration:tt -- <url-tiktok>
+npm run inspiration:x -- <url-x>
 ```
+
+En X se guardan las imágenes del post y el texto en `post.json` dentro de la carpeta `x-<id>/`.
 
 Si la carpeta ya existe, el script omite la descarga. Para forzar: `--force`.
 

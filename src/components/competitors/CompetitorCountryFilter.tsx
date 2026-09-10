@@ -1,4 +1,4 @@
-import { Globe2 } from "lucide-react";
+import { GlobeHemisphereWestIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +43,7 @@ export function CompetitorCountryFilter({
               {activeFlag}
             </span>
           ) : (
-            <Globe2 className="size-3.5" strokeWidth={1.75} />
+            <GlobeHemisphereWestIcon className="size-3.5" />
           )}
           <span className="whitespace-nowrap">{activeLabel}</span>
         </Button>
@@ -67,7 +67,7 @@ export function CompetitorCountryFilter({
                       {flag}
                     </span>
                   ) : (
-                    <Globe2 className="size-3.5 text-muted-foreground" strokeWidth={1.75} />
+                    <GlobeHemisphereWestIcon className="size-3.5 text-muted-foreground" />
                   )}
                   {option.label}
                 </span>

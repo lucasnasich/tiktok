@@ -1,4 +1,4 @@
-import { ChevronRight } from "lucide-react";
+import { CaretRightIcon } from "@phosphor-icons/react";
 
 import { WORKFLOW_STEPS } from "@/content/workflow-steps";
 import { cn } from "@/lib/utils";
@@ -33,9 +33,8 @@ export function WorkflowPipelineDiagram() {
               </div>
 
               {index < WORKFLOW_STEPS.length - 1 ? (
-                <ChevronRight
+                <CaretRightIcon
                   className="mx-1 size-4 shrink-0 text-muted-foreground/35"
-                  strokeWidth={1.75}
                   aria-hidden
                 />
               ) : null}

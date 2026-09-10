@@ -7,10 +7,31 @@ export type WorkflowStep = {
 
 export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
+    id: "planificacion",
+    title: "Planificación",
+    summary: "Definís qué falta publicar antes de producir.",
+    details: `Respondés **qué contenido falta producir** según targets por cuenta.
+
+- Calendario semanal por cuenta (oficial y satélites).
+- Cada slot: fecha, plataformas, **rol** (alcance / valor / prueba / conversión), pilar, formato y estado.
+- Bloque **Qué falta**: brechas vs. targets y alertas de variedad (rol, pilar, ángulo, formato).
+- \`distributionType\`: \`organic\` (default), \`paid\` o \`boosted\` — preparado para ads, sin integración aún.
+
+**Inspiración** corre en paralelo y alimenta Ideas; no es paso secuencial.
+
+**Output:** slots planificados listos para convertirse en ideas concretas en la etapa Idea.`,
+  },
+  {
     id: "idea",
     title: "Idea",
-    summary: "Señal → ángulo → ficha de la idea.",
-    details: "",
+    summary: "Señal → ángulo → formato → ficha de la idea.",
+    details: `Tomás un slot de planificación (o una señal suelta) y definís **cómo** se convierte en pieza.
+
+- La planificación dice *qué* necesitás; Idea decide el hook, público y ángulo concreto.
+- Ficha en \`src/content/ideas.ts\` cuando corresponda.
+- Podés vincular \`postId\` en el slot cuando el post ya existe.
+
+**Output:** idea capturada con señal, ángulo, formato creativo y hook.`,
   },
   {
     id: "copy",

@@ -1,4 +1,12 @@
-import { BookOpen, Images, Lightbulb, Sparkles, Target } from "lucide-react";
+import type { Icon } from "@phosphor-icons/react";
+import {
+  BookOpenIcon,
+  CalendarBlankIcon,
+  ImagesIcon,
+  LightbulbIcon,
+  SparkleIcon,
+  TargetIcon,
+} from "@phosphor-icons/react";
 import { NavLink, useLocation } from "react-router-dom";
 
 import { MercantisIconBold } from "@/components/MercantisIcon";
@@ -15,16 +23,17 @@ import {
 } from "@/components/ui/sidebar";
 
 const MAIN_NAV = [
-  { to: "/", label: "Ideas", icon: Lightbulb, end: true },
-  { to: "/inspiracion", label: "Inspiración", icon: Sparkles, end: true },
-  { to: "/imagenes", label: "Imágenes", icon: Images, end: true },
-  { to: "/competidores", label: "Competidores", icon: Target, end: true },
+  { to: "/planificacion", label: "Planificación", icon: CalendarBlankIcon, end: true },
+  { to: "/", label: "Ideas", icon: LightbulbIcon, end: true },
+  { to: "/inspiracion", label: "Inspiración", icon: SparkleIcon, end: true },
+  { to: "/imagenes", label: "Imágenes", icon: ImagesIcon, end: true },
+  { to: "/competidores", label: "Competidores", icon: TargetIcon, end: true },
 ] as const;
 
 const DOCS_NAV = {
   to: "/documentacion",
   label: "Documentación",
-  icon: BookOpen,
+  icon: BookOpenIcon,
   end: false,
 } as const;
 
@@ -36,7 +45,7 @@ function NavItem({
 }: {
   to: string;
   label: string;
-  icon: typeof Lightbulb;
+  icon: Icon;
   end?: boolean;
 }) {
   const location = useLocation();
@@ -48,7 +57,7 @@ function NavItem({
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={isActive}>
         <NavLink to={to} end={end}>
-          <Icon strokeWidth={1.75} />
+          <Icon className="size-4" />
           <span>{label}</span>
         </NavLink>
       </SidebarMenuButton>

@@ -4,16 +4,4 @@ export type Signal = {
   sourceId: string;
 };
 
-export const signals: Signal[] = [
-  {
-    id: "whatsapp-repetitivo",
-    text:
-      "Muchos comerciantes pierden tiempo respondiendo siempre lo mismo por WhatsApp.",
-    sourceId: "cliente",
-  },
-  {
-    id: "stock-planilla",
-    text: "Vendieron más pero el stock sigue en una planilla y los pedidos en 14 chats.",
-    sourceId: "cliente",
-  },
-];
+export const signals: Signal[] = [];

@@ -54,3 +54,9 @@ export const angles: Angle[] = [
       "Mostrás la versión del negocio que quieren llegar a ser. El deseo hace el resto.",
   },
 ];
+
+const angleById = new Map(angles.map((angle) => [angle.id, angle]));
+
+export function getAngleLabel(id: string): string {
+  return angleById.get(id)?.label ?? id;
+}

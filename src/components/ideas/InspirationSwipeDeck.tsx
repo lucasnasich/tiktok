@@ -1,7 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Heart, RotateCcw, X } from "lucide-react";
+import {
+  ArrowCounterClockwiseIcon,
+  HeartIcon,
+  XIcon,
+} from "@phosphor-icons/react";
 
+import { PlatformIcon } from "@/components/icons/platform-icon";
 import { InspirationLinkPreview } from "@/components/ideas/InspirationLinkPreview";
+import { InspirationFormatBadges } from "@/components/ideas/InspirationFormatBadges";
+import { InspirationPostText } from "@/components/ideas/InspirationPostText";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +30,8 @@ function SwipeCardBody({ item }: { item: InspirationFeedItem }) {
         media={item.media}
         platform={item.platform ?? item.sourceLabel}
         title={item.title}
+        postText={item.postText}
+        author={item.author}
       />
     );
   }
@@ -69,7 +78,8 @@ function SwipeCard({
             {item.sourceLabel}
           </Badge>
           {item.platform ? (
-            <Badge variant="outline" className="text-[11px]">
+            <Badge variant="outline" className="gap-1 text-[11px]">
+              <PlatformIcon platform={item.platform} size={12} className="shrink-0" />
               {item.platform}
             </Badge>
           ) : null}
@@ -78,10 +88,14 @@ function SwipeCard({
               {item.typeLabel}
             </Badge>
           ) : null}
+          <InspirationFormatBadges formatIds={item.formatIds} />
         </div>
         <CardTitle className="text-[15px] leading-snug tracking-tight">
           {item.title}
         </CardTitle>
+        {item.postText && item.media?.length ? (
+          <InspirationPostText postText={item.postText} author={item.author} />
+        ) : null}
       </CardHeader>
       {item.note ? (
         <CardContent className="px-3 pt-0 pb-3">
@@ -178,7 +192,7 @@ export function InspirationSwipeDeck({ items }: InspirationSwipeDeckProps) {
           {likedCount} me gusta · {dislikedCount} no me gusta
         </p>
         <Button variant="outline" size="sm" onClick={resetVotes}>
-          <RotateCcw className="size-4" strokeWidth={1.75} />
+          <ArrowCounterClockwiseIcon className="size-4" />
           Volver a revisar
         </Button>
       </div>
@@ -245,7 +259,7 @@ export function InspirationSwipeDeck({ items }: InspirationSwipeDeckProps) {
           aria-label="No me gusta"
           onClick={() => commitVote("dislike")}
         >
-          <X className="size-5" strokeWidth={2} />
+          <XIcon className="size-5" />
         </Button>
         <Button
           type="button"
@@ -255,7 +269,7 @@ export function InspirationSwipeDeck({ items }: InspirationSwipeDeckProps) {
           aria-label="Me gusta"
           onClick={() => commitVote("like")}
         >
-          <Heart className="size-5" strokeWidth={2} />
+          <HeartIcon className="size-5" />
         </Button>
       </div>
 

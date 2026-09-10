@@ -1,7 +1,5 @@
-import {
-  INSPIRATION_CONTAINER_CLASS,
-  INSPIRATION_GRID_CLASS,
-} from "@/components/ideas/inspiration-layout";
+import type { ColumnCount } from "@/components/ColumnSelector";
+import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import {
@@ -12,7 +10,7 @@ import {
 
 function ClienteInspirationCard({ item }: { item: ClienteInspiration }) {
   return (
-    <Card size="sm" className="h-full ring-border/80">
+    <Card size="sm" className="h-full rounded-none p-3 ring-0">
       <CardHeader className="gap-2">
         <Badge variant="secondary" className="w-fit text-[11px]">
           {CLIENTE_INSPIRATION_TYPE_LABELS[item.type]}
@@ -30,14 +28,20 @@ function ClienteInspirationCard({ item }: { item: ClienteInspiration }) {
   );
 }
 
-export function ClienteInspirationPanel() {
+export function ClienteInspirationPanel({ columns }: { columns: ColumnCount }) {
+  if (clientInspirations.length === 0) {
+    return (
+      <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
+        Todavía no hay referencias de cliente guardadas.
+      </p>
+    );
+  }
+
   return (
-    <div className={INSPIRATION_CONTAINER_CLASS}>
-      <div className={INSPIRATION_GRID_CLASS}>
-        {clientInspirations.map((item) => (
-          <ClienteInspirationCard key={item.id} item={item} />
-        ))}
-      </div>
+    <div className={inspirationGridClass(columns)}>
+      {clientInspirations.map((item) => (
+        <ClienteInspirationCard key={item.id} item={item} />
+      ))}
     </div>
   );
 }

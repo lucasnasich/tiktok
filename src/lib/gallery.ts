@@ -7,6 +7,7 @@ export type GalleryAsset = {
   src: string;
   name: string;
   prompt: string | null;
+  sourceUrl?: string;
 };
 
 export type GalleryGroup = {
@@ -97,6 +98,7 @@ function inspirationItems(): GalleryItem[] {
             src: images[0].url,
             name: id,
             prompt: null,
+            sourceUrl: images[0].sourceUrl,
           },
         };
       }
@@ -109,6 +111,7 @@ function inspirationItems(): GalleryItem[] {
           src: slide.url,
           name: `${id}-${String(index + 1).padStart(2, "0")}`,
           prompt: null,
+          sourceUrl: slide.sourceUrl,
         })),
       };
     })
@@ -130,6 +133,35 @@ export function galleryItemsForMode(mode: GalleryModeId): GalleryItem[] {
     : inspirationItems();
 }
 
+export type GalleryRow =
+  | { kind: "group"; item: Extract<GalleryItem, { kind: "group" }> }
+  | { kind: "singles"; items: Extract<GalleryItem, { kind: "single" }>[] };
+
+/** Agrupa singles consecutivos para mostrarlos en grilla entre carruseles. */
+export function galleryRowsForItems(items: GalleryItem[]): GalleryRow[] {
+  const rows: GalleryRow[] = [];
+  let pendingSingles: Extract<GalleryItem, { kind: "single" }>[] = [];
+
+  function flushSingles() {
+    if (pendingSingles.length === 0) return;
+    rows.push({ kind: "singles", items: pendingSingles });
+    pendingSingles = [];
+  }
+
+  for (const item of items) {
+    if (item.kind === "single") {
+      pendingSingles.push(item);
+      continue;
+    }
+
+    flushSingles();
+    rows.push({ kind: "group", item });
+  }
+
+  flushSingles();
+  return rows;
+}
+
 export function galleryImageCountForItems(items: GalleryItem[]): number {
   return items.reduce(
     (total, item) =>
@@ -140,4 +172,41 @@ export function galleryImageCountForItems(items: GalleryItem[]): number {
 
 export function galleryGroupCountForItems(items: GalleryItem[]): number {
   return items.filter((item) => item.kind === "group").length;
+}
+
+export type GalleryLightboxImage = {
+  src: string;
+  alt?: string;
+  sourceUrl?: string;
+  groupLabel: string;
+  slideIndex: number;
+  slideCount: number;
+};
+
+export function galleryItemLabel(item: GalleryItem): string {
+  return item.kind === "group" ? item.label : inspirationTitle(item.id);
+}
+
+export function buildGalleryLightboxCatalog(items: GalleryItem[]) {
+  const images: GalleryLightboxImage[] = [];
+  const startIndexByItemId: Record<string, number> = {};
+
+  for (const item of items) {
+    startIndexByItemId[item.id] = images.length;
+    const assets = item.kind === "group" ? item.assets : [item.asset];
+    const label = galleryItemLabel(item);
+
+    assets.forEach((asset, assetIndex) => {
+      images.push({
+        src: asset.src,
+        alt: asset.name,
+        sourceUrl: asset.sourceUrl,
+        groupLabel: label,
+        slideIndex: assetIndex + 1,
+        slideCount: assets.length,
+      });
+    });
+  }
+
+  return { images, startIndexByItemId };
 }

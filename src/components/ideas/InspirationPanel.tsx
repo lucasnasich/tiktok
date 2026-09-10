@@ -1,4 +1,5 @@
-import { INSPIRATION_CONTAINER_CLASS, INSPIRATION_GRID_CLASS } from "@/components/ideas/inspiration-layout";
+import type { ColumnCount } from "@/components/ColumnSelector";
+import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
 import { AllInspirationsPanel } from "@/components/ideas/AllInspirationsPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClienteInspirationPanel } from "@/components/ideas/ClienteInspirationPanel";
@@ -6,11 +7,7 @@ import { CreativeInspirationPanel } from "@/components/ideas/CreativeInspiration
 import { InspirationSourceFilter } from "@/components/ideas/InspirationSourceFilter";
 import { InspirationSwipeDeck } from "@/components/ideas/InspirationSwipeDeck";
 import { OrganicInspirationPanel } from "@/components/ideas/OrganicInspirationPanel";
-import {
-  buildInspirationFeed,
-  getInspirationSourceSummary,
-  isSwipeableSource,
-} from "@/content/inspiration-feed";
+import { buildInspirationFeed, isSwipeableSource } from "@/content/inspiration-feed";
 import { IDEA_SOURCES, INSPIRATION_ALL_SOURCE_ID } from "@/content/idea-sources";
 import {
   INSPIRATION_VIEW,
@@ -19,21 +16,28 @@ import {
 
 type InspirationPanelProps = {
   activeSource: string;
+  activeFormat?: string;
   view?: InspirationViewId;
+  columns: ColumnCount;
   onSourceChange?: (sourceId: string) => void;
   showSourceFilterInline?: boolean;
   onLayoutChange?: () => void;
 };
 
-function SourceTopicsGrid({ sourceId }: { sourceId: string }) {
+function SourceTopicsGrid({
+  sourceId,
+  columns,
+}: {
+  sourceId: string;
+  columns: ColumnCount;
+}) {
   const source = IDEA_SOURCES.find((entry) => entry.id === sourceId);
   if (!source) return null;
 
   return (
-    <div className={INSPIRATION_CONTAINER_CLASS}>
-      <div className={INSPIRATION_GRID_CLASS}>
-        {source.topics.map((topic) => (
-          <Card key={topic.id} size="sm" className="ring-border/80">
+    <div className={inspirationGridClass(columns)}>
+      {source.topics.map((topic) => (
+        <Card key={topic.id} size="sm" className="rounded-none p-3 ring-0">
             <CardHeader>
               <CardTitle className="text-[15px] tracking-tight">{topic.label}</CardTitle>
             </CardHeader>
@@ -43,35 +47,55 @@ function SourceTopicsGrid({ sourceId }: { sourceId: string }) {
               </p>
             </CardContent>
           </Card>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
 
-function InspirationSourceContent({ sourceId }: { sourceId: string }) {
-  if (sourceId === INSPIRATION_ALL_SOURCE_ID) return <AllInspirationsPanel />;
-  if (sourceId === "cliente") return <ClienteInspirationPanel />;
-  if (sourceId === "organico") return <OrganicInspirationPanel />;
-  if (sourceId === "creativo") return <CreativeInspirationPanel />;
-  return <SourceTopicsGrid sourceId={sourceId} />;
+function InspirationSourceContent({
+  sourceId,
+  activeFormat,
+  columns,
+}: {
+  sourceId: string;
+  activeFormat?: string;
+  columns: ColumnCount;
+}) {
+  if (sourceId === INSPIRATION_ALL_SOURCE_ID) {
+    return (
+      <AllInspirationsPanel columns={columns} activeFormat={activeFormat} />
+    );
+  }
+  if (sourceId === "cliente") return <ClienteInspirationPanel columns={columns} />;
+  if (sourceId === "organico") {
+    return (
+      <OrganicInspirationPanel columns={columns} activeFormat={activeFormat} />
+    );
+  }
+  if (sourceId === "creativo") {
+    return (
+      <CreativeInspirationPanel columns={columns} activeFormat={activeFormat} />
+    );
+  }
+  return <SourceTopicsGrid sourceId={sourceId} columns={columns} />;
 }
 
 export function InspirationPanel({
   activeSource,
+  activeFormat,
   view = INSPIRATION_VIEW.listado.id,
+  columns,
   onSourceChange,
   showSourceFilterInline = false,
   onLayoutChange,
 }: InspirationPanelProps) {
-  const summary = getInspirationSourceSummary(activeSource);
-  const feedItems = buildInspirationFeed(activeSource);
+  const feedItems = buildInspirationFeed(activeSource, activeFormat);
   const canReview = isSwipeableSource(activeSource);
   const isReviewView = view === INSPIRATION_VIEW.revisar.id;
 
   if (isReviewView) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 px-5 py-8">
         {showSourceFilterInline && onSourceChange ? (
           <div className="flex justify-end">
             <InspirationSourceFilter
@@ -96,9 +120,9 @@ export function InspirationPanel({
   }
 
   return (
-    <div className="space-y-4">
+    <>
       {showSourceFilterInline && onSourceChange ? (
-        <div className="flex justify-end">
+        <div className="flex justify-end px-5 pt-5">
           <InspirationSourceFilter
             value={activeSource}
             onChange={(next) => {
@@ -109,11 +133,11 @@ export function InspirationPanel({
         </div>
       ) : null}
 
-      <p className="text-[14px] leading-relaxed text-muted-foreground">
-        {summary}
-      </p>
-
-      <InspirationSourceContent sourceId={activeSource} />
-    </div>
+      <InspirationSourceContent
+        sourceId={activeSource}
+        activeFormat={activeFormat}
+        columns={columns}
+      />
+    </>
   );
 }

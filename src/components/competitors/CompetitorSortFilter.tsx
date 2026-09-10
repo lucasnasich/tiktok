@@ -1,4 +1,4 @@
-import { ArrowUpDown } from "lucide-react";
+import { ArrowsDownUpIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,7 +30,7 @@ export function CompetitorSortFilter({
           size="sm"
           className="h-8 w-auto shrink-0 gap-1.5 px-2.5 text-xs font-medium whitespace-nowrap"
         >
-          <ArrowUpDown className="size-3.5 shrink-0" strokeWidth={1.75} />
+          <ArrowsDownUpIcon className="size-3.5 shrink-0" />
           <span>{active.label}</span>
         </Button>
       </DropdownMenuTrigger>

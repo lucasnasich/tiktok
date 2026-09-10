@@ -1,7 +1,9 @@
-import { LayoutGrid, ScanEye } from "lucide-react";
+import { GridFourIcon, ScanIcon } from "@phosphor-icons/react";
 
 import { Playground } from "@/components/AppShell";
+import { ColumnSelector } from "@/components/ColumnSelector";
 import { InspirationPanel } from "@/components/ideas/InspirationPanel";
+import { InspirationFormatFilter } from "@/components/ideas/InspirationFormatFilter";
 import { InspirationSourceFilter } from "@/components/ideas/InspirationSourceFilter";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -12,6 +14,8 @@ import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
   STUDIO_PREFERENCE_DEFAULTS,
   STUDIO_PREFERENCE_KEYS,
+  parseGridColumns,
+  parseInspirationFormat,
   parseInspirationSource,
   parseInspirationView,
 } from "@/lib/studio-preferences";
@@ -27,7 +31,18 @@ export function InspirationScreen() {
     STUDIO_PREFERENCE_DEFAULTS.inspirationView as InspirationViewId,
     (raw) => parseInspirationView(raw) as InspirationViewId | undefined,
   );
+  const [columns, setColumns] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.gridColumns,
+    STUDIO_PREFERENCE_DEFAULTS.gridColumns,
+    parseGridColumns,
+  );
+  const [activeFormat, setActiveFormat] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.inspirationFormat,
+    STUDIO_PREFERENCE_DEFAULTS.inspirationFormat,
+    parseInspirationFormat,
+  );
 
+  const isListView = view === INSPIRATION_VIEW.listado.id;
   const viewMeta =
     view === INSPIRATION_VIEW.revisar.id
       ? INSPIRATION_VIEW.revisar.label
@@ -46,15 +61,22 @@ export function InspirationScreen() {
           >
             <TabsList className="h-8">
               <TabsTrigger value={INSPIRATION_VIEW.listado.id} className="gap-1.5 px-2.5 text-xs">
-                <LayoutGrid className="size-3.5" strokeWidth={1.75} />
+                <GridFourIcon className="size-3.5" />
                 {INSPIRATION_VIEW.listado.label}
               </TabsTrigger>
               <TabsTrigger value={INSPIRATION_VIEW.revisar.id} className="gap-1.5 px-2.5 text-xs">
-                <ScanEye className="size-3.5" strokeWidth={1.75} />
+                <ScanIcon className="size-3.5" />
                 {INSPIRATION_VIEW.revisar.label}
               </TabsTrigger>
             </TabsList>
           </Tabs>
+          {isListView ? (
+            <ColumnSelector value={columns} onChange={setColumns} />
+          ) : null}
+          <InspirationFormatFilter
+            value={activeFormat}
+            onChange={setActiveFormat}
+          />
           <InspirationSourceFilter
             value={activeSource}
             onChange={setActiveSource}
@@ -62,12 +84,12 @@ export function InspirationScreen() {
         </div>
       }
     >
-      <div className="px-5 py-8">
-        <InspirationPanel
-          activeSource={activeSource}
-          view={view}
-        />
-      </div>
+      <InspirationPanel
+        activeSource={activeSource}
+        activeFormat={activeFormat}
+        view={view}
+        columns={columns}
+      />
     </Playground>
   );
 }

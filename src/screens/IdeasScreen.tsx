@@ -1,5 +1,6 @@
 import { Playground } from "@/components/AppShell";
 import { AnglesPanel } from "@/components/ideas/AnglesPanel";
+import { FormatsPanel } from "@/components/ideas/FormatsPanel";
 import { FinalIdeasPanel } from "@/components/ideas/FinalIdeasPanel";
 import { SignalsPanel } from "@/components/ideas/SignalsPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +48,9 @@ export function IdeasScreen() {
         </TabsContent>
         <TabsContent value="angulos" className="mt-0 pb-8">
           <AnglesPanel />
+        </TabsContent>
+        <TabsContent value="formatos" className="mt-0 pb-8">
+          <FormatsPanel />
         </TabsContent>
         <TabsContent value="idea" className="mt-0 pb-8">
           <FinalIdeasPanel />

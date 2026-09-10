@@ -1,15 +1,17 @@
+import type { ColumnCount } from "@/components/ColumnSelector";
 import {
   InspirationCommentCard,
   InspirationLinkCard,
 } from "@/components/ideas/InspirationLinkCard";
-import {
-  INSPIRATION_CONTAINER_CLASS,
-  INSPIRATION_GRID_CLASS,
-} from "@/components/ideas/inspiration-layout";
+import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
+import { getSourceLabel } from "@/content/idea-sources";
+import { matchesFormatFilter } from "@/content/formats";
 import {
   organicInspirations,
   type OrganicInspiration,
 } from "@/content/organic-inspirations";
+
+const SOURCE_LABEL = getSourceLabel("organico");
 
 function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
   if (item.kind === "comment") {
@@ -30,32 +32,55 @@ function OrganicInspirationCard({ item }: { item: OrganicInspiration }) {
       item={{
         id: item.id,
         platform: item.platform,
+        sourceLabel: SOURCE_LABEL,
         url: item.url,
         title: item.title,
         previewImage: item.previewImage,
         media: item.media,
+        postText: item.postText,
+        author: item.author,
         note: item.note,
+        formatIds: item.formatIds,
       }}
     />
   );
 }
 
-export function OrganicInspirationPanel() {
+export function OrganicInspirationPanel({
+  columns,
+  activeFormat,
+}: {
+  columns: ColumnCount;
+  activeFormat?: string;
+}) {
+  const items = organicInspirations.filter((item) =>
+    matchesFormatFilter(
+      item.kind === "post" ? item.formatIds : undefined,
+      activeFormat ?? "all",
+    ),
+  );
+
   if (organicInspirations.length === 0) {
     return (
-      <p className="text-[14px] leading-relaxed text-muted-foreground">
+      <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
         Todavía no hay piezas orgánicas guardadas.
       </p>
     );
   }
 
+  if (items.length === 0) {
+    return (
+      <p className="px-5 text-[14px] leading-relaxed text-muted-foreground">
+        Ninguna referencia con ese formato.
+      </p>
+    );
+  }
+
   return (
-    <div className={INSPIRATION_CONTAINER_CLASS}>
-      <div className={INSPIRATION_GRID_CLASS}>
-        {organicInspirations.map((item) => (
-          <OrganicInspirationCard key={item.id} item={item} />
-        ))}
-      </div>
+    <div className={inspirationGridClass(columns)}>
+      {items.map((item) => (
+        <OrganicInspirationCard key={item.id} item={item} />
+      ))}
     </div>
   );
 }

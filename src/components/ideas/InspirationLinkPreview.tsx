@@ -1,13 +1,11 @@
-import { TikTokEmbed, YouTubeEmbed } from "react-social-media-embed";
+import { UserIcon } from "@phosphor-icons/react";
 
+import { PlatformIcon } from "@/components/icons/platform-icon";
+import { InspirationMediaHoverTarget } from "@/components/ideas/InspirationMediaHoverTarget";
 import { MediaOnlyPreview } from "@/components/ideas/MediaOnlyPreview";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useContainerWidth } from "@/hooks/use-container-width";
+import { ImageLightbox } from "@/components/ImageLightbox";
 import type { InspirationMediaSlide } from "@/content/inspiration-links";
-import {
-  getSocialEmbedKind,
-  normalizeSocialEmbedUrl,
-} from "@/lib/social-embed";
+import { useImageLightbox } from "@/hooks/use-image-lightbox";
 
 type InspirationLinkPreviewProps = {
   url: string;
@@ -15,85 +13,125 @@ type InspirationLinkPreviewProps = {
   media?: InspirationMediaSlide[];
   platform: string;
   title: string;
+  postText?: string;
+  author?: string;
 };
 
-const embedStyle = { overflow: "visible", height: "auto" } as const;
+function MissingMediaFallback({ platform }: { platform: string }) {
+  return (
+    <div className="flex aspect-[4/5] w-full flex-col items-center justify-center gap-2 bg-muted px-4 text-center">
+      <span className="text-[12px] font-medium text-muted-foreground">
+        {platform}
+      </span>
+      <span className="text-[12px] leading-relaxed text-muted-foreground">
+        Sin media local. Descargá el post con{" "}
+        <code className="text-[11px]">npm run inspiration:ig</code>,{" "}
+        <code className="text-[11px]">npm run inspiration:tt</code> o{" "}
+        <code className="text-[11px]">npm run inspiration:x</code>.
+      </span>
+    </div>
+  );
+}
+
+function TextPostPreview({
+  postText,
+  author,
+  platform,
+}: {
+  postText: string;
+  author?: string;
+  platform: string;
+}) {
+  return (
+    <div className="flex aspect-[4/5] w-full flex-col bg-muted p-3">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card">
+        <div className="flex items-center gap-1.5 border-b border-border/60 px-3 py-2">
+          <PlatformIcon
+            platform={platform}
+            size={13}
+            className="shrink-0 text-muted-foreground"
+          />
+          <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+            Post
+          </span>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+          <blockquote className="border-l-2 border-foreground/15 py-0.5 pl-3">
+            <p className="whitespace-pre-wrap text-[13px] leading-[1.65] text-foreground">
+              {postText}
+            </p>
+          </blockquote>
+        </div>
+
+        {author ? (
+          <footer className="border-t border-border/60 px-3 py-2">
+            <div className="flex items-center gap-1.5">
+              <UserIcon
+                className="size-3 shrink-0 text-muted-foreground"
+                weight="duotone"
+                aria-hidden
+              />
+              <p className="truncate text-[11px] font-medium text-muted-foreground">
+                {author}
+              </p>
+            </div>
+          </footer>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function InspirationLinkPreview({
   url,
   previewImage,
   media,
   platform,
+  postText,
+  author,
 }: InspirationLinkPreviewProps) {
-  const embedUrl = normalizeSocialEmbedUrl(url);
-  const { ref, width } = useContainerWidth<HTMLDivElement>();
-  const embedKind = previewImage || media?.length ? null : getSocialEmbedKind(embedUrl);
+  const lightbox = useImageLightbox();
 
   if (media?.length) {
-    return <MediaOnlyPreview slides={media} />;
+    return <MediaOnlyPreview slides={media} postUrl={url} />;
   }
 
   if (previewImage) {
     return (
-      <div
-        ref={ref}
-        className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden bg-muted"
-      >
-        <img
-          src={previewImage}
-          alt=""
-          className="size-full object-cover"
-        />
-      </div>
-    );
-  }
-
-  if (!embedKind) {
-    return (
-      <div
-        ref={ref}
-        className="flex aspect-[4/5] w-full items-center justify-center bg-muted"
-      >
-        <span className="text-[12px] font-medium text-muted-foreground">
-          {platform}
-        </span>
-      </div>
-    );
-  }
-
-  if (width === 0) {
-    return (
-      <div ref={ref} className="w-full">
-        <Skeleton className="aspect-[4/5] w-full rounded-none" />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      ref={ref}
-      className="inspiration-social-embed flex w-full justify-center bg-muted"
-      onClick={(event) => event.stopPropagation()}
-    >
-      {embedKind === "tiktok" ? (
-        <TikTokEmbed url={embedUrl} width={width} style={embedStyle} />
-      ) : null}
-      {embedKind === "youtube" ? (
-        <YouTubeEmbed
-          url={embedUrl}
-          width={width}
-          height={Math.round(width * 9 / 16)}
-          style={embedStyle}
-        />
-      ) : null}
-      {embedKind === "instagram" ? (
-        <div className="flex aspect-[4/5] w-full items-center justify-center px-4 text-center">
-          <span className="text-[12px] text-muted-foreground">
-            Sin media local. Corré{" "}
-            <code className="text-[11px]">npm run inspiration:ig -- {"<url>"}</code>
-          </span>
+      <>
+        <div className="flex aspect-[4/5] w-full items-center justify-center overflow-hidden bg-muted">
+          <InspirationMediaHoverTarget
+            onClick={() => lightbox.openAt([{ src: previewImage, kind: "image" }], 0)}
+            ariaLabel="Ver imagen en grande"
+          >
+            <img
+              src={previewImage}
+              alt=""
+              className="size-full object-cover"
+            />
+          </InspirationMediaHoverTarget>
         </div>
-      ) : null}
-    </div>
-  );
+        <ImageLightbox
+          open={lightbox.open}
+          images={lightbox.images}
+          index={lightbox.index}
+          onClose={lightbox.close}
+          onIndexChange={lightbox.setIndex}
+        />
+      </>
+    );
+  }
+
+  if (postText) {
+    return (
+      <TextPostPreview
+        postText={postText}
+        author={author}
+        platform={platform}
+      />
+    );
+  }
+
+  return <MissingMediaFallback platform={platform} />;
 }

@@ -58,7 +58,7 @@ export const IDEA_SOURCES: IdeaSource[] = [
     id: "creativo",
     label: "Creativo",
     summary:
-      "Referencias creativas guardadas: links con vista previa (Cosmos, Pinterest, Instagram, etc.).",
+      "Referencias creativas guardadas: Instagram, X y otros links con media y texto en local.",
     topics: [],
   },
   {

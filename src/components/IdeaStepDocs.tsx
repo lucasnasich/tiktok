@@ -8,6 +8,7 @@ import {
   IDEA_SIGNAL_EXAMPLE,
   IDEA_SUBSTEPS,
   angles,
+  formats,
 } from "@/content/idea-step";
 
 function useAccordionHeightSync() {
@@ -34,7 +35,7 @@ export function IdeaStepDocs() {
   return (
     <div ref={rootRef} className="space-y-4">
       <p className="text-[14px] leading-relaxed text-muted-foreground">
-        Capturás una señal, elegís un ángulo y armás la ficha.
+        Capturás una señal, elegís un ángulo, un formato creativo y armás la ficha.
       </p>
       <Tabs
         defaultValue={IDEA_SUBSTEPS[0].id}
@@ -78,9 +79,24 @@ export function IdeaStepDocs() {
           </ul>
         </TabsContent>
 
+        <TabsContent value="formato" className="mt-0 flex-none space-y-3">
+          <p className="text-[14px] leading-relaxed text-muted-foreground">
+            La envoltura visual del post. Elegí una plantilla:
+          </p>
+          <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
+            {formats.map((format) => (
+              <li key={format.id}>
+                <span className="font-medium text-foreground">{format.label}</span>
+                {" — "}
+                {format.summary}
+              </li>
+            ))}
+          </ul>
+        </TabsContent>
+
         <TabsContent value="idea" className="mt-0 flex-none space-y-4">
           <div>
-            <p className="mb-2 text-[13px] font-medium text-foreground">Formato</p>
+            <p className="mb-2 text-[13px] font-medium text-foreground">Fórmula</p>
             <p className="text-[14px] leading-relaxed text-muted-foreground">
               {IDEA_FINAL_FORMULA}
             </p>
