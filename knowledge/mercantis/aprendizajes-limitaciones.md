@@ -35,7 +35,7 @@ Exceso de visitas/outbound consumió mucho tiempo; retorno bajo. Outbound puede 
 
 Implementados. **No demostraron tracción.** No maquillar.
 
-## Curbal
+## Curval
 
 ~5.000 usuarios y ~USD 200/mes. Alcance sin modelo económico. No pasar demasiado tiempo optimizando sin evidencia de conversión. Entrenamiento conjunto (y fracaso económico) de Lucas y Carla antes de Mercantis.
 

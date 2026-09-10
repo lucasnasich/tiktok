@@ -8,7 +8,6 @@ import {
   IDEA_SIGNAL_EXAMPLE,
   IDEA_SUBSTEPS,
   angles,
-  formats,
 } from "@/content/idea-step";
 
 function useAccordionHeightSync() {
@@ -35,7 +34,9 @@ export function IdeaStepDocs() {
   return (
     <div ref={rootRef} className="space-y-4">
       <p className="text-[14px] leading-relaxed text-muted-foreground">
-        Capturás una señal, elegís un ángulo, un formato creativo y armás la ficha.
+        Un slot ya trae cuenta, plataformas, fecha, rol, pilar y formato. Idea
+        sólo decide qué contar: fuente, ángulo, concepto y hook. Puede haber
+        varias candidatas; una se selecciona.
       </p>
       <Tabs
         defaultValue={IDEA_SUBSTEPS[0].id}
@@ -54,19 +55,44 @@ export function IdeaStepDocs() {
           ))}
         </TabsList>
 
-        <TabsContent value="senal" className="mt-0 flex-none space-y-3">
+        <TabsContent value="slot" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
-            Una observación concreta. Algo que viste, escuchaste o leíste que
-            merece un post.
+            El flujo parte del calendario: elegís un slot y creás la idea. El
+            brief del slot (cuenta, rol, pilar, formato, plataformas, fecha/hora)
+            queda fijo.
           </p>
+        </TabsContent>
+
+        <TabsContent value="fuente" className="mt-0 flex-none space-y-3">
+          <p className="text-[14px] leading-relaxed text-muted-foreground">
+            Tres orígenes posibles:
+          </p>
+          <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
+            <li>
+              <span className="font-medium text-foreground">Inspiración</span>
+              {" — "}una referencia del Studio.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">Mercantis Brain</span>
+              {" — "}producto, dolor, historia, founder, filosofía, etc.
+            </li>
+            <li>
+              <span className="font-medium text-foreground">Manual</span>
+              {" — "}una señal o instrucción escrita.
+            </li>
+          </ul>
           <blockquote className="border-l-2 border-border py-0.5 pl-4 text-[14px] leading-relaxed text-muted-foreground italic">
             “{IDEA_SIGNAL_EXAMPLE}”
           </blockquote>
+          <p className="text-[14px] leading-relaxed text-muted-foreground">
+            Aunque la fuente inicial sea Inspiración o Manual, el agente consulta
+            el Brain cuando hace falta adaptar la idea a hechos reales.
+          </p>
         </TabsContent>
 
         <TabsContent value="angulo" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
-            Cómo vas a encarar la señal. Elegí uno:
+            Cómo vas a encarar la señal. El formato ya viene del slot.
           </p>
           <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
             {angles.map((angle) => (
@@ -74,21 +100,6 @@ export function IdeaStepDocs() {
                 <span className="font-medium text-foreground">{angle.label}</span>
                 {" — "}
                 {angle.summary}
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
-
-        <TabsContent value="formato" className="mt-0 flex-none space-y-3">
-          <p className="text-[14px] leading-relaxed text-muted-foreground">
-            La envoltura visual del post. Elegí una plantilla:
-          </p>
-          <ul className="list-disc space-y-1.5 pl-5 text-[14px] leading-relaxed text-muted-foreground">
-            {formats.map((format) => (
-              <li key={format.id}>
-                <span className="font-medium text-foreground">{format.label}</span>
-                {" — "}
-                {format.summary}
               </li>
             ))}
           </ul>

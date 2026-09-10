@@ -1,6 +1,7 @@
 import { IdeaStepDocs } from "@/components/IdeaStepDocs";
 import { InspirationCard } from "@/components/InspirationCard";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { WorkflowPipelineDiagram } from "@/components/WorkflowPipelineDiagram";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +18,7 @@ function WorkflowStepContent({ stepId, details }: { stepId: string; details: str
 export function WorkflowDocs() {
   return (
     <div className="space-y-8">
+      <WorkflowPipelineDiagram />
       <InspirationCard />
 
       <section>

@@ -3,7 +3,13 @@ import type { PlanningAccount } from "@/content/planning-accounts";
 import { planningAccounts } from "@/content/planning-accounts";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { normalizePillarId } from "@/content/planning-pillars";
-import { addDays, parseIsoDate, toIsoDate } from "@/lib/planning-dates";
+import {
+  addDays,
+  getWeekDates,
+  parseIsoDate,
+  startOfWeek,
+  toIsoDate,
+} from "@/lib/planning-dates";
 
 export type GenerateSlotsInput = {
   accounts?: PlanningAccount[];
@@ -17,11 +23,8 @@ type CountMap = Record<string, number>;
 type GeneratorContext = {
   pillarCounts: CountMap;
   formatCounts: CountMap;
-  roleCounts: CountMap;
   lastPillar: string | null;
-  lastRole: ContentRoleId | null;
   lastFormat: string | null;
-  roleStreak: number;
   pillarStreak: number;
 };
 
@@ -55,6 +58,10 @@ export function enumerateDates(dateFrom: string, dateTo: string): string[] {
   return dates;
 }
 
+export function weekStartIso(iso: string): string {
+  return toIsoDate(startOfWeek(parseIsoDate(iso)));
+}
+
 function slotKey(slot: Pick<PlanningSlot, "accountId" | "date" | "time">): string {
   return `${slot.accountId}:${slot.date}:${slot.time}`;
 }
@@ -63,15 +70,67 @@ function increment(map: CountMap, key: string) {
   map[key] = (map[key] ?? 0) + 1;
 }
 
+function roleTargets(account: PlanningAccount): Array<[ContentRoleId, number]> {
+  return Object.entries(account.roleTargets).filter(
+    (entry): entry is [ContentRoleId, number] => (entry[1] ?? 0) > 0,
+  );
+}
+
+export function weekCapacity(
+  account: PlanningAccount,
+  weekStart: string,
+): number {
+  return (
+    getWeekDates(parseIsoDate(weekStart)).filter((date) =>
+      isActiveDay(account, date),
+    ).length * account.postsPerDay
+  );
+}
+
+function countRolesForWeek(
+  slots: PlanningSlot[],
+  accountId: string,
+  weekStart: string,
+): CountMap {
+  const dates = new Set(getWeekDates(parseIsoDate(weekStart)));
+  const counts: CountMap = {};
+  for (const slot of slots) {
+    if (slot.accountId !== accountId || !dates.has(slot.date)) continue;
+    increment(counts, slot.roleId);
+  }
+  return counts;
+}
+
+function roleStreakForAccount(
+  slots: PlanningSlot[],
+  accountId: string,
+): { lastRole: ContentRoleId | null; streak: number } {
+  const ordered = slots
+    .filter((slot) => slot.accountId === accountId)
+    .sort(
+      (a, b) =>
+        a.date.localeCompare(b.date) ||
+        a.time.localeCompare(b.time) ||
+        a.id.localeCompare(b.id),
+    );
+
+  if (ordered.length === 0) return { lastRole: null, streak: 0 };
+
+  const lastRole = ordered[ordered.length - 1].roleId;
+  let streak = 0;
+  for (let index = ordered.length - 1; index >= 0; index -= 1) {
+    if (ordered[index].roleId !== lastRole) break;
+    streak += 1;
+  }
+  return { lastRole, streak };
+}
+
 function initContext(slots: PlanningSlot[]): GeneratorContext {
   const context: GeneratorContext = {
     pillarCounts: {},
     formatCounts: {},
-    roleCounts: {},
     lastPillar: null,
-    lastRole: null,
     lastFormat: null,
-    roleStreak: 0,
     pillarStreak: 0,
   };
 
@@ -85,7 +144,6 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
   for (const slot of ordered) {
     increment(context.pillarCounts, normalizePillarId(slot.pillarId));
     increment(context.formatCounts, slot.formatId);
-    increment(context.roleCounts, slot.roleId);
 
     const pillarId = normalizePillarId(slot.pillarId);
     if (pillarId === context.lastPillar) {
@@ -95,64 +153,48 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
       context.pillarStreak = 1;
     }
 
-    if (slot.roleId === context.lastRole) {
-      context.roleStreak += 1;
-    } else {
-      context.lastRole = slot.roleId;
-      context.roleStreak = 1;
-    }
-
     context.lastFormat = slot.formatId;
   }
 
   return context;
 }
 
-function alternateRoleForDate(
+/**
+ * Elige el rol con mayor déficit relativo vs. `roleTargets` en la semana ISO.
+ * Un target en 0 no se programa. Respeta el tope de repetición seguida.
+ */
+export function pickWeeklyRole(
   account: PlanningAccount,
-  date: string,
-): ContentRoleId {
-  const [roleA, roleB] = account.alternateRoles ?? ["prueba", "conversion"];
-  return stableHash(`${account.id}:${date}`) % 2 === 0 ? roleA : roleB;
-}
+  weekSlots: PlanningSlot[],
+  weekStart: string,
+  seed: string,
+): ContentRoleId | null {
+  const entries = roleTargets(account);
+  if (entries.length === 0) return null;
 
-export function getIdealDailyRoles(
-  account: PlanningAccount,
-  date: string,
-): ContentRoleId[] {
-  const roles: ContentRoleId[] = [];
+  const capacity = Math.max(weekCapacity(account, weekStart), 1);
+  const counts = countRolesForWeek(weekSlots, account.id, weekStart);
+  const { lastRole, streak } = roleStreakForAccount(weekSlots, account.id);
+  const maxStreak = account.repetitionLimits.maxSameRoleInRow;
 
-  if (account.type === "official") {
-    roles.push("alcance", "valor");
-    roles.push(alternateRoleForDate(account, date));
-    return roles.slice(0, account.postsPerDay);
-  }
+  const scored = entries.map(([id, target]) => {
+    const expected = (capacity * target) / 100;
+    const actual = counts[id] ?? 0;
+    let deficit = expected - actual;
 
-  const alcanceCount = Math.round(
-    (account.postsPerDay * (account.roleTargets.alcance ?? 67)) / 100,
-  );
-  const valorCount = account.postsPerDay - alcanceCount;
+    if (id === lastRole && streak >= maxStreak && entries.length > 1) {
+      deficit -= 1000;
+    }
 
-  for (let index = 0; index < alcanceCount; index += 1) roles.push("alcance");
-  for (let index = 0; index < valorCount; index += 1) roles.push("valor");
+    return { id, deficit };
+  });
 
-  return roles.slice(0, account.postsPerDay);
-}
+  scored.sort((a, b) => {
+    if (a.deficit !== b.deficit) return b.deficit - a.deficit;
+    return stableHash(`${seed}:${a.id}`) - stableHash(`${seed}:${b.id}`);
+  });
 
-function missingRolesForDay(
-  account: PlanningAccount,
-  date: string,
-  daySlots: PlanningSlot[],
-): ContentRoleId[] {
-  const ideal = getIdealDailyRoles(account, date);
-  const remaining = [...ideal];
-
-  for (const slot of daySlots) {
-    const index = remaining.indexOf(slot.roleId);
-    if (index >= 0) remaining.splice(index, 1);
-  }
-
-  return remaining;
+  return scored[0]?.id ?? null;
 }
 
 function pickFromTargets(
@@ -194,27 +236,6 @@ function pickFromTargets(
   return scored[0]?.id ?? entries[0][0];
 }
 
-function pickRole(
-  account: PlanningAccount,
-  role: ContentRoleId,
-  context: GeneratorContext,
-): ContentRoleId {
-  if (
-    context.lastRole === role &&
-    context.roleStreak >= account.repetitionLimits.maxSameRoleInRow
-  ) {
-    const alternatives = Object.entries(account.roleTargets)
-      .filter(([roleId, weight]) => weight && roleId !== role)
-      .map(([roleId]) => roleId as ContentRoleId);
-
-    if (alternatives.length > 0) {
-      return alternatives[stableHash(role) % alternatives.length];
-    }
-  }
-
-  return role;
-}
-
 function availableTimes(account: PlanningAccount, daySlots: PlanningSlot[]): string[] {
   const used = new Set(daySlots.map((slot) => slot.time));
   return account.timeSlots.filter((time) => !used.has(time));
@@ -228,26 +249,32 @@ export function generateMissingSlots({
 }: GenerateSlotsInput): PlanningSlot[] {
   const existingKeys = new Set(existingSlots.map(slotKey));
   const generated: PlanningSlot[] = [];
+  const workingSlots = [...existingSlots];
   const context = initContext(existingSlots);
   const dates = enumerateDates(dateFrom, dateTo);
 
   for (const account of accounts) {
+    if (roleTargets(account).length === 0) continue;
+
     for (const date of dates) {
       if (!isActiveDay(account, date)) continue;
 
-      const daySlots = existingSlots
+      const daySlots = workingSlots
         .filter((slot) => slot.accountId === account.id && slot.date === date)
         .sort((a, b) => a.time.localeCompare(b.time));
 
-      const missingRoles = missingRolesForDay(account, date, daySlots);
+      const missingCount = Math.max(account.postsPerDay - daySlots.length, 0);
       const times = availableTimes(account, daySlots);
+      const weekStart = weekStartIso(date);
 
-      missingRoles.forEach((roleNeeded, index) => {
+      for (let index = 0; index < missingCount; index += 1) {
         const time = times[index];
-        if (!time) return;
+        if (!time) break;
 
         const seed = `${account.id}:${date}:${time}:${index}`;
-        const roleId = pickRole(account, roleNeeded, context);
+        const roleId = pickWeeklyRole(account, workingSlots, weekStart, seed);
+        if (!roleId) break;
+
         const pillarId = pickFromTargets(
           account.pillarTargets,
           context.pillarCounts,
@@ -275,19 +302,19 @@ export function generateMissingSlots({
           pillarId,
           formatId,
           status: "pendiente",
-          distributionType: account.defaultDistributionType,
+          distributionType: "organic",
           generated: true,
         };
 
         const key = slotKey(slot);
-        if (existingKeys.has(key)) return;
+        if (existingKeys.has(key)) continue;
 
         existingKeys.add(key);
         generated.push(slot);
+        workingSlots.push(slot);
 
         increment(context.pillarCounts, pillarId);
         increment(context.formatCounts, formatId);
-        increment(context.roleCounts, roleId);
 
         if (pillarId === context.lastPillar) {
           context.pillarStreak += 1;
@@ -296,15 +323,8 @@ export function generateMissingSlots({
           context.pillarStreak = 1;
         }
 
-        if (roleId === context.lastRole) {
-          context.roleStreak += 1;
-        } else {
-          context.lastRole = roleId;
-          context.roleStreak = 1;
-        }
-
         context.lastFormat = formatId;
-      });
+      }
     }
   }
 
@@ -349,4 +369,21 @@ export function getCalendarSlots(
     existingSlots,
   });
   return mergePlanningSlots(existingSlots, generated);
+}
+
+export function getPlanningHorizonSlots(
+  existingSlots: PlanningSlot[],
+  accounts: PlanningAccount[],
+  todayIso: string,
+): PlanningSlot[] {
+  const dates = existingSlots.map((slot) => slot.date);
+  const from = dates.length
+    ? dates.reduce((earliest, date) => (date < earliest ? date : earliest))
+    : todayIso;
+  const lastExisting = dates.length
+    ? dates.reduce((latest, date) => (date > latest ? date : latest))
+    : todayIso;
+  const horizon = toIsoDate(addDays(parseIsoDate(todayIso), 28));
+  const to = horizon > lastExisting ? horizon : lastExisting;
+  return getCalendarSlots(existingSlots, from, to, accounts);
 }

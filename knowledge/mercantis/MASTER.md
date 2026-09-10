@@ -367,13 +367,13 @@ En ese momento Lucas y Carla vivían juntos en una casa en barrio Marqués de So
 **Trazabilidad:** relato de Lucas Nasich, 2026-09-10.
 
 
-## La primera startup conjunta: Curbal
+## La primera startup conjunta: Curval
 
-El primer proyecto de startup de Lucas fue **Curbal**, una plataforma educativa basada en inteligencia artificial. Su propuesta era actuar como copiloto para estudiantes y ayudar a retener mejor información mediante técnicas como repaso espaciado, generación de flashcards, resúmenes y otras herramientas de estudio.
+El primer proyecto de startup de Lucas fue **Curval**, una plataforma educativa basada en inteligencia artificial. Su propuesta era actuar como copiloto para estudiantes y ayudar a retener mejor información mediante técnicas como repaso espaciado, generación de flashcards, resúmenes y otras herramientas de estudio.
 
 Lucas comenzó construyendo el proyecto y Carla se entusiasmó con la idea. Carla dejó su empleo para sumarse y fue la primera vez que emprendieron formalmente juntos.
 
-Trabajaron aproximadamente un año. Curbal alcanzó alrededor de **5.000 usuarios registrados** pero sólo aproximadamente **USD 200 de facturación mensual**. El producto tenía plan gratuito y consiguió alcance, pero la conversión a pago fue muy baja.
+Trabajaron aproximadamente un año. Curval alcanzó alrededor de **5.000 usuarios registrados** pero sólo aproximadamente **USD 200 de facturación mensual**. El producto tenía plan gratuito y consiguió alcance, pero la conversión a pago fue muy baja.
 
 Ese resultado dejó una enseñanza estructural: una startup puede obtener usuarios y atención sin haber encontrado un modelo económico suficiente. También aprendieron que no conviene pasar demasiado tiempo construyendo y optimizando una propuesta cuando la evidencia de conversión sigue siendo débil.
 
@@ -384,7 +384,7 @@ Probaron distintas alternativas para mejorar la monetización, pero no lograron 
 
 ## Etapa freelance y problema que dio origen a Mercantis
 
-Después de Curbal, Lucas y Carla realizaron trabajos freelance para volver a generar ingresos.
+Después de Curval, Lucas y Carla realizaron trabajos freelance para volver a generar ingresos.
 
 Durante esa etapa empezaron a aparecer consultas de amigos y conocidos que preguntaban cuánto costaría construirles una página o tienda a medida. Cuando Lucas preparaba presupuestos de desarrollo personalizado, muchos potenciales clientes los consideraban inalcanzables.
 
@@ -399,7 +399,7 @@ La oportunidad era productizar esa necesidad y convertirla en una suscripción a
 
 El fundador sitúa el comienzo de Mercantis alrededor de **febrero de 2026**.
 
-A diferencia de Curbal, el enfoque inicial buscó validar más rápido. Antes y durante la construcción fueron preguntando a potenciales usuarios qué necesitaban y desarrollaron un MVP alrededor de necesidades muy concretas.
+A diferencia de Curval, el enfoque inicial buscó validar más rápido. Antes y durante la construcción fueron preguntando a potenciales usuarios qué necesitaban y desarrollaron un MVP alrededor de necesidades muy concretas.
 
 La primera propuesta se concentró en una tienda/catalogación simple, stock y herramientas básicas que se repetían entre comercios.
 
@@ -445,7 +445,7 @@ La tienda sigue siendo parte central de la experiencia, pero el roadmap ahora in
 
 La historia de Mercantis está atravesada por una restricción financiera fuerte.
 
-Después de agotar el runway de Curbal, hacer freelance y volver a apostar por un producto propio que todavía no generaba ingresos suficientes, Lucas y Carla decidieron bajar su costo de vida. Se mudaron desde Córdoba Capital a **Villa de Soto**, en el interior de Córdoba, y pasaron a vivir en la casa de los padres de Carla.
+Después de agotar el runway de Curval, hacer freelance y volver a apostar por un producto propio que todavía no generaba ingresos suficientes, Lucas y Carla decidieron bajar su costo de vida. Se mudaron desde Córdoba Capital a **Villa de Soto**, en el interior de Córdoba, y pasaron a vivir en la casa de los padres de Carla.
 
 Durante esta etapa recibieron ayuda económica de sus familias para afrontar gastos y los dos quedaron fuertemente expuestos al mismo proyecto, sin una fuente de ingresos estable separada de Mercantis.
 
@@ -591,7 +591,7 @@ El recorrido laboral relatado por Lucas incluye:
 4. transición hacia datos mediante una Diplomatura en Ciencia de Datos;
 5. trabajo como ingeniero de datos en **Core BI**;
 6. trabajo como ingeniero de datos en **Naranja X**;
-7. etapa de emprendimiento con Curbal;
+7. etapa de emprendimiento con Curval;
 8. trabajos freelance;
 9. creación de Mercantis.
 
@@ -610,7 +610,7 @@ Antes había probado, entre otras cosas:
 - organización de eventos;
 - numerosos proyectos personales que no llegaron a desarrollarse por completo, muchas veces por falta de presupuesto para contratar desarrollo.
 
-Curbal fue la experiencia de startup más estructurada inmediatamente anterior a Mercantis y la primera que construyó en profundidad junto con Carla.
+Curval fue la experiencia de startup más estructurada inmediatamente anterior a Mercantis y la primera que construyó en profundidad junto con Carla.
 
 Para Lucas, emprender no es una actividad circunstancial sino una forma de vida y el tipo de trabajo que más le apasiona.
 
@@ -696,7 +696,7 @@ Según el relato actual, su recorrido profesional incluye:
 
 1. primer trabajo en **Biologic**;
 2. paso a **Conexia**;
-3. etapa emprendiendo junto con Lucas en **Curbal**;
+3. etapa emprendiendo junto con Lucas en **Curval**;
 4. experiencia posterior en **Mercado Libre**;
 5. Mercantis como proyecto actual.
 
@@ -729,14 +729,14 @@ Lucas y Carla son pareja.
 
 Se conocieron a través de contactos en común: un amigo de Lucas tenía una hermana que era muy amiga de Carla. Finalmente se cruzaron casualmente en el departamento de un amigo y allí comenzaron a conocerse.
 
-La relación personal es anterior a Mercantis y ambos atravesaron juntos las etapas de Curbal, freelance y Mercantis.
+La relación personal es anterior a Mercantis y ambos atravesaron juntos las etapas de Curval, freelance y Mercantis.
 
 **Trazabilidad:** relato de Lucas.
 
 
 ## Primera experiencia trabajando juntos
 
-La primera vez que emprendieron juntos fue en Curbal.
+La primera vez que emprendieron juntos fue en Curval.
 
 Lucas comenzó el proyecto y Carla se fue involucrando hasta entusiasmarse lo suficiente como para dejar su trabajo y sumarse. Esa experiencia funcionó como entrenamiento conjunto de producto, tecnología, startup, adquisición y fracaso económico antes de Mercantis.
 
@@ -967,7 +967,7 @@ Para la cuenta oficial, “onda Apple” también significa evitar que la comuni
 ### Perplexity
 Es una referencia especialmente positiva en **comunicación**. Al fundador le gusta cómo explica su producto, cómo construye presencia pública y cómo comunica innovación sin depender sólo de lenguaje corporativo tradicional.
 
-### Versy
+### Vercel
 Es una referencia estética parcial. Hay elementos de su dirección visual que resultan atractivos para Mercantis, aunque no se la toma como molde total de marca.
 
 ### Mercado Libre
@@ -1864,11 +1864,11 @@ Un caso extremo fue un usuario con suficiente capacidad técnica para terminar c
 
 ## Cliente de mayor tamaño / caso atípico actual
 
-El cliente que el fundador identifica actualmente como más grande y también como uno de los más atípicos es **Empak**, un negocio orientado a packaging y venta mayorista de cajas y productos relacionados.
+El cliente que el fundador identifica actualmente como más grande y también como uno de los más atípicos es **Empac**, un negocio orientado a packaging y venta mayorista de cajas y productos relacionados.
 
 Este caso es relevante porque muestra que Mercantis no debe imaginar su uso solamente alrededor de tiendas pequeñas de consumo final. También puede tener fit con operaciones mayoristas y catálogos orientados a abastecimiento de otros negocios.
 
-Antes de publicar detalles comerciales, métricas o resultados específicos de Empak se debe usar únicamente la evidencia y permisos efectivamente disponibles.
+Antes de publicar detalles comerciales, métricas o resultados específicos de Empac se debe usar únicamente la evidencia y permisos efectivamente disponibles.
 
 **Trazabilidad:** fundador.
 

@@ -26,7 +26,6 @@ import {
   type PlanningAccount,
 } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import { DISTRIBUTION_TYPE_LABELS } from "@/content/planned-slots";
 import type { PlanningConfigApi } from "@/hooks/use-planning-config";
 import { WEEKDAY_LABELS } from "@/lib/planning-dates";
 
@@ -137,20 +136,6 @@ function AccountConfigCard({
         <div>
           <p className="font-medium text-foreground">Formato</p>
           <p className="text-muted-foreground">{formatSummary}</p>
-        </div>
-        <div>
-          <p className="font-medium text-foreground">Límites de repetición</p>
-          <p className="text-muted-foreground">
-            Pilar seguido ≤ {account.repetitionLimits.maxConsecutiveSamePillar}{" "}
-            · Formato ≤ {account.repetitionLimits.maxSameFormatInPeriod} en el
-            período · Rol seguido ≤ {account.repetitionLimits.maxSameRoleInRow}
-          </p>
-        </div>
-        <div>
-          <p className="font-medium text-foreground">Distribución default</p>
-          <p className="text-muted-foreground">
-            {DISTRIBUTION_TYPE_LABELS[account.defaultDistributionType]}
-          </p>
         </div>
       </CardContent>
     </Card>

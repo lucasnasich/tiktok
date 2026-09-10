@@ -18,6 +18,7 @@ export function WorkflowPipelineDiagram() {
                 <div
                   className={cn(
                     "flex min-w-[4.25rem] flex-col items-center rounded-lg border border-border bg-muted/40 px-2 py-2",
+                    step.id === "idea" && "ring-1 ring-foreground/15",
                   )}
                 >
                   <span
@@ -42,6 +43,11 @@ export function WorkflowPipelineDiagram() {
           ))}
         </div>
       </div>
+      <p className="mt-4 text-center text-[12px] leading-relaxed text-muted-foreground">
+        Inspiración y Mercantis Brain alimentan{" "}
+        <span className="font-medium text-foreground">Idea</span> en paralelo —
+        no son pasos del pipeline.
+      </p>
     </div>
   );
 }

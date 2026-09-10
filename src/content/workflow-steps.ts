@@ -9,14 +9,18 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "planificacion",
     title: "Planificación",
-    summary: "El motor genera qué falta producir según configuración.",
+    summary: "El motor genera qué falta producir según el perfil orgánico.",
     details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-**Configuración** (\`src/content/planning-accounts.ts\`): por cuenta definís plataformas, posts/día, días activos, horarios, % por rol/pilar/formato, límites de repetición y \`distributionType\` default.
+**Configuración**: por cuenta definís plataformas, posts/día, días activos, horarios y % por rol/pilar/formato. Los límites de repetición son internos del motor.
 
 **Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 
-Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Formato** (sin ángulo).
+Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Formato**.
+
+Los \`roleTargets\` del perfil gobiernan el mix **semanal**. No hay composición fija por día ni alternancia prueba/conversión en un tercer slot.
+
+Esta planificación es **orgánica**. Ads es una iteración futura distinta.
 
 **Capas del contenido** (no mezclar):
 - **Rol** = para qué publicamos (\`content-roles.ts\`)
@@ -26,72 +30,51 @@ Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Fo
 
 Ejemplos: Alcance → Ventas y atención → Dolor → Captura de chat · Prueba → Automatización e IA → Storytelling → Demo
 
-- Bloque **Qué falta**: brechas vs. configuración real y alertas de variedad.
-- \`distributionType\`: \`organic\` (default), \`paid\` o \`boosted\` — preparado para ads.
+- Bloque **Qué falta**: brechas vs. mix semanal del perfil.
 
-**Inspiración** corre en paralelo y aporta señales; no reemplaza Planificación.
+**Inspiración** y **Mercantis Brain** alimentan Idea en paralelo; no reemplazan Planificación.
 
-**Output:** slots listos para convertirse en ideas en la etapa Idea.`,
+**Output:** slots listos para convertirse en ideas.`,
   },
   {
     id: "idea",
     title: "Idea",
-    summary: "Señal → ángulo → formato → ficha de la idea.",
-    details: `Tomás un slot de planificación (o una señal suelta) y definís **cómo** se convierte en pieza.
+    summary: "Fuente + ángulo → concepto y hook, anclados al slot.",
+    details: `Tomás un PlanningSlot y decidís **qué contar**. No volvés a elegir cuenta, público, plataformas, rol, pilar ni formato.
 
-- La planificación dice *qué* necesitás; Idea decide el hook, público y ángulo concreto.
-- Ficha en \`src/content/ideas.ts\` cuando corresponda.
-- Podés vincular \`postId\` en el slot cuando el post ya existe.
+Flujo: Calendario → slot → Crear idea.
 
-**Output:** idea capturada con señal, ángulo, formato creativo y hook.`,
+Tres fuentes:
+- **Inspiración**: una referencia del Studio.
+- **Mercantis Brain**: materia prima propia (producto, dolor, historia, founder…).
+- **Manual**: una señal o instrucción escrita.
+
+Aunque la fuente inicial sea Inspiración o Manual, el agente consulta el Brain cuando hay que adaptar la idea a hechos reales de Mercantis.
+
+Un slot puede tener varias **candidatas** y una **seleccionada**. El ángulo, el concepto y el hook viven en la idea.
+
+**Output:** idea seleccionada lista para Producción.`,
   },
   {
-    id: "copy",
-    title: "Copy",
-    summary: "Hook, slides y CTA — el guion del carrusel o video.",
-    details: `Acá se escribe **qué dice cada slide** y en qué orden. TikTok carrusel = secuencia emocional, no feature dump.
+    id: "produccion",
+    title: "Producción",
+    summary: "Convierte la idea seleccionada en una pieza.",
+    details: `Producción toma la idea seleccionada y arma la pieza. Hoy la superficie implementada es **Imágenes**.
 
-- **Hook** (slide 1): tensión o pregunta que frena el scroll.
-- **Slides medias:** problema → consecuencia → giro (sin listar features).
-- **CTA** (última slide): acción concreta, seca, sin “seguinos para más”.
-
-Editás pidiéndole al agente en Cursor. El copy vive en src/content/ junto a la idea, no hardcodeado solo en Figma.
-
-**Output:** texto por slide listo para maquetar. Sin imágenes todavía.`,
-  },
-  {
-    id: "imagenes",
-    title: "Imágenes",
-    summary: "Visuales 9:16 sin texto quemado, listas para Figma.",
-    details: `Generás o reusás fotos en assets/creativos/mercantis/. **Sin texto en la imagen** — el copy va encima en Figma.
-
-- Prompts en src/content/image-prompts.ts (source of truth).
-- Generación con **Cursor GenerateImage** (Nano Banana Pro) o assets ya aprobados.
-- Galería del studio: hover → **Copiar prompt** para iterar o regenerar.
+**Imágenes:** visuales 9:16 sin texto quemado, listas para Figma.
+- Prompts en \`src/content/image-prompts.ts\`.
+- Galería del studio: hover → **Copiar prompt**.
 - Naming: mercantis-slide-NN-descripcion.png.
 
-**Output:** 1 PNG por slide, mismo ratio, estilo coherente con el carrusel.`,
+Más adelante esta etapa va a contener Copy, Figma y el armado hacia Buffer. No hay pantallas vacías para esas superficies todavía.
+
+**Output actual:** PNGs por slide, mismo ratio, estilo coherente.`,
   },
   {
-    id: "figma",
-    title: "Figma",
-    summary: "Armás el creativo final: layout, tipografía y export.",
-    details: `Juntás imágenes + copy en el diseño publicable. Figma es el paso de **maquetación**, no de ideación.
-
-- Importás assets desde assets/.
-- Tipografía, overlays, jerarquía y safe zones para TikTok.
-- Carrusel = frames ordenados, uno por slide.
-- Export final (PNG/JPG o lo que pida la plataforma).
-
-Usá el MCP de Figma antes de pedir trabajo manual. Si hay file o componentes del brand, reusarlos.
-
-**Output:** creativo exportado, pixel-perfect, listo para subir a Buffer.`,
-  },
-  {
-    id: "buffer",
-    title: "Buffer",
-    summary: "Programás la publicación con fecha y hora acordada.",
-    details: `Buffer es el calendario. **Nunca publicar al instante** salvo pedido explícito tuyo.
+    id: "publicacion",
+    title: "Publicación",
+    summary: "Programás la pieza con fecha y hora acordada.",
+    details: `Buffer es el calendario de publicación. **Nunca publicar al instante** salvo pedido explícito tuyo.
 
 - Default: **draft** o **scheduled** con fecha futura.
 - No programar a “ahora” ni disparar un post live sin que lo pidas con claridad.
@@ -118,12 +101,17 @@ No optimices en caliente el mismo día del lanzamiento salvo que algo esté clar
   },
 ];
 
-export const INSPIRATION_WORKFLOW_DETAILS = `Inspiración corre **en paralelo** al pipeline. No es un paso posterior a Métricas: vas recopilando input mientras producís.
+export const INSPIRATION_WORKFLOW_DETAILS = `Inspiración corre **en paralelo** al pipeline. No es un paso previo obligatorio: alimenta Idea.
 
-**Qué es:** señales reales que pueden convertirse en ideas — dolores de clientes, posts orgánicos, referencias creativas, ads de competidores, tendencias, datos propios.
+En el Studio vive como sección propia, primera del sidebar, con dos subsecciones:
 
-**Cómo se usa:** filtrás por fuente, revisás referencias y las llevás a Ideas cuando aparece un ángulo. No hace falta “cerrar” inspiración antes de escribir copy.
+- **Referencias**: biblioteca de posts/ads/links (\`src/content/\`). Listado / Revisar, filtro por fuente y formato, columnas. Media en \`assets/inspiracion/media/\` (local).
+- **Competidores**: marcas del mapa competitivo. Filtro país, orden, columnas. Datos en \`competitor-inspirations.ts\`.
 
-**Dónde vive:** pantalla **Inspiración** del studio y archivos en \`src/content/\`. La media descargada queda en \`assets/inspiracion/media/\` (local).
+**Output:** señales y referencias etiquetadas, listas para una idea.`;
 
-**Output:** biblioteca de referencias etiquetadas por fuente, lista para alimentar la etapa de Idea.`;
+export const BRAIN_WORKFLOW_DETAILS = `El **Mercantis Brain** (\`knowledge/mercantis/\`) es contexto real de la empresa, no un paso del workflow.
+
+Alimenta Idea (y más adelante Copy) con producto, dolores, historia, claims y límites. Consultar \`README.md\` y sólo los documentos de dominio relevantes. Nunca inventar lo que no esté ahí.
+
+Opcionalmente una idea puede guardar \`brainRefs\` (archivos usados como respaldo).`;

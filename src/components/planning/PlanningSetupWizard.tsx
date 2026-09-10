@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { contentRoles, type ContentRoleId } from "@/content/content-roles";
+import { contentRoles } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import {
   planningAccounts,
@@ -28,19 +28,15 @@ import {
 } from "@/content/planning-profiles";
 import { DEFAULT_TIME_SLOTS } from "@/content/planning-defaults";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import {
-  DISTRIBUTION_TYPE_LABELS,
-  type DistributionType,
-} from "@/content/planned-slots";
 import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
   PILLAR_PRIORITY_WEIGHT,
   PLANNING_SETUP_STEPS,
   RHYTHM_COPY,
   ROLE_GUIDES,
-  VARIETY_COPY,
   getSetupFormats,
   type PillarPriority,
+  type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
 import { WEEKDAY_LABELS } from "@/lib/planning-dates";
 import {
@@ -148,24 +144,78 @@ type PlanningSetupWizardProps = {
   onComplete: () => void;
 };
 
-function StepProgress({ currentIndex }: { currentIndex: number }) {
+type StepValidationContext = {
+  draft: PlanningAccount;
+  roleSum: number;
+  selectedFormats: Set<string>;
+  pillarPriorities: Record<string, PillarPriority>;
+  relevantPillarIds: string[];
+};
+
+function isStepComplete(
+  stepId: PlanningSetupStepId,
+  ctx: StepValidationContext,
+): boolean {
+  switch (stepId) {
+    case "welcome":
+    case "account":
+    case "review":
+      return true;
+    case "rhythm":
+      return (
+        ctx.draft.postsPerDay > 0 &&
+        ctx.draft.activeDays.length > 0 &&
+        ctx.draft.timeSlots.length > 0
+      );
+    case "roles":
+      return Math.abs(ctx.roleSum - 100) <= 2;
+    case "pillars":
+      return ctx.relevantPillarIds.some(
+        (id) => (ctx.pillarPriorities[id] ?? "media") !== "no",
+      );
+    case "formats":
+      return ctx.selectedFormats.size > 0;
+    default:
+      return true;
+  }
+}
+
+function StepProgress({
+  currentIndex,
+  validation,
+  onStepClick,
+}: {
+  currentIndex: number;
+  validation: StepValidationContext;
+  onStepClick: (index: number) => void;
+}) {
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {PLANNING_SETUP_STEPS.map((step, index) => (
-        <div
-          key={step.id}
-          className={cn(
-            "rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-tight",
-            index === currentIndex
-              ? "bg-primary text-primary-foreground"
-              : index < currentIndex
-                ? "bg-muted text-foreground"
-                : "bg-muted/50 text-muted-foreground",
-          )}
-        >
-          {index + 1}. {step.label}
-        </div>
-      ))}
+    <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Pasos del asistente">
+      {PLANNING_SETUP_STEPS.map((step, index) => {
+        const isCurrent = index === currentIndex;
+        const complete = isStepComplete(step.id, validation);
+
+        return (
+          <button
+            key={step.id}
+            type="button"
+            role="tab"
+            aria-selected={isCurrent}
+            aria-current={isCurrent ? "step" : undefined}
+            onClick={() => onStepClick(index)}
+            className={cn(
+              "rounded-full px-2.5 py-0.5 text-[11px] font-medium tracking-tight transition-colors",
+              isCurrent
+                ? "bg-primary text-primary-foreground"
+                : complete
+                  ? "bg-muted text-foreground hover:bg-muted/80"
+                  : "bg-destructive/10 text-destructive hover:bg-destructive/15",
+            )}
+          >
+            {index + 1}. {step.label}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -207,7 +257,10 @@ function resolveWizardInitialState({
     const draft = sessionToAccount(base, session);
     return {
       accountId: session.accountId,
-      stepIndex: session.stepIndex,
+      stepIndex: Math.min(
+        Math.max(0, session.stepIndex),
+        PLANNING_SETUP_STEPS.length - 1,
+      ),
       selectedProfileId:
         session.profileId ?? getAssignedProfileId(session.accountId),
       profileLabel: session.profileLabel,
@@ -289,8 +342,6 @@ export function PlanningSetupWizard({
     () => getPlanningPillarsForAccount(accountId, accountMeta.type),
     [accountId, accountMeta.type],
   );
-
-  const satelliteExcludedRoles: ContentRoleId[] = ["prueba", "conversion"];
 
   const compatibleProfiles = useMemo(
     () => getProfilesForAccount(accountId),
@@ -397,9 +448,30 @@ export function PlanningSetupWizard({
     updateDraft({ formatTargets: normalizePercentTargets(weights) });
   }, [selectedFormats, updateDraft]);
 
+  const applyStepSideEffects = useCallback(
+    (fromStepId: PlanningSetupStepId) => {
+      if (fromStepId === "pillars") applyPillarPriorities();
+      if (fromStepId === "formats") applyFormatSelection();
+    },
+    [applyFormatSelection, applyPillarPriorities],
+  );
+
+  const goToStep = useCallback(
+    (nextIndex: number) => {
+      const clampedIndex = Math.min(
+        Math.max(0, nextIndex),
+        PLANNING_SETUP_STEPS.length - 1,
+      );
+      if (clampedIndex === stepIndex) return;
+
+      applyStepSideEffects(step.id);
+      setStepIndex(clampedIndex);
+    },
+    [applyStepSideEffects, step.id, stepIndex],
+  );
+
   const goNext = useCallback(() => {
-    if (step.id === "pillars") applyPillarPriorities();
-    if (step.id === "formats") applyFormatSelection();
+    applyStepSideEffects(step.id);
 
     if (stepIndex < PLANNING_SETUP_STEPS.length - 1) {
       setStepIndex((i) => i + 1);
@@ -418,8 +490,8 @@ export function PlanningSetupWizard({
     });
     onComplete();
   }, [
-    applyFormatSelection,
-    applyPillarPriorities,
+    accountId,
+    applyStepSideEffects,
     draft,
     onComplete,
     onSave,
@@ -433,18 +505,29 @@ export function PlanningSetupWizard({
   ]);
 
   const goBack = useCallback(() => {
+    applyStepSideEffects(step.id);
     setStepIndex((i) => Math.max(0, i - 1));
-  }, []);
+  }, [applyStepSideEffects, step.id]);
 
   const roleSum = sumPercentTargets(
     draft.roleTargets as Record<string, number>,
   );
-  const canAdvance =
-    step.id !== "roles" || Math.abs(roleSum - 100) <= 2 || accountMeta.type === "satellite";
+  const stepValidation: StepValidationContext = {
+    draft,
+    roleSum,
+    selectedFormats,
+    pillarPriorities,
+    relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
+  };
+  const canAdvance = isStepComplete(step.id, stepValidation);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 px-5 py-6">
-      <StepProgress currentIndex={stepIndex} />
+      <StepProgress
+        currentIndex={stepIndex}
+        validation={stepValidation}
+        onStepClick={goToStep}
+      />
 
       <div>
         <h2 className="text-lg font-semibold tracking-tight">{step.title}</h2>
@@ -456,8 +539,8 @@ export function PlanningSetupWizard({
       {step.id === "welcome" && (
         <GuideCallout>
           El calendario no reemplaza Ideas ni Inspiración: solo te propone
-          huecos con rol, pilar y formato. Vos después elegís ángulo, hook y
-          copy en el flujo creativo.
+          huecos con rol, pilar y formato. Después, en Idea, elegís fuente,
+          ángulo, concepto y hook.
         </GuideCallout>
       )}
 
@@ -582,19 +665,14 @@ export function PlanningSetupWizard({
       {step.id === "roles" && (
         <div className="space-y-5">
           <GuideCallout>
-            Pensá el mix como un embudo suave: primero llegás (alcance), después
-            enseñás (valor), mostrás (prueba) y recién ahí pedís acción
-            (conversión). No hace falta un post de cada rol todos los días.
+            Pensá el mix como un embudo suave a lo largo de la semana: primero
+            llegás (alcance), después enseñás (valor), mostrás (prueba) y
+            recién ahí pedís acción (conversión). Los porcentajes gobiernan
+            la semana, no cada día.
           </GuideCallout>
 
           <div className="space-y-3">
-            {contentRoles
-              .filter(
-                (role) =>
-                  accountMeta.type !== "satellite" ||
-                  !satelliteExcludedRoles.includes(role.id),
-              )
-              .map((role) => {
+            {contentRoles.map((role) => {
                 const guide = ROLE_GUIDES.find((g) => g.id === role.id)!;
                 const value = draft.roleTargets[role.id] ?? 0;
                 return (
@@ -657,17 +735,10 @@ export function PlanningSetupWizard({
               })}
           </div>
 
-          {accountMeta.type === "official" ? (
-            <p className="text-[13px] text-muted-foreground">
-              Suma actual: <strong>{roleSum}%</strong> — idealmente ~100%.
-              Prueba y conversión pueden alternar en el mismo slot del día.
-            </p>
-          ) : (
-            <p className="text-[13px] text-muted-foreground">
-              En satélites la conversión es excepcional: solo cuando el
-              contenido ya calentó la audiencia.
-            </p>
-          )}
+          <p className="text-[13px] text-muted-foreground">
+            Suma actual: <strong>{roleSum}%</strong> — idealmente ~100%. Un rol
+            en 0% no se programa; una pieza manual igual puede usarlo.
+          </p>
         </div>
       )}
 
@@ -776,97 +847,6 @@ export function PlanningSetupWizard({
           <p className="text-[13px] text-muted-foreground">
             {selectedFormats.size} formatos seleccionados
           </p>
-        </div>
-      )}
-
-      {step.id === "variety" && (
-        <div className="space-y-5">
-          <div>
-            <p className="mb-2 text-[13px] font-medium">
-              Mismo pilar seguido
-            </p>
-            <GuideCallout>{VARIETY_COPY.maxConsecutiveSamePillar}</GuideCallout>
-            <SingleChoice
-              className="mt-3"
-              value={String(draft.repetitionLimits.maxConsecutiveSamePillar)}
-              onChange={(v) =>
-                updateDraft({
-                  repetitionLimits: {
-                    ...draft.repetitionLimits,
-                    maxConsecutiveSamePillar: Number(v),
-                  },
-                })
-              }
-              options={[1, 2, 3].map((n) => ({
-                value: String(n),
-                label: n,
-              }))}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-medium">
-              Mismo formato en el período
-            </p>
-            <GuideCallout>{VARIETY_COPY.maxSameFormatInPeriod}</GuideCallout>
-            <SingleChoice
-              className="mt-3"
-              value={String(draft.repetitionLimits.maxSameFormatInPeriod)}
-              onChange={(v) =>
-                updateDraft({
-                  repetitionLimits: {
-                    ...draft.repetitionLimits,
-                    maxSameFormatInPeriod: Number(v),
-                  },
-                })
-              }
-              options={[2, 3, 4, 5].map((n) => ({
-                value: String(n),
-                label: n,
-              }))}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Mismo rol seguido</p>
-            <GuideCallout>{VARIETY_COPY.maxSameRoleInRow}</GuideCallout>
-            <SingleChoice
-              className="mt-3"
-              value={String(draft.repetitionLimits.maxSameRoleInRow)}
-              onChange={(v) =>
-                updateDraft({
-                  repetitionLimits: {
-                    ...draft.repetitionLimits,
-                    maxSameRoleInRow: Number(v),
-                  },
-                })
-              }
-              options={[1, 2, 3].map((n) => ({
-                value: String(n),
-                label: n,
-              }))}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Distribución default</p>
-            <GuideCallout>
-              {VARIETY_COPY.defaultDistributionType}
-            </GuideCallout>
-            <SingleChoice
-              className="mt-3"
-              value={draft.defaultDistributionType}
-              onChange={(v) =>
-                updateDraft({ defaultDistributionType: v as DistributionType })
-              }
-              options={Object.entries(DISTRIBUTION_TYPE_LABELS).map(
-                ([id, label]) => ({
-                  value: id,
-                  label,
-                }),
-              )}
-            />
-          </div>
         </div>
       )}
 

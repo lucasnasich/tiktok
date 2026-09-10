@@ -34,12 +34,12 @@ Lucas recuerda el primer pago como un momento muy emocionante (primera validaci�
 
 Señal temprana de vertical: tiendas de mates (`verticales.md`).
 
-## Empak
+## Empac
 
 **Tipo:** caso identificado / atípico  
 **Uso público:** sólo evidencia y permisos disponibles.
 
-El cliente que el fundador identifica actualmente como **más grande** y también como uno de los más **atípicos** es **Empak**, un negocio orientado a packaging y venta mayorista de cajas y productos relacionados.
+El cliente que el fundador identifica actualmente como **más grande** y también como uno de los más **atípicos** es **Empac**, un negocio orientado a packaging y venta mayorista de cajas y productos relacionados.
 
 Muestra que Mercantis no debe imaginar su uso solamente alrededor de tiendas pequeñas de consumo final. También puede tener fit con operaciones **mayoristas** y catálogos orientados a abastecimiento de otros negocios.
 

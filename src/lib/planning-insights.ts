@@ -14,10 +14,7 @@ import {
   normalizePillarTargets,
 } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
-import {
-  getIdealDailyRoles,
-  isActiveDay,
-} from "@/lib/planning-generator";
+import { isActiveDay } from "@/lib/planning-generator";
 import { filterSlotsByDates } from "@/lib/planning-slot-utils";
 
 export type PlanningInsightKind = "gap" | "variety" | "warning";
@@ -68,19 +65,6 @@ function computeDailyGaps(
       kind: "gap",
       accountId: account.id,
       message: `${account.label} · faltan ${missingPieces} pieza${missingPieces > 1 ? "s" : ""} hoy`,
-    });
-  }
-
-  const idealRoles = getIdealDailyRoles(account, date);
-  const roleCounts = countBy(daySlots, (slot) => slot.roleId);
-
-  for (const roleId of idealRoles) {
-    if ((roleCounts.get(roleId) ?? 0) > 0) continue;
-    insights.push({
-      id: `${account.id}-${date}-role-${roleId}`,
-      kind: "gap",
-      accountId: account.id,
-      message: `Falta contenido de ${getContentRoleLabel(roleId)} (${account.label})`,
     });
   }
 

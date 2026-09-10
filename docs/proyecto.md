@@ -12,3 +12,6 @@
 El Mercantis Brain se navega en Documentación → pestaña **Mercantis**. Índice: `knowledge/mercantis/README.md`. Backup integral: `MASTER.md`.
 
 Antes de copy/claims de producto, consultar el Brain. No inventar features ni pricing.
+
+Navegación del Studio: Inspiración (Referencias / Competidores) → Planificación → Ideas → Producción (Imágenes).
+

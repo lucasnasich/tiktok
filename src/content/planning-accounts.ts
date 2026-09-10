@@ -32,10 +32,14 @@ export type PlanningAccount = {
   pillarTargets: Record<string, number>;
   formatTargets: Record<string, number>;
   repetitionLimits: RepetitionLimits;
+  /** Conservado en perfiles persistidos. El generador orgánico siempre emite `organic`. */
   defaultDistributionType: DistributionType;
-  /** Roles que comparten cupo diario y alternan (ej. prueba / conversión). */
+  /**
+   * Legacy: roles que alternaban un cupo diario.
+   * El mix semanal de `roleTargets` es la source of truth.
+   */
   alternateRoles?: [ContentRoleId, ContentRoleId];
-  /** En satélites: conversión directa solo excepcionalmente. */
+  /** Conservado en perfiles. Conversión con target 0 no se programa. */
   conversionExceptional?: boolean;
 };
 

@@ -2,21 +2,27 @@
 
 La documentación interactiva del pipeline vive en el tab **Workflow** del studio.
 
-Pasos: `Planificación → Idea → Copy → Imágenes → Figma → Buffer → Métricas`
+Pasos: `Planificación → Idea → Producción → Publicación → Métricas`
 
-**Inspiración** corre en paralelo y aporta señales; **Planificación** genera el calendario según `src/content/planning-accounts.ts`. **Idea** define cómo convertir cada slot en contenido (ángulo, hook).
+**Inspiración** y **Mercantis Brain** alimentan Idea en paralelo; no son pasos del pipeline.
+
+La navegación del sidebar, en cambio, muestra primero Inspiración porque es una fuente permanente:
+
+`Inspiración → Planificación → Ideas → Producción`
 
 Planificación decide: Cuenta → Plataforma → Hora → Rol → Pilar → Formato.  
-Idea decide: Fuente → Señal → Ángulo → Hook.
+Idea decide: Fuente/señal → Ángulo → Concepto + Hook.
+
+Producción convierte la idea seleccionada en una pieza. Hoy la superficie live es Imágenes.
 
 ## Capas del contenido (no mezclar)
 
-| Capa | Pregunta | Source of truth |
-|------|----------|-----------------|
-| Rol | ¿Para qué publicamos? | `src/content/content-roles.ts` |
-| Pilar | ¿De qué hablamos? | `src/content/planning-pillars.ts` |
-| Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` |
-| Formato | ¿Cómo lo mostramos? | `src/content/formats.ts` |
+| Capa | Pregunta | Source of truth | Quién decide |
+|------|----------|-----------------|--------------|
+| Rol | ¿Para qué publicamos? | `src/content/content-roles.ts` | Planificación |
+| Pilar | ¿De qué hablamos? | `src/content/planning-pillars.ts` | Planificación |
+| Formato | ¿Cómo lo mostramos? | `src/content/formats.ts` | Planificación |
+| Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` | Idea |
 
 Ejemplos:
 - Alcance → Ventas y atención → Dolor → Captura de chat

@@ -72,7 +72,7 @@ Cuando importe para contenido:
 | Si necesitás saber sobre... | Consultá |
 |---|---|
 | Qué es Mercantis, el problema, la categoría | `empresa.md` |
-| Origen, Curbal, primera venta, presión financiera | `historia.md` |
+| Origen, Curval, primera venta, presión financiera | `historia.md` |
 | Lucas y Carla, roles, cómo se conocieron | `fundadores.md` |
 | Nombre, Odisea, Argonautas, logo, estética, referencias | `marca.md` |
 | Filosofía de producto, Apple, límites, autonomía de IA | `filosofia.md` |
@@ -87,7 +87,7 @@ Cuando importe para contenido:
 | Planes, precios, trial, 0% comisión, Partners | `pricing-modelo-negocio.md` |
 | Inbound, outbound, satélites como GTM, Partners sin tracción | `growth-distribucion.md` |
 | Voz oficial vs. satélites, humor, política, LATAM | `contenido-comunicacion.md` |
-| Matera/Francisco, Empak, migraciones, testimonios landing | `clientes-casos.md` |
+| Matera/Francisco, Empac, migraciones, testimonios landing | `clientes-casos.md` |
 | 16 mercados, monedas, Mercado Pago, límites regionales | `mercados-internacionalizacion.md` |
 | Stack, multi-tenancy, deuda técnica | `tecnologia.md` |
 | Live vs. en desarrollo vs. próximo vs. visión | `roadmap.md` |

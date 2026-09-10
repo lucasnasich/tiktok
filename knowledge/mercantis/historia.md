@@ -14,13 +14,13 @@ Lucas dejó Naranja X por una desvinculación vinculada a cuestiones personales.
 
 En ese momento Lucas y Carla vivían juntos en una casa en barrio **Marqués de Sobremonte, Córdoba Capital**. Ambos tenían buenos ingresos y contaban con runway para intentar construir un producto propio.
 
-## La primera startup conjunta: Curbal
+## La primera startup conjunta: Curval
 
-El primer proyecto de startup de Lucas fue **Curbal**, una plataforma educativa basada en inteligencia artificial. Su propuesta era actuar como copiloto para estudiantes y ayudar a retener mejor información mediante técnicas como repaso espaciado, generación de flashcards, resúmenes y otras herramientas de estudio.
+El primer proyecto de startup de Lucas fue **Curval**, una plataforma educativa basada en inteligencia artificial. Su propuesta era actuar como copiloto para estudiantes y ayudar a retener mejor información mediante técnicas como repaso espaciado, generación de flashcards, resúmenes y otras herramientas de estudio.
 
 Lucas comenzó construyendo el proyecto y Carla se entusiasmó con la idea. Carla dejó su empleo para sumarse y fue la **primera vez que emprendieron formalmente juntos**.
 
-Trabajaron aproximadamente **un año**. Curbal alcanzó alrededor de **5.000 usuarios registrados** pero sólo aproximadamente **USD 200 de facturación mensual**. El producto tenía plan gratuito y consiguió alcance, pero la conversión a pago fue muy baja.
+Trabajaron aproximadamente **un año**. Curval alcanzó alrededor de **5.000 usuarios registrados** pero sólo aproximadamente **USD 200 de facturación mensual**. El producto tenía plan gratuito y consiguió alcance, pero la conversión a pago fue muy baja.
 
 **Aprendizaje estructural:** una startup puede obtener usuarios y atención sin haber encontrado un modelo económico suficiente. También aprendieron que no conviene pasar demasiado tiempo construyendo y optimizando una propuesta cuando la evidencia de conversión sigue siendo débil.
 
@@ -30,7 +30,7 @@ Cifras aproximadas, internas.
 
 ## Etapa freelance y el problema que dio origen a Mercantis
 
-Después de Curbal, Lucas y Carla realizaron trabajos freelance para volver a generar ingresos.
+Después de Curval, Lucas y Carla realizaron trabajos freelance para volver a generar ingresos.
 
 Durante esa etapa empezaron a aparecer consultas de amigos y conocidos que preguntaban cuánto costaría construirles una página o tienda a medida. Cuando Lucas preparaba presupuestos de desarrollo personalizado, muchos potenciales clientes los consideraban **inalcanzables**.
 
@@ -42,7 +42,7 @@ La oportunidad era productizar esa necesidad y convertirla en una suscripción a
 
 El fundador sitúa el comienzo de Mercantis alrededor de **febrero de 2026**. Fecha aproximada.
 
-A diferencia de Curbal, el enfoque inicial buscó validar más rápido. Antes y durante la construcción fueron preguntando a potenciales usuarios qué necesitaban y desarrollaron un MVP alrededor de necesidades muy concretas.
+A diferencia de Curval, el enfoque inicial buscó validar más rápido. Antes y durante la construcción fueron preguntando a potenciales usuarios qué necesitaban y desarrollaron un MVP alrededor de necesidades muy concretas.
 
 La primera propuesta se concentró en una tienda/catalogación simple, stock y herramientas básicas que se repetían entre comercios.
 
@@ -82,7 +82,7 @@ La tienda sigue siendo parte central de la experiencia, pero el roadmap ahora in
 
 La historia de Mercantis está atravesada por una restricción financiera fuerte.
 
-Después de agotar el runway de Curbal, hacer freelance y volver a apostar por un producto propio que todavía no generaba ingresos suficientes, Lucas y Carla decidieron bajar su costo de vida. Se mudaron desde Córdoba Capital a **Villa de Soto**, en el interior de Córdoba, y pasaron a vivir en la **casa de los padres de Carla**.
+Después de agotar el runway de Curval, hacer freelance y volver a apostar por un producto propio que todavía no generaba ingresos suficientes, Lucas y Carla decidieron bajar su costo de vida. Se mudaron desde Córdoba Capital a **Villa de Soto**, en el interior de Córdoba, y pasaron a vivir en la **casa de los padres de Carla**.
 
 Durante esta etapa recibieron ayuda económica de sus familias para afrontar gastos y los dos quedaron fuertemente expuestos al mismo proyecto, **sin una fuente de ingresos estable separada de Mercantis**.
 

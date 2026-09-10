@@ -35,24 +35,29 @@ Cuenta oficial: seria, pulida, no memes. Satélites: más libertad de alcance. I
 
 ## Inspiración
 
-Proceso **continuo**, paralelo al pipeline. Recopilás input por fuente en **Inspiración** (`src/content/creative-inspirations.ts`, `organic-inspirations.ts`, `client-inspirations.ts`).
+Proceso **continuo**, paralelo al pipeline. No es un paso previo obligatorio: alimenta Idea.
+
+En el sidebar: **Inspiración** (primera sección) → Referencias y Competidores.
+
+- Referencias: `src/content/creative-inspirations.ts`, `organic-inspirations.ts`, `client-inspirations.ts`
+- Competidores: `src/content/competitor-inspirations.ts`
 
 ## Workflow
 
-`Planificación → Idea → Copy → Imágenes → Figma → Buffer → Métricas`
+`Planificación → Idea → Producción → Publicación → Métricas`
 
-1. Configurar cuentas en `src/content/planning-accounts.ts` y dejar que el motor complete el calendario (`planned-slots.ts` + generador).
-2. Capturar la idea en `src/content/` (cómo se convierte el slot en pieza: ángulo, hook).
-3. Escribir copy (hook, slides, CTA).
-4. Generar o reusar imágenes en `assets/imagenes/`.
-5. Armar el creativo en Figma.
-6. Programar en Buffer (fecha/hora acordada).
-7. Métricas cuando el post estuvo un tiempo live.
+Inspiración y Mercantis Brain alimentan Idea en paralelo.
 
-Inspiración es **paralela** — aporta señales, no reemplaza Planificación.
+Navegación del Studio: `Inspiración → Planificación → Ideas → Producción`
+
+1. Configurar cuentas / perfiles y dejar que el motor complete el calendario (`planned-slots.ts` + generador). Mix de roles **semanal** según `roleTargets`.
+2. Desde un slot, capturar la idea: fuente + ángulo → concepto + hook. Consultar el Brain. No volver a decidir formato, rol ni pilar.
+3. Producción convierte la idea seleccionada en pieza. Hoy: imágenes en `assets/` / galería.
+4. Figma y Buffer son superficies futuras de Producción / Publicación.
+5. Métricas cuando el post estuvo un tiempo live.
 
 Planificación → Cuenta · Plataforma · Hora · Rol · Pilar · Formato  
-Idea → Fuente · Señal · Ángulo · Hook  
+Idea → Fuente · Señal · Ángulo → Concepto · Hook  
 Una pieza = un slot con `platforms[]` (no duplicar por red).
 
 ## Taxonomías (no mezclar capas)
@@ -90,5 +95,5 @@ Migración de pilares legacy: `PLANNING_PILLAR_MIGRATION` en `planning-pillars.t
 
 - Para pasar a otra compu: copiar `assets/inspiracion/media/` (+ documentos si aplica) y correr `npm run inspiration:sync`.
 - Los scripts `inspiration:ig` / `inspiration:tt` / `inspiration:x` / `inspiration:cosmos` **no re-descargan** si la media ya existe; `--force` solo si hace falta otra bajada.
-- Competidores: pantalla propia en sidebar (`/competidores`), datos en `competitor-inspirations.ts`
+- Competidores: subsección de Inspiración (`/inspiracion/competidores`), datos en `competitor-inspirations.ts`
 - Detalle: `docs/inspiracion-local.md`

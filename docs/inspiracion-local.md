@@ -54,3 +54,6 @@ npm run competitor:pdf -- minificando-ai ~/Downloads/estrategia.pdf
 ```
 
 Guarda en `assets/competidores/documentos/{id}/documento.pdf`.
+
+En el Studio, competidores vive en **Inspiración → Competidores** (`/inspiracion/competidores`).
+

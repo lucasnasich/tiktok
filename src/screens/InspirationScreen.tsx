@@ -50,7 +50,7 @@ export function InspirationScreen() {
 
   return (
     <Playground
-      title="Inspiración"
+      title="Referencias"
       meta={viewMeta}
       fullWidth
       actions={

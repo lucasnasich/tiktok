@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
@@ -10,7 +12,10 @@ import {
   type PlanningSlot,
 } from "@/content/planned-slots";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useIdeas } from "@/hooks/use-ideas";
+import { selectedIdeaForSlot } from "@/lib/ideas-store";
 import { cn } from "@/lib/utils";
 
 const ROLE_BADGE_CLASS: Record<string, string> = {
@@ -28,6 +33,8 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
+  const { ideas } = useIdeas();
+  const selected = selectedIdeaForSlot(ideas, slot.id);
   const distributionType = getSlotDistributionType(slot);
 
   return (
@@ -66,6 +73,11 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
           {getFormatLabel(slot.formatId)}
           {slot.angleId ? ` · ${getAngleLabel(slot.angleId)}` : ""}
         </p>
+        {selected ? (
+          <p className="text-[12px] leading-relaxed text-muted-foreground">
+            Idea: {selected.hook}
+          </p>
+        ) : null}
         {slot.postId ? (
           <p className="text-[11px] font-medium text-muted-foreground">
             Post: {slot.postId}
@@ -76,6 +88,11 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
             {slot.notes}
           </p>
         ) : null}
+        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+          <Link to={`/ideas?slot=${encodeURIComponent(slot.id)}`}>
+            {selected ? "Ver ideas" : "Crear idea"}
+          </Link>
+        </Button>
       </CardContent>
     </Card>
   );

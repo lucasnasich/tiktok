@@ -8,7 +8,6 @@ export type PlanningSetupStepId =
   | "roles"
   | "pillars"
   | "formats"
-  | "variety"
   | "review";
 
 export type PlanningSetupStep = {
@@ -62,13 +61,6 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
       "El formato es la envoltura visual del post (pizarra, captura de chat, tier list…). Elegí los que querés priorizar; el generador los rota respetando tus pesos.",
   },
   {
-    id: "variety",
-    label: "Variedad",
-    title: "Reglas de variedad",
-    intro:
-      "Estos límites evitan que el calendario se sienta repetitivo: mismo tema tres días seguidos, o el mismo formato en todos los slots de la semana.",
-  },
-  {
     id: "review",
     label: "Resumen",
     title: "Revisá y guardá",
@@ -107,7 +99,7 @@ export const ROLE_GUIDES: RoleGuide[] = [
       "Cuando mostrás evidencia: demo del producto, caso de cliente, antes/después, pantalla real.",
     ejemplo:
       "Screen recording de un pedido entrando por WhatsApp y quedando registrado en Mercantis.",
-    tip: "En la cuenta oficial conviene alternarlo con conversión en el mismo cupo diario (ej. el 3.er post del día).",
+    tip: "En satélites también entra: evidencia, demos y casos. El mix semanal del perfil decide cuánto.",
   },
   {
     id: "conversion",
@@ -115,7 +107,7 @@ export const ROLE_GUIDES: RoleGuide[] = [
       "Cuando pedís una acción concreta: probar Mercantis, registrarse, agendar demo. Usalo con moderación.",
     ejemplo:
       "“Probá Mercantis gratis esta semana” con CTA claro — después de haber dado valor o prueba en posts anteriores.",
-    tip: "En satélites es excepcional: solo cuando el contenido ya calentó la audiencia.",
+    tip: "Si el target queda en 0%, el motor no la programa. Una pieza manual igual puede usarla de forma excepcional.",
   },
   {
     id: "marca",
@@ -157,13 +149,4 @@ export const RHYTHM_COPY = {
     "Horarios editoriales. El motor asigna slots en este orden; no es la hora exacta de Buffer, pero sí la estructura del día.",
 };
 
-export const VARIETY_COPY = {
-  maxConsecutiveSamePillar:
-    "Máximo de posts seguidos sobre el mismo pilar. Ej.: si ponés 2, nunca habrá 3 seguidos de “Ventas y atención”.",
-  maxSameFormatInPeriod:
-    "Cuántas veces puede repetirse el mismo formato en el período visible (semana, mes…).",
-  maxSameRoleInRow:
-    "Máximo de posts seguidos con el mismo rol. Evita 4 alcances seguidos sin valor o prueba.",
-  defaultDistributionType:
-    "Tipo de distribución por defecto para slots generados. Orgánico es el default del estudio.",
-};
+/** Límites internos del motor — no se configuran en el wizard orgánico. */

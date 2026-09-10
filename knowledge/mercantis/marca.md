@@ -128,7 +128,7 @@ Para la **cuenta oficial**, “onda Apple” también significa **evitar que la 
 
 Referencia especialmente positiva en **comunicación**. Al fundador le gusta cómo explica su producto, cómo construye presencia pública y cómo comunica innovación sin depender sólo de lenguaje corporativo tradicional.
 
-### Versy
+### Vercel
 
 Referencia estética **parcial**. Hay elementos de su dirección visual que resultan atractivos, aunque no se la toma como molde total de marca.
 

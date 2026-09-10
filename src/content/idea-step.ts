@@ -1,45 +1,26 @@
 export const IDEA_SIGNAL_EXAMPLE =
-  "Muchos comerciantes pierden tiempo respondiendo siempre lo mismo por WhatsApp.";
+  "Dueños de locales calificando tareas que odian.";
 
 export { angles } from "@/content/angles";
-export { formats } from "@/content/formats";
-
-export const IDEA_ANGLES = [
-  "dolor",
-  "error",
-  "oportunidad",
-  "comparación",
-  "polémico",
-  "storytelling",
-  "educativo",
-  "aspiracional",
-] as const;
 
 export const IDEA_FINAL_FORMULA =
-  "Problema/señal + ángulo + público + formato creativo + hook";
+  "PlanningSlot + fuente/señal + Mercantis Brain + ángulo → concepto + hook";
 
 export const IDEA_FINAL_EXAMPLE =
-  "Comerciantes que pierden tiempo en WhatsApp + ángulo dolor + dueños de negocio + nota del iPhone + hook confesional.";
+  "Slot Alcance / Inventario / Tier list + señal “tareas que odian” + dolores/stock + ángulo dolor → “Tier list de las tareas más rompehuevos de tener un local”.";
 
 export const IDEA_CARD_FIELDS = [
+  "Slot",
   "Fuente",
   "Señal",
   "Ángulo",
-  "Público",
-  "Formato",
-  "Idea/Hook",
+  "Concepto",
+  "Hook",
 ] as const;
 
 export const IDEA_SUBSTEPS = [
-  { id: "senal", label: "Señal" },
+  { id: "slot", label: "Slot" },
+  { id: "fuente", label: "Fuente" },
   { id: "angulo", label: "Ángulo" },
-  { id: "formato", label: "Formato" },
-  { id: "idea", label: "Idea final" },
-] as const;
-
-export const IDEA_SCREEN_TABS = [
-  { id: "senales", label: "Señales" },
-  { id: "angulos", label: "Ángulos" },
-  { id: "formatos", label: "Formatos" },
-  { id: "idea", label: "Idea final" },
+  { id: "idea", label: "Concepto y hook" },
 ] as const;
