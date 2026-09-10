@@ -4,6 +4,10 @@ import { INSPIRATION_ALL_SOURCE } from "@/content/idea-sources";
 import { INSPIRATION_ALL_FORMATS_ID } from "@/content/formats";
 import { PLANNING_ALL_ACCOUNTS_ID } from "@/content/planning-accounts";
 import {
+  PLANNING_MODE,
+  type PlanningModeId,
+} from "@/content/planning-mode";
+import {
   PLANNING_VIEW,
   PLANNING_VIEW_IDS,
   type PlanningViewId,
@@ -26,6 +30,7 @@ export const STUDIO_PREFERENCE_KEYS = {
   planningAccount: "planning-account",
   planningWeekStart: "planning-week-start",
   planningView: "planning-view",
+  planningMode: "planning-mode",
   galleryMode: "gallery-mode",
 } as const;
 
@@ -72,6 +77,13 @@ export function parsePlanningWeekStart(raw: unknown): string | undefined {
     : undefined;
 }
 
+export function parsePlanningMode(raw: unknown): PlanningModeId | undefined {
+  const ids = Object.values(PLANNING_MODE).map((mode) => mode.id);
+  return typeof raw === "string" && ids.includes(raw as PlanningModeId)
+    ? (raw as PlanningModeId)
+    : undefined;
+}
+
 export function parsePlanningView(raw: unknown): PlanningViewId | undefined {
   return typeof raw === "string" &&
     PLANNING_VIEW_IDS.includes(raw as PlanningViewId)
@@ -96,5 +108,6 @@ export const STUDIO_PREFERENCE_DEFAULTS = {
   ideasTab: "idea",
   planningAccount: PLANNING_ALL_ACCOUNTS_ID,
   planningView: PLANNING_VIEW.week.id,
+  planningMode: PLANNING_MODE.calendar.id,
   galleryMode: GALLERY_MODE.creativos.id,
 };

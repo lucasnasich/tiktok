@@ -8,17 +8,22 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getPlanningAccountLabel } from "@/content/planning-accounts";
+import {
+  getPlanningAccountLabel,
+  type PlanningAccount,
+} from "@/content/planning-accounts";
 import { getPlanningAccountOptions } from "@/lib/planning";
 
 export function PlanningAccountFilter({
   value,
   onChange,
+  accounts,
 }: {
   value: string;
   onChange: (accountId: string) => void;
+  accounts?: PlanningAccount[];
 }) {
-  const options = getPlanningAccountOptions();
+  const options = getPlanningAccountOptions(accounts);
   const activeLabel = getPlanningAccountLabel(value);
 
   return (

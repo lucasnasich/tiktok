@@ -9,17 +9,29 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "planificacion",
     title: "Planificación",
-    summary: "Definís qué falta publicar antes de producir.",
-    details: `Respondés **qué contenido falta producir** según targets por cuenta.
+    summary: "El motor genera qué falta producir según configuración.",
+    details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-- Calendario semanal por cuenta (oficial y satélites).
-- Cada slot: fecha, plataformas, **rol** (alcance / valor / prueba / conversión), pilar, formato y estado.
-- Bloque **Qué falta**: brechas vs. targets y alertas de variedad (rol, pilar, ángulo, formato).
-- \`distributionType\`: \`organic\` (default), \`paid\` o \`boosted\` — preparado para ads, sin integración aún.
+**Configuración** (\`src/content/planning-accounts.ts\`): por cuenta definís plataformas, posts/día, días activos, horarios, % por rol/pilar/formato, límites de repetición y \`distributionType\` default.
 
-**Inspiración** corre en paralelo y alimenta Ideas; no es paso secuencial.
+**Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 
-**Output:** slots planificados listos para convertirse en ideas concretas en la etapa Idea.`,
+Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Formato** (sin ángulo).
+
+**Capas del contenido** (no mezclar):
+- **Rol** = para qué publicamos (\`content-roles.ts\`)
+- **Pilar** = de qué hablamos (\`planning-pillars.ts\`)
+- **Ángulo** = cómo lo contamos (\`angles.ts\`) — se asigna en Idea
+- **Formato** = cómo lo mostramos (\`formats.ts\`)
+
+Ejemplos: Alcance → Ventas y atención → Dolor → Captura de chat · Prueba → Automatización e IA → Storytelling → Demo
+
+- Bloque **Qué falta**: brechas vs. configuración real y alertas de variedad.
+- \`distributionType\`: \`organic\` (default), \`paid\` o \`boosted\` — preparado para ads.
+
+**Inspiración** corre en paralelo y aporta señales; no reemplaza Planificación.
+
+**Output:** slots listos para convertirse en ideas en la etapa Idea.`,
   },
   {
     id: "idea",

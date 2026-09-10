@@ -17,7 +17,8 @@
     "inspiration:verify-audio": "python3 scripts/verify-inspiration-audio.py",
     "competitor:pdf": "node scripts/add-competitor-pdf.mjs",
     "competitor:logo": "node scripts/add-competitor-logo.mjs",
-    "competitor:logos:fetch": "node scripts/fetch-competitor-logos.mjs"
+    "competitor:logos:fetch": "node scripts/fetch-competitor-logos.mjs",
+    "test:planning": "node scripts/planning-generator.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.3.0",

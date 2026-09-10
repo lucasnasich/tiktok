@@ -149,7 +149,7 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Cómo estudiar para cada materia",
     media: inspirationMedia["tt-7502235459695709448"],
     note: "@estudio1252. Carrusel por materia (biología, mate, inglés). Estructura lista educativa.",
-    formatIds: ["x-señales"],
+    formatIds: ["x-senales"],
   },
   {
     id: "tt-7493633424176024838",

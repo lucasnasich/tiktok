@@ -6,12 +6,15 @@ export function Playground({
   title,
   meta,
   fullWidth = false,
+  containedScroll = false,
   actions,
   children,
 }: {
   title: string;
   meta?: string;
   fullWidth?: boolean;
+  /** El main no hace scroll; el hijo gestiona overflow (p. ej. barra de tabs fija). */
+  containedScroll?: boolean;
   actions?: ReactNode;
   children: ReactNode;
 }) {
@@ -28,11 +31,20 @@ export function Playground({
         </div>
         {actions ? <div className="flex shrink-0 items-center">{actions}</div> : null}
       </header>
-      <main className="min-h-0 flex-1 overflow-y-auto">
+      <main
+        className={cn(
+          "min-h-0 flex-1",
+          containedScroll ? "flex flex-col overflow-hidden" : "overflow-y-auto",
+        )}
+      >
         <div
           className={cn(
             "mx-auto w-full",
-            fullWidth ? "min-h-full" : "max-w-[880px] px-5 py-8",
+            fullWidth
+              ? containedScroll
+                ? "flex min-h-0 flex-1 flex-col"
+                : "min-h-full"
+              : "max-w-[880px] px-5 py-8",
           )}
         >
           {children}

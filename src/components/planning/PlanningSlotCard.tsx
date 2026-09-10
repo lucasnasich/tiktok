@@ -18,6 +18,8 @@ const ROLE_BADGE_CLASS: Record<string, string> = {
   valor: "bg-sky-500/15 text-sky-800 dark:text-sky-300",
   prueba: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
   conversion: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
+  marca: "bg-rose-500/15 text-rose-800 dark:text-rose-300",
+  comunidad: "bg-fuchsia-500/15 text-fuchsia-800 dark:text-fuchsia-300",
 };
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -56,8 +58,9 @@ export function PlanningSlotCard({ slot }: { slot: PlanningSlot }) {
       </CardHeader>
       <CardContent className="space-y-2 pt-0">
         <p className="text-[12px] text-muted-foreground">
-          {getPlanningAccountLabel(slot.accountId)} ·{" "}
-          {slot.platforms.map((p) => PLATFORM_LABELS[p] ?? p).join(" · ")}
+          {slot.time} · {getPlanningAccountLabel(slot.accountId)} ·{" "}
+          {slot.platforms.map((p) => PLATFORM_LABELS[p] ?? p).join(" + ")}
+          {slot.generated ? " · auto" : ""}
         </p>
         <p className="text-[13px] leading-relaxed text-foreground">
           {getFormatLabel(slot.formatId)}

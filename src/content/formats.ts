@@ -6,6 +6,11 @@ export type Format = {
 
 export const INSPIRATION_ALL_FORMATS_ID = "all";
 
+/** IDs legacy → taxonomía actual en `formats`. */
+export const FORMAT_ID_MIGRATION: Record<string, string> = {
+  "x-señales": "x-senales",
+};
+
 export const formats: Format[] = [
   {
     id: "x-razones",
@@ -186,12 +191,27 @@ export const formats: Format[] = [
 
 const formatById = new Map(formats.map((format) => [format.id, format]));
 
+export function normalizeFormatId(id: string): string {
+  return FORMAT_ID_MIGRATION[id] ?? id;
+}
+
+export function normalizeFormatTargets(
+  targets: Record<string, number>,
+): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const [key, value] of Object.entries(targets)) {
+    const formatId = normalizeFormatId(key);
+    result[formatId] = (result[formatId] ?? 0) + value;
+  }
+  return result;
+}
+
 export function getFormatById(id: string): Format | undefined {
-  return formatById.get(id);
+  return formatById.get(normalizeFormatId(id));
 }
 
 export function getFormatLabel(id: string): string {
-  return formatById.get(id)?.label ?? id;
+  return formatById.get(normalizeFormatId(id))?.label ?? id;
 }
 
 export function getFormatLabels(ids: string[]): string[] {

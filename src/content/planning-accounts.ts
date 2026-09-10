@@ -1,22 +1,39 @@
 import type { ContentRoleId } from "@/content/content-roles";
+import {
+  DEFAULT_ACTIVE_DAYS,
+  DEFAULT_DISTRIBUTION_TYPE,
+  DEFAULT_REPETITION_LIMITS,
+  DEFAULT_TIME_SLOTS,
+} from "@/content/planning-defaults";
+import type { DistributionType } from "@/content/planned-slots";
 
 export type PlanningPlatform = "tiktok" | "instagram";
 
 export type PlanningAccountType = "official" | "satellite";
 
-export type DailyRoleTarget = {
-  roleId: ContentRoleId;
-  count: number;
+export type RepetitionLimits = {
+  maxConsecutiveSamePillar: number;
+  maxSameFormatInPeriod: number;
+  maxSameRoleInRow: number;
 };
 
 export type PlanningAccount = {
   id: string;
   label: string;
   type: PlanningAccountType;
+  /** Una pieza puede publicarse en varias plataformas a la vez. */
   platforms: PlanningPlatform[];
   postsPerDay: number;
-  dailyTargets: DailyRoleTarget[];
-  /** Roles que comparten un slot diario y alternan (ej. prueba / conversión). */
+  /** 1 = lunes … 7 = domingo. */
+  activeDays: number[];
+  timeSlots: string[];
+  /** Porcentaje objetivo por rol (suma ~100). */
+  roleTargets: Partial<Record<ContentRoleId, number>>;
+  pillarTargets: Record<string, number>;
+  formatTargets: Record<string, number>;
+  repetitionLimits: RepetitionLimits;
+  defaultDistributionType: DistributionType;
+  /** Roles que comparten cupo diario y alternan (ej. prueba / conversión). */
   alternateRoles?: [ContentRoleId, ContentRoleId];
   /** En satélites: conversión directa solo excepcionalmente. */
   conversionExceptional?: boolean;
@@ -24,7 +41,7 @@ export type PlanningAccount = {
 
 export const PLANNING_ALL_ACCOUNTS_ID = "all";
 
-/** Targets editables — source of truth en src/content/. */
+/** Cuentas del estudio — estructura técnica. El mix editorial vive en perfiles del usuario. */
 export const planningAccounts: PlanningAccount[] = [
   {
     id: "mercantis-oficial",
@@ -32,12 +49,13 @@ export const planningAccounts: PlanningAccount[] = [
     type: "official",
     platforms: ["tiktok", "instagram"],
     postsPerDay: 3,
-    dailyTargets: [
-      { roleId: "alcance", count: 1 },
-      { roleId: "valor", count: 1 },
-      { roleId: "prueba", count: 1 },
-    ],
-    alternateRoles: ["prueba", "conversion"],
+    activeDays: [...DEFAULT_ACTIVE_DAYS],
+    timeSlots: [...DEFAULT_TIME_SLOTS],
+    roleTargets: {},
+    pillarTargets: {},
+    formatTargets: {},
+    repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
+    defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
   },
   {
     id: "mercantis-latam",
@@ -45,10 +63,13 @@ export const planningAccounts: PlanningAccount[] = [
     type: "satellite",
     platforms: ["tiktok", "instagram"],
     postsPerDay: 3,
-    dailyTargets: [
-      { roleId: "alcance", count: 2 },
-      { roleId: "valor", count: 1 },
-    ],
+    activeDays: [...DEFAULT_ACTIVE_DAYS],
+    timeSlots: [...DEFAULT_TIME_SLOTS],
+    roleTargets: {},
+    pillarTargets: {},
+    formatTargets: {},
+    repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
+    defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
     conversionExceptional: true,
   },
   {
@@ -57,10 +78,13 @@ export const planningAccounts: PlanningAccount[] = [
     type: "satellite",
     platforms: ["tiktok"],
     postsPerDay: 3,
-    dailyTargets: [
-      { roleId: "alcance", count: 2 },
-      { roleId: "valor", count: 1 },
-    ],
+    activeDays: [...DEFAULT_ACTIVE_DAYS],
+    timeSlots: [...DEFAULT_TIME_SLOTS],
+    roleTargets: {},
+    pillarTargets: {},
+    formatTargets: {},
+    repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
+    defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
     conversionExceptional: true,
   },
 ];

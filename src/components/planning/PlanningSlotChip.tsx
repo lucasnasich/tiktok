@@ -9,6 +9,8 @@ const ROLE_CHIP_CLASS: Record<string, string> = {
   valor: "bg-sky-500/15 text-sky-900 dark:text-sky-200",
   prueba: "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200",
   conversion: "bg-amber-500/15 text-amber-900 dark:text-amber-200",
+  marca: "bg-rose-500/15 text-rose-900 dark:text-rose-200",
+  comunidad: "bg-fuchsia-500/15 text-fuchsia-900 dark:text-fuchsia-200",
 };
 
 export function PlanningSlotChip({

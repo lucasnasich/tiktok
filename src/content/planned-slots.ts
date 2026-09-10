@@ -13,6 +13,8 @@ export type PlanningSlot = {
   id: string;
   /** YYYY-MM-DD */
   date: string;
+  /** HH:mm — horario editorial configurado */
+  time: string;
   accountId: string;
   platforms: PlanningPlatform[];
   roleId: ContentRoleId;
@@ -25,6 +27,8 @@ export type PlanningSlot = {
   /** Post asociado cuando ya existe en producción/publicación */
   postId?: string;
   distributionType?: DistributionType;
+  /** true si lo creó el generador automático */
+  generated?: boolean;
   notes?: string;
 };
 
@@ -41,16 +45,19 @@ export const DISTRIBUTION_TYPE_LABELS: Record<DistributionType, string> = {
   boosted: "Boost",
 };
 
-/** Slots del calendario editorial — editar acá o vía agente. */
+/**
+ * Slots manuales / en curso — el generador completa huecos sin tocarlos.
+ * Una pieza = un slot con `platforms[]` (ej. TikTok + Instagram juntos).
+ */
 export const plannedSlots: PlanningSlot[] = [
-  // Lunes 2026-09-08 — Mercantis oficial
   {
     id: "slot-2026-09-08-oficial-1",
     date: "2026-09-08",
+    time: "11:00",
     accountId: "mercantis-oficial",
     platforms: ["tiktok", "instagram"],
     roleId: "alcance",
-    pillarId: "whatsapp",
+    pillarId: "ventas-atencion",
     formatId: "x-razones",
     angleId: "dolor",
     status: "publicado",
@@ -60,10 +67,11 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-08-oficial-2",
     date: "2026-09-08",
+    time: "13:00",
     accountId: "mercantis-oficial",
     platforms: ["tiktok", "instagram"],
     roleId: "valor",
-    pillarId: "operacion",
+    pillarId: "operacion-gestion",
     formatId: "nota-iphone",
     angleId: "educativo",
     status: "publicado",
@@ -72,19 +80,20 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-08-oficial-3",
     date: "2026-09-08",
+    time: "16:00",
     accountId: "mercantis-oficial",
-    platforms: ["tiktok"],
+    platforms: ["tiktok", "instagram"],
     roleId: "prueba",
-    pillarId: "producto",
+    pillarId: "producto-mercantis",
     formatId: "testimonio-cliente",
     angleId: "storytelling",
     status: "publicado",
     postId: "post-003",
   },
-  // Martes
   {
     id: "slot-2026-09-09-oficial-1",
     date: "2026-09-09",
+    time: "11:00",
     accountId: "mercantis-oficial",
     platforms: ["tiktok", "instagram"],
     roleId: "alcance",
@@ -97,10 +106,11 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-09-oficial-2",
     date: "2026-09-09",
+    time: "13:00",
     accountId: "mercantis-oficial",
-    platforms: ["instagram"],
+    platforms: ["tiktok", "instagram"],
     roleId: "valor",
-    pillarId: "inventario",
+    pillarId: "inventario-stock",
     formatId: "pizarra",
     angleId: "educativo",
     status: "en-produccion",
@@ -108,34 +118,35 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-09-oficial-3",
     date: "2026-09-09",
+    time: "16:00",
     accountId: "mercantis-oficial",
-    platforms: ["tiktok"],
+    platforms: ["tiktok", "instagram"],
     roleId: "conversion",
-    pillarId: "producto",
+    pillarId: "producto-mercantis",
     formatId: "advertencia",
     angleId: "oportunidad",
     status: "pendiente",
   },
-  // Miércoles
   {
     id: "slot-2026-09-10-oficial-1",
     date: "2026-09-10",
+    time: "11:00",
     accountId: "mercantis-oficial",
-    platforms: ["tiktok"],
+    platforms: ["tiktok", "instagram"],
     roleId: "alcance",
-    pillarId: "whatsapp",
+    pillarId: "ventas-atencion",
     formatId: "captura-chat",
     angleId: "dolor",
     status: "en-produccion",
   },
-  // Jueves 2026-09-10 — hoy: faltan 2 posts oficial
   {
     id: "slot-2026-09-10-latam-1",
     date: "2026-09-10",
+    time: "11:00",
     accountId: "mercantis-latam",
     platforms: ["tiktok", "instagram"],
     roleId: "alcance",
-    pillarId: "tendencias",
+    pillarId: "mercado-tendencias",
     formatId: "tier-list",
     angleId: "comparacion",
     status: "pendiente",
@@ -143,48 +154,51 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-10-latam-2",
     date: "2026-09-10",
+    time: "13:00",
     accountId: "mercantis-latam",
-    platforms: ["tiktok"],
+    platforms: ["tiktok", "instagram"],
     roleId: "alcance",
     pillarId: "emprendimiento",
     formatId: "green-screen",
     status: "pendiente",
   },
-  // Viernes
   {
     id: "slot-2026-09-11-oficial-1",
     date: "2026-09-11",
+    time: "11:00",
     accountId: "mercantis-oficial",
     platforms: ["tiktok", "instagram"],
     roleId: "alcance",
-    pillarId: "pagos",
+    pillarId: "pagos-cobros",
     formatId: "busqueda-google",
     status: "pendiente",
   },
   {
     id: "slot-2026-09-11-oficial-2",
     date: "2026-09-11",
+    time: "13:00",
     accountId: "mercantis-oficial",
-    platforms: ["tiktok"],
+    platforms: ["tiktok", "instagram"],
     roleId: "valor",
-    pillarId: "whatsapp",
-    formatId: "x-señales",
+    pillarId: "ventas-atencion",
+    formatId: "x-senales",
     status: "pendiente",
   },
   {
     id: "slot-2026-09-11-oficial-3",
     date: "2026-09-11",
+    time: "16:00",
     accountId: "mercantis-oficial",
-    platforms: ["instagram"],
+    platforms: ["tiktok", "instagram"],
     roleId: "prueba",
-    pillarId: "producto",
+    pillarId: "producto-mercantis",
     formatId: "transformacion",
     status: "pendiente",
   },
-  // Satélite study — semana
   {
     id: "slot-2026-09-08-study-1",
     date: "2026-09-08",
+    time: "11:00",
     accountId: "mercantis-study",
     platforms: ["tiktok"],
     roleId: "alcance",
@@ -197,6 +211,7 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-09-study-1",
     date: "2026-09-09",
+    time: "11:00",
     accountId: "mercantis-study",
     platforms: ["tiktok"],
     roleId: "alcance",
@@ -207,6 +222,7 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-09-study-2",
     date: "2026-09-09",
+    time: "13:00",
     accountId: "mercantis-study",
     platforms: ["tiktok"],
     roleId: "valor",
@@ -218,6 +234,7 @@ export const plannedSlots: PlanningSlot[] = [
   {
     id: "slot-2026-09-12-study-1",
     date: "2026-09-12",
+    time: "11:00",
     accountId: "mercantis-study",
     platforms: ["tiktok"],
     roleId: "alcance",
