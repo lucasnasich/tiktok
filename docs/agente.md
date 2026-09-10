@@ -1,3 +1,9 @@
+## Mercantis Brain
+
+Antes de generar idea, hook, copy, claim o comparación de producto, consultar `knowledge/mercantis/README.md` y los documentos de dominio relevantes. `MASTER.md` sólo si hace falta contexto transversal.
+
+No inventar features, pricing, clientes, métricas, historia ni roadmap. Si no está en el Brain: desconocido.
+
 ## Cómo pedirle cosas al agente
 
 Ejemplos útiles:

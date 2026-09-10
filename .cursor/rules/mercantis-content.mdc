@@ -13,6 +13,26 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 - **Buffer**: programar y publicar. Nunca publicar al instante salvo pedido explícito.
 - Si existe una herramienta MCP para la tarea, usarla antes de pedir trabajo manual.
 
+## Mercantis Brain (`knowledge/mercantis/`)
+
+Fuente de verdad sobre **la empresa Mercantis** (producto, historia, marca, pricing, claims). Distinto de `docs/` (cómo funciona el Studio) y de `src/content/` (operación editorial).
+
+Antes de generar idea, hook, copy, anuncio, brief, claim, comparación o contenido de producto:
+
+1. Identificar qué información hace falta.
+2. Consultar `knowledge/mercantis/README.md`.
+3. Abrir **sólo** los documentos de dominio relevantes.
+4. Usar `knowledge/mercantis/MASTER.md` cuando haga falta contexto transversal o haya ambigüedad.
+5. Para features, pricing, trial, GoCuotas, integraciones o roadmap: verificar `claims.md` + `funcionalidades.md` + `roadmap.md`.
+
+Nunca inventar: features, pricing, mercados, integraciones, clientes, métricas, resultados, historia, roadmap ni datos de fundadores.
+
+Si algo no está en el Brain: marcarlo como **desconocido**. No completar huecos.
+
+Estados: `live` / `in-development` / `planned` / `vision` / `historical` / `hypothesis`. No comunicar roadmap como disponible. Argo, API, MCP, webhooks, caja/POS, sucursales, facturación y Meta Pixel **no están live**.
+
+Cuenta oficial: seria, pulida, no memes. Satélites: más libertad de alcance. Institucional: no política partidaria. Conservar voseo/identidad argentina.
+
 ## Inspiración
 
 Proceso **continuo**, paralelo al pipeline. Recopilás input por fuente en **Inspiración** (`src/content/creative-inspirations.ts`, `organic-inspirations.ts`, `client-inspirations.ts`).
@@ -55,7 +75,8 @@ Migración de pilares legacy: `PLANNING_PILLAR_MIGRATION` en `planning-pillars.t
 - Visuales: `assets/`
 - Texto y metadata (planificación, ideas, prompts): `src/content/`
 - UI del studio: `src/`
-- Playbook humano: `docs/` (pestañas en la app)
+- Playbook humano (cómo funciona el Studio): `docs/` (pestañas en la app)
+- Hechos sobre Mercantis (empresa, producto, marca): `knowledge/mercantis/`
 
 ## Assets (estructura)
 

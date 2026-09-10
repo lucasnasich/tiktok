@@ -24,6 +24,8 @@ Ejemplos:
 
 Los pilares globales de Mercantis están en `planning-pillars.ts`. Pilares extra por cuenta (ej. `estudiantes` en Study) se definen aparte.
 
+Hechos sobre Mercantis (producto, marca, claims): `knowledge/mercantis/` — no mezclar con taxonomías de `src/content/`.
+
 El detalle de cada paso (qué hace, output, reglas) está en `src/content/workflow-steps.ts` y se muestra en acordeones en la app.
 
 ## Reglas de publicación

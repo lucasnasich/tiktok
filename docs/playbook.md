@@ -6,5 +6,6 @@ La documentación vive en pestañas dentro del studio y en archivos separados po
 - `docs/proyecto.md`
 - `docs/integraciones.md`
 - `docs/agente.md`
+- `knowledge/mercantis/` — Mercantis Brain (hechos de la empresa; pestaña Mercantis)
 
 Editá esos archivos para actualizar el contenido. La app los importa automáticamente.

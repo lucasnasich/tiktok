@@ -1,5 +1,6 @@
 import { Playground } from "@/components/AppShell";
 import { MarkdownContent } from "@/components/MarkdownContent";
+import { MercantisBrainDocs } from "@/components/MercantisBrainDocs";
 import { WorkflowDocs } from "@/components/WorkflowDocs";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -26,6 +27,12 @@ export function DocsScreen() {
             >
               Workflow
             </TabsTrigger>
+            <TabsTrigger
+              value="mercantis"
+              className="px-2.5 text-[13px] font-medium tracking-tight"
+            >
+              Mercantis
+            </TabsTrigger>
             {MARKDOWN_TABS.map((tab) => (
               <TabsTrigger
                 key={tab.id}
@@ -42,6 +49,9 @@ export function DocsScreen() {
           <article>
             <WorkflowDocs />
           </article>
+        </TabsContent>
+        <TabsContent value="mercantis" className="mt-0 pb-8">
+          <MercantisBrainDocs />
         </TabsContent>
         {MARKDOWN_TABS.map((tab) => (
           <TabsContent key={tab.id} value={tab.id} className="mt-0 pb-8">
