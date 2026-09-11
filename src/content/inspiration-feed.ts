@@ -14,7 +14,6 @@ import type {
   InspirationMaterialType,
   InspirationOrigin,
 } from "@/content/inspiration-taxonomy";
-import { matchesFormatFilter } from "@/content/formats";
 import { organicInspirations } from "@/content/organic-inspirations";
 import { classifyInspiration } from "@/lib/inspiration-classify";
 import { decodeHtmlEntities } from "@/lib/html-entities";
@@ -61,6 +60,10 @@ export function isSwipeableSource(sourceId: string) {
     sourceId === INSPIRATION_ALL_SOURCE_ID ||
     SWIPEABLE_SOURCE_IDS.includes(sourceId as (typeof SWIPEABLE_SOURCE_IDS)[number])
   );
+}
+
+export function isInspirationFeedSource(sourceId: string) {
+  return isSwipeableSource(sourceId);
 }
 
 export function inspirationTypeOf(
@@ -202,23 +205,11 @@ const FEED_BUILDERS: Record<string, () => InspirationFeedItem[]> = {
   creativo: buildCreativeFeed,
 };
 
-export function buildInspirationFeed(
-  sourceId: string,
-  formatId?: string,
-): InspirationFeedItem[] {
-  const items =
-    sourceId === INSPIRATION_ALL_SOURCE_ID
-      ? SWIPEABLE_SOURCE_IDS.flatMap((id) => FEED_BUILDERS[id]?.() ?? [])
-      : FEED_BUILDERS[sourceId]?.() ?? [];
-
-  if (!formatId) return items;
-
-  return items.filter((item) =>
-    matchesFormatFilter(
-      [...(item.formatIds ?? []), ...(item.formatAffinities ?? [])],
-      formatId,
-    ),
-  );
+export function buildInspirationFeed(sourceId?: string): InspirationFeedItem[] {
+  const resolvedSourceId = sourceId ?? INSPIRATION_ALL_SOURCE_ID;
+  return resolvedSourceId === INSPIRATION_ALL_SOURCE_ID
+    ? SWIPEABLE_SOURCE_IDS.flatMap((id) => FEED_BUILDERS[id]?.() ?? [])
+    : FEED_BUILDERS[resolvedSourceId]?.() ?? [];
 }
 
 export function getInspirationSourceSummary(sourceId: string) {

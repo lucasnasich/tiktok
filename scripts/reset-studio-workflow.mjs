@@ -17,14 +17,12 @@ const CLEARED = [
 
 const PRESERVED = [
   "mercantis-studio:grid-columns",
-  "mercantis-studio:inspiration-source",
-  "mercantis-studio:inspiration-view",
-  "mercantis-studio:inspiration-format",
+  "mercantis-studio:inspiration-platform",
+  "mercantis-studio:inspiration-media-type",
   "mercantis-studio:inspiration-overrides",
   "mercantis-studio:competitors-country",
   "mercantis-studio:competitors-sort",
   "mercantis-studio:gallery-mode",
-  "mercantis-inspiration-votes",
 ];
 
 console.log(`Reset del workflow del Studio (browser)

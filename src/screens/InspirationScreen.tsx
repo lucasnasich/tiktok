@@ -1,101 +1,118 @@
-import { GridFourIcon, ScanIcon } from "@phosphor-icons/react";
+import { useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { TagIcon } from "@phosphor-icons/react";
 
 import { Playground } from "@/components/AppShell";
 import { ColumnSelector } from "@/components/ColumnSelector";
+import { InspirationBrowseFilters } from "@/components/ideas/InspirationBrowseFilters";
 import { InspirationPanel } from "@/components/ideas/InspirationPanel";
-import { InspirationFormatFilter } from "@/components/ideas/InspirationFormatFilter";
-import { InspirationSourceFilter } from "@/components/ideas/InspirationSourceFilter";
+import { InspirationClassificationSheet } from "@/components/inspiration/InspirationClassificationSheet";
 import { InspirationDetailSheet } from "@/components/inspiration/InspirationDetailSheet";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  INSPIRATION_VIEW,
-  type InspirationViewId,
-} from "@/content/inspiration-view";
+import { PlanningToolbarButton } from "@/components/planning/PlanningToolbarButton";
+import { buildInspirationFeed, getInspirationByKey } from "@/content/inspiration-feed";
+import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
+import { countUnclassifiedInspirations } from "@/lib/inspiration-classification";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
 import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
+import { useSlotSpecs } from "@/hooks/use-slot-specs";
 import {
   STUDIO_PREFERENCE_DEFAULTS,
   STUDIO_PREFERENCE_KEYS,
   parseGridColumns,
-  parseInspirationFormat,
-  parseInspirationSource,
-  parseInspirationView,
+  parseInspirationMediaType,
+  parseInspirationPlatform,
 } from "@/lib/studio-preferences";
 
 export function InspirationScreen() {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const slotPickId = searchParams.get("slot");
   const { allCalendarSlots: horizonSlotsFromGenerations } = usePlanningConfig();
+  const { getRecord, upsertRecord } = useSlotSpecs();
+  const { overrides } = useInspirationOverrides();
+  const [classifyOpen, setClassifyOpen] = useState(false);
   const [referenceKey, setReferenceKey] = useSheetSearchParam("reference");
-  const [activeSource, setActiveSource] = usePersistedState(
-    STUDIO_PREFERENCE_KEYS.inspirationSource,
-    STUDIO_PREFERENCE_DEFAULTS.inspirationSource,
-    parseInspirationSource,
+  const allFeedItems = useMemo(() => buildInspirationFeed(), []);
+  const unclassifiedCount = useMemo(
+    () => countUnclassifiedInspirations(allFeedItems, overrides),
+    [allFeedItems, overrides],
   );
-  const [view, setView] = usePersistedState<InspirationViewId>(
-    STUDIO_PREFERENCE_KEYS.inspirationView,
-    STUDIO_PREFERENCE_DEFAULTS.inspirationView as InspirationViewId,
-    (raw) => parseInspirationView(raw) as InspirationViewId | undefined,
+  const [platformFilter, setPlatformFilter] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.inspirationPlatform,
+    STUDIO_PREFERENCE_DEFAULTS.inspirationPlatform,
+    parseInspirationPlatform,
+  );
+  const [mediaTypeFilter, setMediaTypeFilter] = usePersistedState(
+    STUDIO_PREFERENCE_KEYS.inspirationMediaType,
+    STUDIO_PREFERENCE_DEFAULTS.inspirationMediaType,
+    parseInspirationMediaType,
   );
   const [columns, setColumns] = usePersistedState(
     STUDIO_PREFERENCE_KEYS.gridColumns,
     STUDIO_PREFERENCE_DEFAULTS.gridColumns,
     parseGridColumns,
   );
-  const [activeFormat, setActiveFormat] = usePersistedState(
-    STUDIO_PREFERENCE_KEYS.inspirationFormat,
-    STUDIO_PREFERENCE_DEFAULTS.inspirationFormat,
-    parseInspirationFormat,
-  );
   const slots = horizonSlotsFromGenerations;
 
-  const isListView = view === INSPIRATION_VIEW.listado.id;
-  const viewMeta =
-    view === INSPIRATION_VIEW.revisar.id
-      ? INSPIRATION_VIEW.revisar.label
-      : INSPIRATION_VIEW.listado.label;
+  function pickReferenceForSlot(key: string) {
+    if (!slotPickId) return;
+    const item = getInspirationByKey(key, overrides);
+    const record = getRecord(slotPickId);
+    upsertRecord({
+      slotId: slotPickId,
+      directionKind: "inspiration",
+      inspirationRef: key,
+      signal: item?.signal,
+      creativeMechanism: item?.creativeMechanism,
+      editorialDescription: record?.editorialDescription,
+      inspirationSearchBrief: record?.inspirationSearchBrief,
+      status: record?.status ?? "draft",
+    });
+    navigate(`/planificacion?slot=${encodeURIComponent(slotPickId)}`);
+  }
 
   return (
     <Playground
       title="Referencias"
-      meta={viewMeta}
+      meta={slotPickId ? "Elegí inspiración para el slot" : undefined}
       fullWidth
       actions={
         <div className="flex items-center gap-2">
-          <Tabs
-            value={view}
-            onValueChange={(next) => setView(next as InspirationViewId)}
-          >
-            <TabsList className="h-8">
-              <TabsTrigger value={INSPIRATION_VIEW.listado.id} className="gap-1.5 px-2.5 text-xs">
-                <GridFourIcon className="size-3.5" />
-                {INSPIRATION_VIEW.listado.label}
-              </TabsTrigger>
-              <TabsTrigger value={INSPIRATION_VIEW.revisar.id} className="gap-1.5 px-2.5 text-xs">
-                <ScanIcon className="size-3.5" />
-                {INSPIRATION_VIEW.revisar.label}
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          {isListView ? (
-            <ColumnSelector value={columns} onChange={setColumns} />
+          {unclassifiedCount > 0 ? (
+            <PlanningToolbarButton onClick={() => setClassifyOpen(true)}>
+              <TagIcon />
+              Clasificar con Cursor ({unclassifiedCount})
+            </PlanningToolbarButton>
           ) : null}
-          <InspirationFormatFilter
-            value={activeFormat}
-            onChange={setActiveFormat}
-          />
-          <InspirationSourceFilter
-            value={activeSource}
-            onChange={setActiveSource}
+          <ColumnSelector value={columns} onChange={setColumns} />
+          <InspirationBrowseFilters
+            platform={platformFilter}
+            mediaType={mediaTypeFilter}
+            onPlatformChange={setPlatformFilter}
+            onMediaTypeChange={setMediaTypeFilter}
           />
         </div>
       }
     >
+      {slotPickId ? (
+        <div className="border-b border-border bg-muted/30 px-5 py-3 text-[13px] leading-relaxed text-muted-foreground">
+          Estás eligiendo inspiración para un slot de planificación. Abrí una
+          referencia y tocá <span className="font-medium text-foreground">Usar esta</span>.
+        </div>
+      ) : null}
       <InspirationPanel
-        activeSource={activeSource}
-        activeFormat={activeFormat}
-        view={view}
+        platformFilter={platformFilter}
+        mediaTypeFilter={mediaTypeFilter}
         columns={columns}
+        overrides={overrides}
         onOpenReference={setReferenceKey}
+      />
+      <InspirationClassificationSheet
+        open={classifyOpen}
+        onOpenChange={setClassifyOpen}
+        items={allFeedItems}
+        overrides={overrides}
       />
       <InspirationDetailSheet
         referenceKey={referenceKey}
@@ -104,6 +121,8 @@ export function InspirationScreen() {
         onOpenChange={(open) => {
           if (!open) setReferenceKey(null);
         }}
+        slotPickId={slotPickId}
+        onPickForSlot={slotPickId ? pickReferenceForSlot : undefined}
       />
     </Playground>
   );

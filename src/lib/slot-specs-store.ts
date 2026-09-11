@@ -36,6 +36,10 @@ export function parseSlotSpecRecord(raw: unknown): SlotSpecRecord | undefined {
       typeof value.editorialDescription === "string"
         ? value.editorialDescription
         : undefined,
+    inspirationSearchBrief:
+      typeof value.inspirationSearchBrief === "string"
+        ? value.inspirationSearchBrief
+        : undefined,
     status,
     preparedAt: typeof value.preparedAt === "string" ? value.preparedAt : undefined,
   };

@@ -12,11 +12,15 @@ export function InspirationDetailSheet({
   slots,
   open,
   onOpenChange,
+  slotPickId,
+  onPickForSlot,
 }: {
   referenceKey: string | null;
   slots: PlanningSlot[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  slotPickId?: string | null;
+  onPickForSlot?: (referenceKey: string) => void;
 }) {
   const { overrides } = useInspirationOverrides();
   const { proposals } = useProposals();
@@ -39,7 +43,11 @@ export function InspirationDetailSheet({
       open={open}
       onOpenChange={onOpenChange}
       title={item?.title ?? "Referencia"}
-      description="Biblioteca de inspiración. El matching vive en el slot."
+      description={
+        slotPickId
+          ? "Elegí la referencia que querés usar para este slot."
+          : "Biblioteca de inspiración."
+      }
     >
       {item ? (
         <InspirationDetailBody
@@ -47,6 +55,11 @@ export function InspirationDetailSheet({
           usage={usage}
           slots={slots}
           proposals={proposals}
+          onUse={
+            slotPickId && onPickForSlot
+              ? () => onPickForSlot(item.key)
+              : undefined
+          }
         />
       ) : referenceKey ? (
         <p className="text-[13px] text-muted-foreground">

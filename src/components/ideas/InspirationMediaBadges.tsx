@@ -1,18 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { PlatformIcon } from "@/components/icons/platform-icon";
 
-type InspirationMediaBadgesProps = {
-  platform: string;
-  sourceLabel?: string;
-};
-
-const badgeClassName =
-  "h-5 gap-1 border-0 bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-muted";
-
-export function InspirationMediaBadges({
-  platform,
-  sourceLabel,
-}: InspirationMediaBadgesProps) {
+export function InspirationMediaBadges({ platform }: { platform: string }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <PlatformIcon
@@ -21,11 +10,12 @@ export function InspirationMediaBadges({
         className="shrink-0 text-foreground"
         aria-label={platform}
       />
-      {sourceLabel ? (
-        <Badge variant="secondary" className={badgeClassName}>
-          {sourceLabel}
-        </Badge>
-      ) : null}
+      <Badge
+        variant="secondary"
+        className="h-5 gap-1 border-0 bg-muted px-2 py-0.5 text-[11px] font-medium text-foreground hover:bg-muted"
+      >
+        {platform}
+      </Badge>
     </div>
   );
 }

@@ -10,9 +10,11 @@ import { cursorPromptForSlotDescription } from "@/lib/slot-spec";
 export function SlotEditorialDescription({
   spec,
   editorialDescription,
+  inspirationSearchBrief,
 }: {
   spec: SlotSpec;
   editorialDescription?: string;
+  inspirationSearchBrief?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -28,9 +30,21 @@ export function SlotEditorialDescription({
   return (
     <StudioSection title="Descripción">
       {editorialDescription ? (
-        <p className="text-[13px] leading-relaxed text-foreground">
-          {editorialDescription}
-        </p>
+        <div className="space-y-4">
+          <p className="text-[13px] leading-relaxed text-foreground">
+            {editorialDescription}
+          </p>
+          {inspirationSearchBrief ? (
+            <div className="rounded-lg border border-border bg-muted/25 px-3 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Qué buscar en inspiración
+              </p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-foreground">
+                {inspirationSearchBrief}
+              </p>
+            </div>
+          ) : null}
+        </div>
       ) : (
         <div
           className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 py-8 text-center"

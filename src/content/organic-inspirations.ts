@@ -14,7 +14,6 @@ export type OrganicPostInspiration = {
   postText?: string;
   author?: string;
   note?: string;
-  formatIds?: string[];
 };
 
 export type OrganicCommentInspiration = {
@@ -47,7 +46,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Apps de estudio y para qué sirven",
     media: inspirationMedia["tt-7509148365083397382"],
     note: "@studywzue. Carrusel lista de apps con hook directo. Formato educativo #studytok.",
-    formatIds: ["x-razones"],
   },
   {
     id: "tt-7514943337355349253",
@@ -84,7 +82,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Apps que nadie te dice que debes usar (estudiantes)",
     media: inspirationMedia["tt-7496185401934236933"],
     note: "@adrian.sanabria2. Carrusel con hook de curiosidad + setup aesthetic azul.",
-    formatIds: ["x-razones"],
   },
   {
     id: "tt-7522914416019492114",
@@ -112,7 +109,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Comentarios falsos (o no) para tus videos",
     media: inspirationMedia["tt-7488162731695115526"],
     note: "@maurodamian.ar. Reel tutorial de hack de engagement/edición para creadores.",
-    formatIds: ["captura-chat"],
   },
   {
     id: "tt-7489096856891444486",
@@ -149,7 +145,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Cómo estudiar para cada materia",
     media: inspirationMedia["tt-7502235459695709448"],
     note: "@estudio1252. Carrusel por materia (biología, mate, inglés). Estructura lista educativa.",
-    formatIds: ["x-senales"],
   },
   {
     id: "tt-7493633424176024838",
@@ -180,7 +175,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "6 capturas que los billonarios no quieren que veas",
     media: inspirationMedia["ig-dv-kzi6fs0i"],
     note: "@finanspace_. Carrusel con hook de curiosidad + figuras conocidas. Formato lista con tensión.",
-    formatIds: ["x-razones", "titular-con-dato"],
   },
   {
     id: "ig-dv89vvkeqpq",
@@ -208,7 +202,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "5 herramientas de AI que aceleraron el trabajo del equipo",
     media: inspirationMedia["ig-dvtlkcjdr-7"],
     note: "@dylanrosemberg. Lista de herramientas con beneficio concreto por ítem.",
-    formatIds: ["x-razones"],
   },
   {
     id: "ig-dvumfteakpw",
@@ -299,7 +292,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "4 requisitos legales obligatorios para tu app SaaS",
     media: inspirationMedia["ig-dzyc2hupxzl"],
     note: "@hey.canter. Reel educativo B2B con hook de riesgo legal. Formato talking head + título directo.",
-    formatIds: ["green-screen"],
   },
   {
     id: "ig-dzwemsejrhi",
@@ -309,7 +301,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "3 marcas que hacen todo bien en Meta Ads",
     media: inspirationMedia["ig-dzwemsejrhi"],
     note: "@hey.canter. Carrusel lista con hook “deberías espiar”. Buen formato para análisis de referentes.",
-    formatIds: ["x-razones"],
   },
   {
     id: "ig-dxzrrgldl1h",
@@ -319,7 +310,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "18 documentos esenciales que toda startup debería tener",
     media: inspirationMedia["ig-dxzrrgldl1h"],
     note: "@hey.canter. Carrusel “guardá este post” con lista larga. Estructura educativa + autoridad.",
-    formatIds: ["x-razones"],
   },
   {
     id: "ig-dwm-0qdeshk",
@@ -347,7 +337,6 @@ export const organicInspirations: OrganicInspiration[] = [
     title: "Tips para estudiar cansada — carrusel con tips",
     media: inspirationMedia["tt-7530401573659233542"],
     note: "@study.withmaca. Carrusel numerado (descansar, etc.) con estética pop culture. Buen ejemplo de lista útil + identidad visual.",
-    formatIds: ["x-razones"],
   },
   {
     id: "tt-7681117957874814216",

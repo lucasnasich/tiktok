@@ -1,43 +1,112 @@
+import type { ReactNode } from "react";
 import { ArrowSquareOutIcon } from "@phosphor-icons/react";
 
-import { InspirationLinkPreview } from "@/components/ideas/InspirationLinkPreview";
-import { InspirationFormatBadges } from "@/components/ideas/InspirationFormatBadges";
+import {
+  InspirationLinkPreview,
+  TextPostPreview,
+} from "@/components/ideas/InspirationLinkPreview";
 import { InspirationMediaBadges } from "@/components/ideas/InspirationMediaBadges";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { InspirationClassificationLed } from "@/components/inspiration/InspirationClassificationLed";
+import { Card } from "@/components/ui/card";
 import type {
   InspirationCommentItem,
   InspirationLinkItem,
 } from "@/content/inspiration-links";
+import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
+import { cn } from "@/lib/utils";
+
+function InspirationCardBadgeRow({
+  platform,
+  classificationOverride,
+}: {
+  platform?: string;
+  classificationOverride?: InspirationMetaOverride;
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {platform ? <InspirationMediaBadges platform={platform} /> : null}
+      <InspirationClassificationLed
+        override={classificationOverride}
+        className="ml-auto shrink-0"
+      />
+    </div>
+  );
+}
+
+const inspirationCardClass = (interactive: boolean) =>
+  cn(
+    "group/card gap-0 overflow-hidden rounded-none p-0 ring-0",
+    interactive && "cursor-pointer transition-colors hover:bg-muted/40",
+  );
+
+function inspirationCardHandlers(onOpen?: () => void) {
+  return {
+    role: onOpen ? ("button" as const) : undefined,
+    tabIndex: onOpen ? 0 : undefined,
+    onClick: onOpen,
+    onKeyDown: onOpen
+      ? (event: React.KeyboardEvent) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onOpen();
+          }
+        }
+      : undefined,
+  };
+}
+
+export function InspirationTextCard({
+  platform,
+  text,
+  author,
+  subtitle,
+  footer,
+  onOpen,
+  classificationOverride,
+}: {
+  platform: string;
+  text: string;
+  author?: string;
+  subtitle?: string;
+  footer?: ReactNode;
+  onOpen?: () => void;
+  classificationOverride?: InspirationMetaOverride;
+}) {
+  return (
+    <Card size="sm" className={inspirationCardClass(Boolean(onOpen))} {...inspirationCardHandlers(onOpen)}>
+      <div className="relative overflow-hidden">
+        <TextPostPreview postText={text} author={author} platform={platform} />
+      </div>
+      <div className="px-3 py-2.5">
+        <InspirationCardBadgeRow
+          platform={platform || undefined}
+          classificationOverride={classificationOverride}
+        />
+        {subtitle ? (
+          <p className="line-clamp-2 pt-1.5 text-[14px] font-medium leading-snug tracking-tight text-foreground">
+            {subtitle}
+          </p>
+        ) : null}
+        {footer}
+      </div>
+    </Card>
+  );
+}
 
 export function InspirationLinkCard({
   item,
   onOpen,
+  classificationOverride,
 }: {
   item: InspirationLinkItem;
   onOpen?: () => void;
+  classificationOverride?: InspirationMetaOverride;
 }) {
   return (
     <Card
       size="sm"
-      role={onOpen ? "button" : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-      onClick={onOpen}
-      onKeyDown={
-        onOpen
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen();
-              }
-            }
-          : undefined
-      }
-      className={
-        onOpen
-          ? "group/card cursor-pointer gap-0 overflow-hidden rounded-none p-0 ring-0 transition-colors hover:bg-muted/40"
-          : "group/card gap-0 overflow-hidden rounded-none p-0 ring-0"
-      }
+      className={inspirationCardClass(Boolean(onOpen))}
+      {...inspirationCardHandlers(onOpen)}
     >
       <div className="relative overflow-hidden group/preview">
         <InspirationLinkPreview
@@ -51,15 +120,10 @@ export function InspirationLinkCard({
         />
       </div>
       <div className="px-3 py-2.5">
-        <InspirationMediaBadges
+        <InspirationCardBadgeRow
           platform={item.platform}
-          sourceLabel={item.sourceLabel}
+          classificationOverride={classificationOverride}
         />
-        {item.formatIds?.length ? (
-          <div className="pt-1.5">
-            <InspirationFormatBadges formatIds={item.formatIds} />
-          </div>
-        ) : null}
         <p className="line-clamp-2 pt-1.5 text-[14px] font-medium leading-snug tracking-tight text-foreground">
           {item.title}
         </p>
@@ -71,51 +135,30 @@ export function InspirationLinkCard({
 export function InspirationCommentCard({
   item,
   onOpen,
+  classificationOverride,
 }: {
   item: InspirationCommentItem;
   onOpen?: () => void;
+  classificationOverride?: InspirationMetaOverride;
 }) {
   return (
-    <Card
-      size="sm"
-      role={onOpen ? "button" : undefined}
-      tabIndex={onOpen ? 0 : undefined}
-      onClick={onOpen}
-      onKeyDown={
-        onOpen
-          ? (event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen();
-              }
-            }
-          : undefined
-      }
-      className={
-        onOpen
-          ? "h-full cursor-pointer rounded-none p-3 ring-0 transition-colors hover:bg-muted/40"
-          : "h-full rounded-none p-3 ring-0"
-      }
-    >
-      <CardHeader className="gap-2 p-0">
-        <Badge variant="secondary" className="w-fit text-[11px]">
-          Comentario · {item.platform}
-        </Badge>
-        <blockquote className="border-l-2 border-border py-0.5 pl-3 text-[14px] leading-relaxed text-foreground">
-          “{item.text}”
-        </blockquote>
-      </CardHeader>
-      <CardContent className="p-0 pt-2">
+    <InspirationTextCard
+      platform={item.platform}
+      text={item.text}
+      onOpen={onOpen}
+      classificationOverride={classificationOverride}
+      footer={
         <a
           href={item.postUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground underline underline-offset-3 hover:text-foreground/80"
+          onClick={(event) => event.stopPropagation()}
+          className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-foreground underline underline-offset-3 hover:text-foreground/80"
         >
           Ver post
           <ArrowSquareOutIcon className="size-3" />
         </a>
-      </CardContent>
-    </Card>
+      }
+    />
   );
 }

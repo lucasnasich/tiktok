@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftIcon, CopyIcon } from "@phosphor-icons/react";
 
-import { InspirationDetailBody, InspirationThumb } from "@/components/inspiration/InspirationDetailBody";
+import { InspirationDetailBody } from "@/components/inspiration/InspirationDetailBody";
 import { SlotBriefCards } from "@/components/planning/SlotBriefCards";
 import { SlotEditorialDescription } from "@/components/planning/SlotEditorialDescription";
+import { SlotInspirationBrowse } from "@/components/planning/SlotInspirationBrowse";
 import { StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,10 +12,6 @@ import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { getInspirationByKey } from "@/content/inspiration-feed";
-import {
-  INSPIRATION_ORIGIN_LABELS,
-  INSPIRATION_TYPE_LABELS,
-} from "@/content/inspiration-taxonomy";
 import {
   getPlanningAccount,
   getSlotAccountLabel,
@@ -33,10 +30,7 @@ import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
 import { copyText } from "@/lib/clipboard";
-import {
-  formatInspirationUsage,
-  rankInspirationsForSlot,
-} from "@/lib/inspiration-match";
+import { usageForInspiration } from "@/lib/inspiration-usage";
 import {
   proposalsForSlot,
   selectedProposalForSlot,
@@ -88,20 +82,6 @@ export function SlotDetailSheet({
   const record = slot ? getRecord(slot.id) : undefined;
   const specRecords = useMemo(() => Object.values(records), [records]);
 
-  const ranked = useMemo(
-    () =>
-      slot
-        ? rankInspirationsForSlot({
-            slot,
-            proposals,
-            specs: specRecords,
-            slots,
-            overrides,
-          })
-        : [],
-    [overrides, proposals, slot, slots, specRecords],
-  );
-
   const selected = slot
     ? selectedProposalForSlot(proposals, slot.id)
     : undefined;
@@ -128,7 +108,9 @@ export function SlotDetailSheet({
       inspirationRef: key,
       signal: item?.signal,
       creativeMechanism: item?.creativeMechanism,
-      status: "draft",
+      editorialDescription: record?.editorialDescription,
+      inspirationSearchBrief: record?.inspirationSearchBrief,
+      status: record?.status ?? "draft",
     });
     setPane("slot");
     setInspectingKey(null);
@@ -141,7 +123,9 @@ export function SlotDetailSheet({
       slotId: slot.id,
       directionKind: "manual",
       signal,
-      status: "draft",
+      editorialDescription: record?.editorialDescription,
+      inspirationSearchBrief: record?.inspirationSearchBrief,
+      status: record?.status ?? "draft",
     });
     setShowManual(false);
   }
@@ -213,15 +197,12 @@ export function SlotDetailSheet({
             </Button>
             <InspirationDetailBody
               item={inspecting}
-              usage={
-                ranked.find((entry) => entry.item.key === inspecting.key)?.usage ?? {
-                  count: 0,
-                  proposalIds: [],
-                  slotIds: [],
-                  angleIds: [],
-                  accountIds: [],
-                }
-              }
+              usage={usageForInspiration(
+                inspecting.key,
+                proposals,
+                specRecords,
+                slots,
+              )}
               slots={slots}
               proposals={proposals}
               onUse={() => useInspiration(inspecting.key)}
@@ -246,77 +227,21 @@ export function SlotDetailSheet({
             <SlotEditorialDescription
               spec={spec}
               editorialDescription={record?.editorialDescription}
+              inspirationSearchBrief={record?.inspirationSearchBrief}
             />
 
             <StudioSection
-              title="Recomendadas para este slot"
-              description="Compatibilidad, afinidad e historial. Usar una no la prohíbe: baja prioridad si ya se adaptó mucho."
+              title="Inspiración"
+              description="Toda la biblioteca. Elegí la referencia que mejor encaje con lo que buscás."
             >
-              <div className="space-y-2">
-                {ranked.map((rankedItem) => {
-                  const active = record?.inspirationRef === rankedItem.item.key;
-                  return (
-                    <div
-                      key={rankedItem.item.key}
-                      className={cn(
-                        "flex gap-3 rounded-lg border px-2.5 py-2.5",
-                        active ? "border-primary bg-primary/5" : "border-border",
-                      )}
-                    >
-                      <InspirationThumb item={rankedItem.item} />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] font-medium leading-snug">
-                          {rankedItem.item.title}
-                        </p>
-                        <p className="mt-1 flex flex-wrap gap-1">
-                          <Badge variant="secondary" className="text-[10px]">
-                            {INSPIRATION_TYPE_LABELS[rankedItem.item.materialType]}
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px]">
-                            {INSPIRATION_ORIGIN_LABELS[rankedItem.item.origin]}
-                          </Badge>
-                          <Badge variant="outline" className="text-[10px]">
-                            {rankedItem.compatibility}%
-                          </Badge>
-                        </p>
-                        {rankedItem.item.signal ? (
-                          <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground">
-                            {rankedItem.item.signal}
-                          </p>
-                        ) : null}
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          {formatInspirationUsage(rankedItem.usage)}
-                          {rankedItem.reasons[0] ? ` · ${rankedItem.reasons[0]}` : ""}
-                        </p>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant={active ? "default" : "outline"}
-                            className="h-7 text-xs"
-                            onClick={() => useInspiration(rankedItem.item.key)}
-                          >
-                            Usar esta
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 text-xs"
-                            onClick={() => {
-                              setInspectingKey(rankedItem.item.key);
-                              setPane("inspiration");
-                            }}
-                          >
-                            Ver referencia
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="pt-1">
+              <SlotInspirationBrowse
+                slotId={slot.id}
+                onOpenReference={(key) => {
+                  setInspectingKey(key);
+                  setPane("inspiration");
+                }}
+              />
+              <div className="pt-3">
                 <Button
                   type="button"
                   size="sm"
@@ -366,7 +291,7 @@ export function SlotDetailSheet({
                 </div>
               ) : (
                 <p className="text-[13px] text-muted-foreground">
-                  Elegí una referencia. El Studio ya armó las mejores opciones.
+                  Todavía no elegiste una referencia para este slot.
                 </p>
               )}
             </StudioSection>

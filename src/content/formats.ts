@@ -224,5 +224,7 @@ export function matchesFormatFilter(
   activeFormatId: string,
 ): boolean {
   if (activeFormatId === INSPIRATION_ALL_FORMATS_ID) return true;
-  return formatIds?.includes(activeFormatId) ?? false;
+  // La mayoría de referencias no tienen formato etiquetado: no ocultarlas al filtrar.
+  if (!formatIds?.length) return true;
+  return formatIds.includes(activeFormatId);
 }

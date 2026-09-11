@@ -2,6 +2,7 @@ import type { Icon } from "@phosphor-icons/react";
 import {
   FacebookLogoIcon,
   InstagramLogoIcon,
+  PlanetIcon,
   TiktokLogoIcon,
   XLogoIcon,
   YoutubeLogoIcon,
@@ -15,6 +16,7 @@ const PLATFORM_ICONS: Record<string, Icon> = {
   twitter: XLogoIcon,
   youtube: YoutubeLogoIcon,
   facebook: FacebookLogoIcon,
+  cosmos: PlanetIcon,
 };
 
 function normalizePlatform(platform: string) {

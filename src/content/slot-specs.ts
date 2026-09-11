@@ -29,6 +29,8 @@ export type SlotSpecRecord = {
   notes?: string[];
   /** Prosa amigable de qué busca la pieza — la redacta Cursor. */
   editorialDescription?: string;
+  /** Guía de qué tipo de referencia buscar en la biblioteca — la redacta Cursor. */
+  inspirationSearchBrief?: string;
   status: SlotSpecStatus;
   preparedAt?: string;
 };

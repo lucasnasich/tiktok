@@ -33,7 +33,7 @@ function MissingMediaFallback({ platform }: { platform: string }) {
   );
 }
 
-function TextPostPreview({
+export function TextPostPreview({
   postText,
   author,
   platform,
