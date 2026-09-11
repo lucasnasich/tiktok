@@ -1,267 +1,286 @@
 import {
-  CopyIcon,
+  MaskHappyIcon,
   PencilSimpleIcon,
   PlusIcon,
   TrashIcon,
   UserCircleIcon,
 } from "@phosphor-icons/react";
 
+import { PlatformIcon } from "@/components/icons/platform-icon";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import type { PlanningProfile } from "@/content/planning-profiles";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { getContentRoleLabel } from "@/content/content-roles";
-import {
-  planningAccounts,
-  getPlanningAccountLabel,
-} from "@/content/planning-accounts";
-import {
-  formatProfileRoleSummary,
-  type PlanningProfile,
-} from "@/content/planning-profiles";
+  normalizeSocialHandle,
+  type PlanningStudioAccount,
+} from "@/content/planning-studio-accounts";
 import type { PlanningConfigApi } from "@/hooks/use-planning-config";
-import { cn } from "@/lib/utils";
 
 type PlanningProfilesPanelProps = Pick<
   PlanningConfigApi,
+  | "studioAccounts"
   | "profiles"
-  | "assignProfileToAccount"
+  | "deleteStudioAccount"
   | "deleteProfile"
-  | "duplicateProfile"
-  | "getAssignedProfileId"
 > & {
-  onEditProfile: (profileId: string, accountId?: string) => void;
+  onAddAccount: () => void;
+  onEditAccount: (accountId: string) => void;
+  onEditProfile: (profileId: string) => void;
   onCreateProfile: () => void;
 };
 
-function ProfileCard({
-  profile,
-  assignedAccounts,
-  onAssign,
+function AddEmptyState({
+  icon: Icon,
+  title,
+  description,
+  buttonLabel,
+  onAction,
+}: {
+  icon: typeof UserCircleIcon;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border px-6 py-8 text-center"
+    >
+      <div className="flex size-9 items-center justify-center rounded-full bg-muted">
+        <Icon className="size-4 text-muted-foreground" weight="bold" />
+      </div>
+      <div className="max-w-xs space-y-1">
+        <p className="text-[13px] font-medium text-foreground">{title}</p>
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          {description}
+        </p>
+      </div>
+      <Button type="button" size="sm" variant="outline" onClick={onAction}>
+        <PlusIcon className="size-3.5" />
+        {buttonLabel}
+      </Button>
+    </div>
+  );
+}
+
+function AddSlot({
+  buttonLabel,
+  onAction,
+}: {
+  buttonLabel: string;
+  onAction: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-center rounded-lg border border-dashed border-border px-4 py-3">
+      <Button type="button" size="sm" variant="outline" onClick={onAction}>
+        <PlusIcon className="size-3.5" />
+        {buttonLabel}
+      </Button>
+    </div>
+  );
+}
+
+function StudioAccountPlatformIcon({
+  account,
+}: {
+  account: PlanningStudioAccount;
+}) {
+  const handle = normalizeSocialHandle(account.handle);
+  const label = account.platform === "tiktok" ? "TikTok" : "Instagram";
+
+  if (!handle) return null;
+
+  return (
+    <span title={`${label} · @${handle}`} aria-label={`${label} · @${handle}`}>
+      <PlatformIcon
+        platform={account.platform}
+        size={16}
+        className="shrink-0 text-muted-foreground"
+      />
+    </span>
+  );
+}
+
+function StudioAccountCard({
+  account,
   onEdit,
-  onDuplicate,
   onDelete,
 }: {
-  profile: PlanningProfile;
-  assignedAccounts: string[];
-  onAssign: (accountId: string) => void;
+  account: PlanningStudioAccount;
   onEdit: () => void;
-  onDuplicate: () => void;
   onDelete: () => void;
 }) {
-  const roleSummary = formatProfileRoleSummary(profile.settings)
-    .split(" · ")
-    .map((part) => {
-      if (part === "Sin roles definidos") return part;
-      const [id, pct] = part.split(" ");
-      return `${getContentRoleLabel(id)} ${pct}`;
-    })
-    .join(" · ");
-
   return (
     <Card size="sm" className="ring-border/80">
       <CardHeader className="gap-2">
-        <CardTitle className="text-[15px] tracking-tight">
-          {profile.label}
-        </CardTitle>
-        {profile.description ? (
-          <p className="text-[13px] text-muted-foreground">
-            {profile.description}
-          </p>
-        ) : null}
-      </CardHeader>
-      <CardContent className="space-y-3 pt-0">
-        <p className="text-[13px] text-muted-foreground">
-          <span className="font-medium text-foreground">Roles: </span>
-          {roleSummary}
-        </p>
-        <p className="text-[13px] text-muted-foreground">
-          <span className="font-medium text-foreground">Cuentas: </span>
-          {assignedAccounts.length > 0
-            ? assignedAccounts.map(getPlanningAccountLabel).join(", ")
-            : "Sin asignar"}
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 text-xs">
-                <UserCircleIcon className="size-3.5" />
-                Asignar a cuenta
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="min-w-48">
-              {planningAccounts
-                .filter((a) => profile.accountTypes.includes(a.type))
-                .map((account) => (
-                  <button
-                    key={account.id}
-                    type="button"
-                    className="flex w-full cursor-default items-center rounded-md px-2 py-1.5 text-[13px] outline-none hover:bg-muted"
-                    onClick={() => onAssign(account.id)}
-                  >
-                    {account.label}
-                  </button>
-                ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={onEdit}
-          >
-            <PencilSimpleIcon className="size-3.5" />
-            Editar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={onDuplicate}
-          >
-            <CopyIcon className="size-3.5" />
-            Duplicar
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-7 text-xs text-destructive hover:text-destructive"
-            onClick={onDelete}
-          >
-            <TrashIcon className="size-3.5" />
-          </Button>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <StudioAccountPlatformIcon account={account} />
+            <CardTitle className="text-[15px] tracking-tight">
+              {account.displayName}
+            </CardTitle>
+            <Badge variant="outline" className="text-[11px]">
+              {account.type === "official" ? "Oficial" : "Satélite"}
+            </Badge>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={onEdit}
+            >
+              <PencilSimpleIcon className="size-3.5" />
+              Editar cuenta
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              onClick={onDelete}
+            >
+              <TrashIcon className="size-3.5" />
+              Eliminar
+            </Button>
+          </div>
         </div>
-      </CardContent>
+      </CardHeader>
+    </Card>
+  );
+}
+
+function ProfileCard({
+  profile,
+  onEdit,
+  onDelete,
+}: {
+  profile: PlanningProfile;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Card size="sm" className="ring-border/80">
+      <CardHeader className="gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <MaskHappyIcon
+              className="size-4 shrink-0 text-muted-foreground"
+              weight="bold"
+              aria-hidden
+            />
+            <CardTitle className="text-[15px] tracking-tight">
+              {profile.label}
+            </CardTitle>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={onEdit}
+            >
+              <PencilSimpleIcon className="size-3.5" />
+              Editar perfil
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs text-destructive hover:text-destructive"
+              onClick={onDelete}
+            >
+              <TrashIcon className="size-3.5" />
+              Eliminar
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
     </Card>
   );
 }
 
 export function PlanningProfilesPanel({
+  studioAccounts,
   profiles,
-  assignProfileToAccount,
+  deleteStudioAccount,
   deleteProfile,
-  duplicateProfile,
-  getAssignedProfileId,
+  onAddAccount,
+  onEditAccount,
   onEditProfile,
   onCreateProfile,
 }: PlanningProfilesPanelProps) {
-  const accountsUsingProfile = (profileId: string) =>
-    planningAccounts
-      .filter(
-        (account) => getAssignedProfileId(account.id) === profileId,
-      )
-      .map((account) => account.id);
+  const accountEmptyState = (
+    <AddEmptyState
+      icon={UserCircleIcon}
+      title="Agregar cuenta"
+      description="Una cuenta por red: nombre público, plataforma y @."
+      buttonLabel="Agregar cuenta"
+      onAction={onAddAccount}
+    />
+  );
+
+  const accountAddSlot = (
+    <AddSlot buttonLabel="Agregar cuenta" onAction={onAddAccount} />
+  );
+
+  const profileEmptyState = (
+    <AddEmptyState
+      icon={MaskHappyIcon}
+      title="Crear perfil editorial"
+      description="Mix de roles, pilares y formatos que podés reutilizar en varias cuentas."
+      buttonLabel="Crear nuevo perfil"
+      onAction={onCreateProfile}
+    />
+  );
+
+  const profileAddSlot = (
+    <AddSlot buttonLabel="Crear nuevo perfil" onAction={onCreateProfile} />
+  );
 
   return (
-    <div className="space-y-6 px-5 py-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <p className="max-w-2xl text-[14px] leading-relaxed text-muted-foreground">
-          Acá vivien tus perfiles. Cada uno define el balance de roles, pilares
-          y formatos. Creás uno, lo asignás a la cuenta que quieras, y listo.
-        </p>
-        <Button type="button" size="sm" onClick={onCreateProfile}>
-          <PlusIcon className="size-3.5" />
-          Crear perfil
-        </Button>
-      </div>
-
+    <div className="space-y-8 px-5 py-6">
       <section className="space-y-3">
-        <h3 className="text-[13px] font-medium text-foreground">
-          Asignación por cuenta
-        </h3>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {planningAccounts.map((account) => {
-            const profileId = getAssignedProfileId(account.id);
-            const compatible = profiles.filter((p) =>
-              p.accountTypes.includes(account.type),
-            );
-            const profile = profileId
-              ? profiles.find((p) => p.id === profileId)
-              : undefined;
-            return (
-              <div
+        <h3 className="text-[13px] font-medium text-foreground">Cuentas</h3>
+
+        {studioAccounts.length === 0 ? (
+          accountEmptyState
+        ) : (
+          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {studioAccounts.map((account) => (
+              <StudioAccountCard
                 key={account.id}
-                className="rounded-lg border border-border px-3 py-2.5"
-              >
-                <p className="text-[13px] font-medium">{account.label}</p>
-                {compatible.length > 0 ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className={cn(
-                          "mt-1 text-left text-[13px] underline-offset-2 hover:underline",
-                          profile
-                            ? "text-primary"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {profile?.label ?? "Elegir perfil"}
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="min-w-52">
-                      <DropdownMenuRadioGroup
-                        value={profileId ?? ""}
-                        onValueChange={(id) =>
-                          assignProfileToAccount(account.id, id)
-                        }
-                      >
-                        {compatible.map((item) => (
-                          <DropdownMenuRadioItem
-                            key={item.id}
-                            value={item.id}
-                          >
-                            {item.label}
-                          </DropdownMenuRadioItem>
-                        ))}
-                      </DropdownMenuRadioGroup>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <p className="mt-1 text-[13px] text-muted-foreground">
-                    Sin perfiles — creá uno primero
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                account={account}
+                onEdit={() => onEditAccount(account.id)}
+                onDelete={() => deleteStudioAccount(account.id)}
+              />
+            ))}
+            {accountAddSlot}
+          </div>
+        )}
       </section>
 
       <section className="space-y-3">
         <h3 className="text-[13px] font-medium text-foreground">
-          Tus perfiles
+          Perfiles editoriales
         </h3>
+
         {profiles.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border px-6 py-10 text-center">
-            <p className="text-[14px] text-muted-foreground">
-              No hay perfiles todavía. Usá el asistente o el botón de arriba
-              para crear el primero.
-            </p>
-          </div>
+          profileEmptyState
         ) : (
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
             {profiles.map((profile) => (
               <ProfileCard
                 key={profile.id}
                 profile={profile}
-                assignedAccounts={accountsUsingProfile(profile.id)}
-                onAssign={(accountId) =>
-                  assignProfileToAccount(accountId, profile.id)
-                }
                 onEdit={() => onEditProfile(profile.id)}
-                onDuplicate={() => duplicateProfile(profile.id)}
                 onDelete={() => deleteProfile(profile.id)}
               />
             ))}
+            {profileAddSlot}
           </div>
         )}
       </section>

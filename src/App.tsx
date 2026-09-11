@@ -11,7 +11,9 @@ import { CompetitorsScreen } from "@/screens/CompetitorsScreen";
 import { GalleryScreen } from "@/screens/GalleryScreen";
 import { DocsScreen } from "@/screens/DocsScreen";
 import { InspirationScreen } from "@/screens/InspirationScreen";
-import { PlanningScreen } from "@/screens/PlanningScreen";
+import { HomeScreen } from "@/screens/HomeScreen";
+import { LegacyPlanningConfigRedirect } from "@/components/planning/LegacyPlanningConfigRedirect";
+import { PlanningConfigScreen } from "@/screens/PlanningConfigScreen";
 import { ProposalsScreen } from "@/screens/ProposalsScreen";
 import { ProposalsProvider } from "@/hooks/use-proposals";
 import { SlotSpecsProvider } from "@/hooks/use-slot-specs";
@@ -53,7 +55,15 @@ export function App() {
                   path="/inspiracion/competidores"
                   element={<CompetitorsScreen />}
                 />
-                <Route path="/planificacion" element={<PlanningScreen />} />
+                <Route path="/inicio" element={<HomeScreen />} />
+                <Route
+                  path="/planificacion"
+                  element={<LegacyPlanningConfigRedirect />}
+                />
+                <Route
+                  path="/planificacion/configuracion"
+                  element={<PlanningConfigScreen />}
+                />
                 <Route path="/propuestas" element={<ProposalsScreen />} />
                 <Route path="/ideas" element={<LegacyIdeasRedirect />} />
                 <Route
@@ -65,7 +75,7 @@ export function App() {
                   element={<GalleryScreen />}
                 />
                 <Route path="/documentacion" element={<DocsScreen />} />
-                <Route path="/" element={<Navigate to="/inspiracion" replace />} />
+                <Route path="/" element={<Navigate to="/inicio" replace />} />
                 <Route
                   path="/competidores"
                   element={<Navigate to="/inspiracion/competidores" replace />}
@@ -74,7 +84,7 @@ export function App() {
                   path="/imagenes"
                   element={<Navigate to="/produccion/imagenes" replace />}
                 />
-                <Route path="*" element={<Navigate to="/inspiracion" replace />} />
+                <Route path="*" element={<Navigate to="/inicio" replace />} />
               </Routes>
             </div>
           </SidebarInset>

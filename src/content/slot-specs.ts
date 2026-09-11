@@ -1,3 +1,4 @@
+import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { PlanningPlatform } from "@/content/planning-accounts";
 import type { ContentRoleId } from "@/content/content-roles";
 import type { InspirationMaterialType } from "@/content/inspiration-taxonomy";
@@ -26,6 +27,8 @@ export type SlotSpecRecord = {
   signal?: string;
   creativeMechanism?: string;
   notes?: string[];
+  /** Prosa amigable de qué busca la pieza — la redacta Cursor. */
+  editorialDescription?: string;
   status: SlotSpecStatus;
   preparedAt?: string;
 };
@@ -57,6 +60,7 @@ export type SlotSpec = {
   usageContext?: SlotSpecUsageContext;
   brainRefs: string[];
   editorialConstraints: string[];
+  cameraPresence?: CameraPresenceMode;
   notes?: string[];
   status: SlotSpecStatus;
 };

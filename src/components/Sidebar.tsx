@@ -3,7 +3,8 @@ import type { Icon } from "@phosphor-icons/react";
 import {
   BookOpenIcon,
   CalendarBlankIcon,
-  CaretDownIcon,
+  CaretRightIcon,
+  HouseIcon,
   LightbulbIcon,
   SparkleIcon,
   StackIcon,
@@ -11,6 +12,7 @@ import {
 import { NavLink, useLocation } from "react-router-dom";
 
 import { MercantisIconBold } from "@/components/MercantisIcon";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -42,6 +44,7 @@ type NavEntry = {
 };
 
 const MAIN_NAV: NavEntry[] = [
+  { to: "/inicio", label: "Inicio", icon: HouseIcon, end: true },
   {
     to: "/inspiracion",
     label: "Inspiración",
@@ -51,7 +54,19 @@ const MAIN_NAV: NavEntry[] = [
       { to: "/inspiracion/competidores", label: "Competidores", end: true },
     ],
   },
-  { to: "/planificacion", label: "Planificación", icon: CalendarBlankIcon, end: true },
+  {
+    to: "/planificacion",
+    label: "Planificación",
+    icon: CalendarBlankIcon,
+    children: [
+      { to: "/planificacion", label: "Calendario", end: true },
+      {
+        to: "/planificacion/configuracion",
+        label: "Configuración",
+        end: true,
+      },
+    ],
+  },
   { to: "/propuestas", label: "Propuestas", icon: LightbulbIcon, end: true },
   {
     to: "/produccion",
@@ -67,6 +82,20 @@ const DOCS_NAV = {
   icon: BookOpenIcon,
   end: false,
 } as const;
+
+const NAV_ITEM_CLASSNAME =
+  "text-sidebar-foreground/70 data-[active=true]:bg-sidebar-active data-[active=true]:font-medium data-[active=true]:text-sidebar-active-foreground data-[active=true]:shadow-[inset_0_0_0_1px_var(--sidebar-border)]";
+
+const NAV_SECTION_CLASSNAME = cn(
+  NAV_ITEM_CLASSNAME,
+  "data-[active=true]:!bg-sidebar-active data-[active=true]:!text-sidebar-active-foreground",
+);
+
+const NAV_SUB_ITEM_CLASSNAME = cn(
+  "text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+  "data-[active=true]:!bg-transparent data-[active=true]:!font-medium data-[active=true]:!text-foreground data-[active=true]:!shadow-none",
+  "data-[active=true]:hover:!bg-transparent data-[active=true]:hover:!text-foreground",
+);
 
 function pathMatches(pathname: string, to: string, end = false) {
   if (end) return pathname === to;
@@ -101,11 +130,7 @@ function NavItem({
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        asChild
-        isActive={isActive}
-        className="text-sidebar-foreground/70 data-active:text-sidebar-active-foreground"
-      >
+      <SidebarMenuButton asChild isActive={isActive} className={NAV_ITEM_CLASSNAME}>
         <NavLink to={to} end={end}>
           <Icon className="size-4" />
           <span>{label}</span>
@@ -132,47 +157,63 @@ function NestedNavItem({
     children,
   );
 
-  return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        type="button"
-        isActive={sectionActive}
-        aria-expanded={isOpen}
-        aria-label={isOpen ? `Contraer ${item.label}` : `Expandir ${item.label}`}
-        className="text-sidebar-foreground/70 data-active:text-sidebar-active-foreground"
-        onClick={() => onOpenChange(!isOpen)}
-      >
-        <item.icon className="size-4" />
-        <span className="min-w-0 flex-1 truncate">{item.label}</span>
-        <CaretDownIcon
-          className={cn(
-            "ml-auto size-4 shrink-0 transition-transform",
-            isOpen && "rotate-180",
-          )}
-        />
-      </SidebarMenuButton>
-      {isOpen ? (
-        <SidebarMenuSub>
-          {children.map((child) => {
-            const childActive = pathMatches(
-              location.pathname,
-              child.to,
-              child.end ?? true,
-            );
+  const handleToggle = () => {
+    onOpenChange(!isOpen);
+  };
 
-            return (
-              <SidebarMenuSubItem key={child.to}>
-                <SidebarMenuSubButton asChild isActive={childActive} size="sm">
-                  <NavLink to={child.to} end={child.end}>
-                    <span>{child.label}</span>
-                  </NavLink>
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            );
-          })}
-        </SidebarMenuSub>
-      ) : null}
-    </SidebarMenuItem>
+  return (
+    <Collapsible
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      className="group/collapsible"
+    >
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          type="button"
+          isActive={sectionActive}
+          aria-expanded={isOpen}
+          aria-label={isOpen ? `Contraer ${item.label}` : `Expandir ${item.label}`}
+          className={NAV_SECTION_CLASSNAME}
+          onClick={handleToggle}
+        >
+          <item.icon className="size-4" />
+          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          <CaretRightIcon
+            className={cn(
+              "ml-auto size-4 shrink-0 transition-transform duration-200",
+              isOpen && "rotate-90",
+            )}
+          />
+        </SidebarMenuButton>
+
+        <CollapsibleContent>
+          <SidebarMenuSub className="border-l-0 ml-3.5 w-[calc(100%-0.875rem)] pl-2.5 pr-0">
+            {children.map((child) => {
+              const childActive = pathMatches(
+                location.pathname,
+                child.to,
+                child.end ?? true,
+              );
+
+              return (
+                <SidebarMenuSubItem key={child.to} className="w-full">
+                  <SidebarMenuSubButton
+                    asChild
+                    isActive={childActive}
+                    size="sm"
+                    className={NAV_SUB_ITEM_CLASSNAME}
+                  >
+                    <NavLink to={child.to} end={child.end}>
+                      <span>{child.label}</span>
+                    </NavLink>
+                  </SidebarMenuSubButton>
+                </SidebarMenuSubItem>
+              );
+            })}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
   );
 }
 

@@ -2,13 +2,11 @@ import type { ContentRoleId } from "@/content/content-roles";
 import { formats, type Format } from "@/content/formats";
 
 export type PlanningSetupStepId =
-  | "welcome"
-  | "account"
+  | "profile"
   | "rhythm"
   | "roles"
   | "pillars"
-  | "formats"
-  | "review";
+  | "formats";
 
 export type PlanningSetupStep = {
   id: PlanningSetupStepId;
@@ -19,18 +17,11 @@ export type PlanningSetupStep = {
 
 export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
   {
-    id: "welcome",
-    label: "Inicio",
-    title: "Configuración asistida",
+    id: "profile",
+    label: "Perfil",
+    title: "Perfil editorial",
     intro:
-      "Vamos a armar juntos la estrategia editorial de cada cuenta. En cada paso te explico qué significa cada opción y por qué importa, para que elijas con criterio — no al azar.",
-  },
-  {
-    id: "account",
-    label: "Cuenta",
-    title: "¿Qué cuenta configuramos?",
-    intro:
-      "Elegí para qué cuenta estás creando (o editando) un perfil. Si ya tenés perfiles, podés usar uno como base; si no, arrancás en blanco.",
+      "Solo el nombre del mix editorial. Oficial o satélite lo define cada cuenta; las cuentas se eligen al generar el calendario.",
   },
   {
     id: "rhythm",
@@ -58,14 +49,7 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
     label: "Formatos",
     title: "Formatos creativos",
     intro:
-      "El formato es la envoltura visual del post (pizarra, captura de chat, tier list…). Elegí los que querés priorizar; el generador los rota respetando tus pesos.",
-  },
-  {
-    id: "review",
-    label: "Resumen",
-    title: "Revisá y guardá",
-    intro:
-      "Este es el resumen de lo que elegiste. Si algo no cierra, volvé atrás. Al guardar, el calendario usa esta configuración de inmediato.",
+      "El formato es la envoltura visual del post (pizarra, captura de chat, tier list…). Elegí los que querés priorizar y, abajo, cuánto puede repetirse cada uno en la semana.",
   },
 ];
 
@@ -146,7 +130,7 @@ export const RHYTHM_COPY = {
     "Cuántas piezas únicas por día. Una pieza puede salir en TikTok + IG a la vez — no cuenta doble.",
   activeDays: "Días en que la cuenta publica. Podés dejar domingo libre si el público no está activo.",
   timeSlots:
-    "Horarios editoriales. El motor asigna slots en este orden; no es la hora exacta de Buffer, pero sí la estructura del día.",
+    "Horarios editoriales posibles. Si elegís más horarios que piezas por día, el motor rota cuál queda fuera cada día para que todos se usen a lo largo de la semana. No es la hora exacta de Buffer, pero sí la estructura del día.",
 };
 
 /** Límites internos del motor — no se configuran en el wizard orgánico. */

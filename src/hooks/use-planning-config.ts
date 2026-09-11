@@ -1,9 +1,7 @@
 import { useCallback, useMemo } from "react";
 
-import {
-  planningAccounts,
-  type PlanningAccount,
-} from "@/content/planning-accounts";
+import type { CalendarGenerationRequest } from "@/content/calendar-generations";
+import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   createProfileDraft,
   getProfilesForAccountType,
@@ -11,36 +9,140 @@ import {
   resolveProfile,
   type PlanningProfile,
 } from "@/content/planning-profiles";
-import { usePersistedState } from "@/hooks/use-persisted-state";
+import {
+  getStudioAccountById,
+  studioAccountToPlanningBase,
+  type PlanningStudioAccount,
+} from "@/content/planning-studio-accounts";
+import { usePlanningStoreState } from "@/hooks/use-planning-store-state";
 import {
   EMPTY_PLANNING_CONFIG,
   accountToOverride,
+  buildPlanningAccountsForGeneration,
+  getAssignedPlanningAccounts,
   getEffectivePlanningAccounts,
   getProfileForAccount,
   getProfileIdForAccount,
-  parsePlanningConfigStore,
-  type PlanningConfigStore,
+  getStudioAccounts,
+  isCalendarActive,
 } from "@/lib/planning-config-store";
 import {
-  getWizardDraftProfileId,
-  type PlanningWizardSession,
-} from "@/lib/planning-wizard-session";
+  createCalendarGeneration,
+  getActiveCalendarGeneration,
+  getActiveCalendarGenerationSlots,
+  getAllCalendarGenerationSlots,
+} from "@/lib/calendar-generation";
+import {
+  preferRicherSettings,
+  preferRicherWizardSession,
+} from "@/lib/planning-settings-richness";
+import { isWizardDraftProfileId } from "@/lib/planning-wizard-session";
+import type { PlanningWizardSession } from "@/lib/planning-wizard-session";
 
-const STORAGE_KEY = "planning-config";
+function resolvePlanningBase(
+  store: ReturnType<typeof usePlanningStoreState>[0],
+  accountId: string,
+): PlanningAccount | undefined {
+  const studioAccount = getStudioAccountById(store.accounts, accountId);
+  if (!studioAccount) return undefined;
+  return studioAccountToPlanningBase(studioAccount);
+}
 
 export function usePlanningConfig() {
-  const [store, setStore] = usePersistedState<PlanningConfigStore>(
-    STORAGE_KEY,
-    EMPTY_PLANNING_CONFIG,
-    parsePlanningConfigStore,
-  );
+  const [store, setStore] = usePlanningStoreState();
+
+  const studioAccounts = useMemo(() => getStudioAccounts(store), [store]);
 
   const accounts = useMemo(
     () => getEffectivePlanningAccounts(store),
     [store],
   );
 
-  const profiles = store.profiles;
+  const calendarAccounts = useMemo(
+    () => getAssignedPlanningAccounts(store),
+    [store],
+  );
+
+  const calendarActive = useMemo(() => isCalendarActive(store), [store]);
+
+  const calendarGenerations = useMemo(
+    () => store.calendarGenerations,
+    [store.calendarGenerations],
+  );
+
+  const activeCalendarGeneration = useMemo(
+    () => getActiveCalendarGeneration(store),
+    [store],
+  );
+
+  const activeCalendarSlots = useMemo(
+    () => getActiveCalendarGenerationSlots(store),
+    [store],
+  );
+
+  const allCalendarSlots = useMemo(
+    () => getAllCalendarGenerationSlots(store),
+    [store],
+  );
+
+  const activeCalendarAccounts = useMemo(() => {
+    const active = getActiveCalendarGeneration(store);
+    if (!active) return [];
+    return buildPlanningAccountsForGeneration(
+      store,
+      active.profileId,
+      active.accountIds,
+    );
+  }, [store]);
+
+  const profiles = useMemo(
+    () => store.profiles.filter((profile) => !isWizardDraftProfileId(profile.id)),
+    [store.profiles],
+  );
+
+  const createStudioAccount = useCallback(
+    (account: PlanningStudioAccount) => {
+      setStore((prev) => ({
+        ...prev,
+        accounts: [...prev.accounts, account],
+        lastAccountId: account.id,
+      }));
+    },
+    [setStore],
+  );
+
+  const updateStudioAccount = useCallback(
+    (accountId: string, patch: PlanningStudioAccount) => {
+      setStore((prev) => ({
+        ...prev,
+        accounts: prev.accounts.map((account) =>
+          account.id === accountId ? patch : account,
+        ),
+      }));
+    },
+    [setStore],
+  );
+
+  const deleteStudioAccount = useCallback(
+    (accountId: string) => {
+      setStore((prev) => {
+        const nextAssignments = { ...prev.accountProfileIds };
+        const nextSessions = { ...prev.wizardSessions };
+        delete nextAssignments[accountId];
+        delete nextSessions[accountId];
+
+        return {
+          ...prev,
+          accounts: prev.accounts.filter((account) => account.id !== accountId),
+          accountProfileIds: nextAssignments,
+          wizardSessions: nextSessions,
+          lastAccountId:
+            prev.lastAccountId === accountId ? undefined : prev.lastAccountId,
+        };
+      });
+    },
+    [setStore],
+  );
 
   const assignProfileToAccount = useCallback(
     (accountId: string, profileId: string) => {
@@ -51,6 +153,60 @@ export function usePlanningConfig() {
           [accountId]: profileId,
         },
       }));
+    },
+    [setStore],
+  );
+
+  const generateCalendar = useCallback(
+    (input: CalendarGenerationRequest) => {
+      setStore((prev) => {
+        const generation = createCalendarGeneration(prev, input);
+        if (!generation) return prev;
+
+        return {
+          ...prev,
+          calendarGenerations: [...prev.calendarGenerations, generation],
+          activeCalendarGenerationId: generation.id,
+          setupCompleted: true,
+        };
+      });
+    },
+    [setStore],
+  );
+
+  const setActiveCalendarGeneration = useCallback(
+    (generationId: string) => {
+      setStore((prev) => {
+        if (
+          !prev.calendarGenerations.some(
+            (generation) => generation.id === generationId,
+          )
+        ) {
+          return prev;
+        }
+        return { ...prev, activeCalendarGenerationId: generationId };
+      });
+    },
+    [setStore],
+  );
+
+  const deleteCalendarGeneration = useCallback(
+    (generationId: string) => {
+      setStore((prev) => {
+        const calendarGenerations = prev.calendarGenerations.filter(
+          (generation) => generation.id !== generationId,
+        );
+        const activeCalendarGenerationId =
+          prev.activeCalendarGenerationId === generationId
+            ? calendarGenerations[0]?.id
+            : prev.activeCalendarGenerationId;
+
+        return {
+          ...prev,
+          calendarGenerations,
+          activeCalendarGenerationId,
+        };
+      });
     },
     [setStore],
   );
@@ -70,19 +226,51 @@ export function usePlanningConfig() {
     [setStore],
   );
 
+  const updateProfile = useCallback(
+    (
+      profileId: string,
+      patch: Partial<Pick<PlanningProfile, "label" | "description">>,
+    ) => {
+      setStore((prev) => {
+        const profiles = prev.profiles.map((profile) =>
+          profile.id === profileId ? { ...profile, ...patch } : profile,
+        );
+        const wizardSessions = { ...prev.wizardSessions };
+
+        if (patch.label) {
+          for (const [accountId, assignedId] of Object.entries(
+            prev.accountProfileIds,
+          )) {
+            if (assignedId !== profileId || !wizardSessions[accountId]) continue;
+            wizardSessions[accountId] = {
+              ...wizardSessions[accountId],
+              profileLabel: patch.label,
+            };
+          }
+        }
+
+        return { ...prev, profiles, wizardSessions };
+      });
+    },
+    [setStore],
+  );
+
   const deleteProfile = useCallback(
     (profileId: string) => {
       setStore((prev) => {
         const nextAssignments = { ...prev.accountProfileIds };
+        const nextSessions = { ...prev.wizardSessions };
         for (const [accountId, assignedId] of Object.entries(nextAssignments)) {
           if (assignedId === profileId) {
             delete nextAssignments[accountId];
+            delete nextSessions[accountId];
           }
         }
         return {
           ...prev,
           profiles: prev.profiles.filter((p) => p.id !== profileId),
           accountProfileIds: nextAssignments,
+          wizardSessions: nextSessions,
         };
       });
     },
@@ -115,8 +303,7 @@ export function usePlanningConfig() {
       profileDescription?: string,
       existingProfileId?: string,
     ) => {
-      const base = planningAccounts.find((a) => a.id === account.id)!;
-      const settings = accountToOverride(account);
+      const incomingSettings = accountToOverride(account);
 
       if (
         existingProfileId &&
@@ -125,6 +312,10 @@ export function usePlanningConfig() {
         const existing = store.profiles.find(
           (p) => p.id === existingProfileId,
         )!;
+        const settings = preferRicherSettings(
+          existing.settings,
+          incomingSettings,
+        );
         const updated: PlanningProfile = {
           ...existing,
           label: profileLabel,
@@ -132,19 +323,19 @@ export function usePlanningConfig() {
           settings,
         };
         saveProfile(updated);
-        assignProfileToAccount(account.id, updated.id);
-        setStore((prev) => ({ ...prev, lastAccountId: account.id }));
         return updated;
       }
 
-      const profile = createProfileDraft(profileLabel, base.type, settings);
+      const profile = createProfileDraft(
+        profileLabel,
+        "official",
+        incomingSettings,
+      );
       profile.description = profileDescription ?? "";
       saveProfile(profile);
-      assignProfileToAccount(account.id, profile.id);
-      setStore((prev) => ({ ...prev, lastAccountId: account.id }));
       return profile;
     },
-    [assignProfileToAccount, saveProfile, setStore, store.profiles],
+    [saveProfile, store.accounts, store.profiles],
   );
 
   const markSetupCompleted = useCallback(() => {
@@ -175,44 +366,16 @@ export function usePlanningConfig() {
 
   const persistWizardDraft = useCallback(
     (session: PlanningWizardSession) => {
-      const base = planningAccounts.find((a) => a.id === session.accountId);
-      if (!base) return;
-
-      const settings = session.settings;
-      const label = session.profileLabel.trim() || `Borrador · ${base.label}`;
-
       setStore((prev) => {
-        const profileId =
-          session.profileId && prev.profiles.some((p) => p.id === session.profileId)
-            ? session.profileId
-            : getWizardDraftProfileId(session.accountId);
-
-        const existing = prev.profiles.find((p) => p.id === profileId);
-        const profile: PlanningProfile = existing
-          ? { ...existing, label, settings }
-          : {
-              id: profileId,
-              label,
-              description: "",
-              accountTypes: [base.type],
-              settings,
-            };
-
-        const profiles = existing
-          ? prev.profiles.map((p) => (p.id === profileId ? profile : p))
-          : [...prev.profiles, profile];
+        const existing = prev.wizardSessions[session.accountId];
+        const merged = preferRicherWizardSession(existing, session);
 
         return {
           ...prev,
           lastAccountId: session.accountId,
-          profiles,
-          accountProfileIds: {
-            ...prev.accountProfileIds,
-            [session.accountId]: profileId,
-          },
           wizardSessions: {
             ...prev.wizardSessions,
-            [session.accountId]: session,
+            [session.accountId]: merged,
           },
         };
       });
@@ -222,7 +385,16 @@ export function usePlanningConfig() {
 
   const getAccountDraft = useCallback(
     (accountId: string): PlanningAccount => {
-      const base = planningAccounts.find((a) => a.id === accountId)!;
+      const base = resolvePlanningBase(store, accountId);
+      if (!base) {
+        return studioAccountToPlanningBase({
+          id: accountId,
+          displayName: accountId,
+          type: "official",
+          platform: "instagram",
+          handle: "",
+        });
+      }
       const profile = getProfileForAccount(store, accountId);
       if (profile) {
         return profileSettingsToAccount(base, profile.settings);
@@ -234,25 +406,30 @@ export function usePlanningConfig() {
 
   const getAccountDraftFromProfile = useCallback(
     (accountId: string, profileId: string): PlanningAccount => {
-      const base = planningAccounts.find((a) => a.id === accountId)!;
+      const base = resolvePlanningBase(store, accountId);
+      if (!base) return getAccountDraft(accountId);
       const profile = resolveProfile(profileId, store.profiles);
       if (!profile) return getAccountDraft(accountId);
       return profileSettingsToAccount(base, profile.settings);
     },
-    [getAccountDraft, store.profiles],
+    [getAccountDraft, store],
   );
 
   const getProfilesForAccount = useCallback(
     (accountId: string) => {
-      const account = planningAccounts.find((a) => a.id === accountId);
-      if (!account) return [];
-      return getProfilesForAccountType(account.type, store.profiles);
+      const studioAccount = getStudioAccountById(store.accounts, accountId);
+      if (!studioAccount) return [];
+      return getProfilesForAccountType(studioAccount.type, store.profiles);
     },
-    [store.profiles],
+    [store.accounts, store.profiles],
   );
 
   const getAssignedProfileId = useCallback(
-    (accountId: string) => getProfileIdForAccount(store, accountId),
+    (accountId: string) => {
+      const active = getActiveCalendarGeneration(store);
+      if (active?.accountIds.includes(accountId)) return active.profileId;
+      return getProfileIdForAccount(store, accountId);
+    },
     [store],
   );
 
@@ -263,11 +440,26 @@ export function usePlanningConfig() {
 
   return {
     store,
+    studioAccounts,
     accounts,
+    calendarAccounts,
+    calendarActive,
+    calendarGenerations,
+    activeCalendarGeneration,
+    activeCalendarSlots,
+    allCalendarSlots,
+    activeCalendarAccounts,
     profiles,
     setupCompleted: store.setupCompleted,
+    createStudioAccount,
+    updateStudioAccount,
+    deleteStudioAccount,
     assignProfileToAccount,
+    generateCalendar,
+    setActiveCalendarGeneration,
+    deleteCalendarGeneration,
     saveProfile,
+    updateProfile,
     deleteProfile,
     duplicateProfile,
     saveAccountAsProfile,

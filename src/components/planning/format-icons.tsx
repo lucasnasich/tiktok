@@ -50,7 +50,7 @@ const FORMAT_ICONS: Record<string, Icon> = {
   "nota-iphone": NotePencilIcon,
   "captura-chat": ChatsCircleIcon,
   pizarra: ChalkboardTeacherIcon,
-  "alerta-poco-stock": BellRingingIcon,
+  "cupos-limitados": BellRingingIcon,
   "pedimos-disculpas": SmileySadIcon,
   "testimonio-cliente": UserCircleIcon,
   "lo-nuevo-vs-lo-viejo": ArrowsClockwiseIcon,

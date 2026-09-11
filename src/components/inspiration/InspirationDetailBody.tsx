@@ -142,7 +142,8 @@ export function InspirationDetailBody({
         </p>
         {usage.accountIds.length > 0 ? (
           <p className="text-[12px] text-muted-foreground">
-            Cuentas: {usage.accountIds.map(getPlanningAccountLabel).join(", ")}
+            Cuentas:{" "}
+            {usage.accountIds.map((id) => getPlanningAccountLabel(id)).join(", ")}
           </p>
         ) : null}
         {usage.angleIds.length > 0 ? (

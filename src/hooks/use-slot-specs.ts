@@ -1,8 +1,22 @@
 import { useCallback, useMemo, type ReactNode, createContext, createElement, useContext } from "react";
 
+import { slotSpecRecordSeeds } from "@/content/slot-spec-records";
 import type { SlotSpecRecord } from "@/content/slot-specs";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { parseSlotSpecRecords } from "@/lib/slot-specs-store";
+
+const SLOT_SPEC_SEEDS = Object.fromEntries(
+  slotSpecRecordSeeds.map((record) => [record.slotId, record]),
+);
+
+function mergeSlotSpecRecord(
+  slotId: string,
+  local?: SlotSpecRecord,
+): SlotSpecRecord | undefined {
+  const seed = SLOT_SPEC_SEEDS[slotId];
+  if (!local && !seed) return undefined;
+  return { ...seed, ...local, slotId };
+}
 
 type SlotSpecsApi = {
   records: Record<string, SlotSpecRecord>;
@@ -22,7 +36,7 @@ export function SlotSpecsProvider({ children }: { children: ReactNode }) {
   );
 
   const getRecord = useCallback(
-    (slotId: string) => records[slotId],
+    (slotId: string) => mergeSlotSpecRecord(slotId, records[slotId]),
     [records],
   );
 
@@ -36,7 +50,7 @@ export function SlotSpecsProvider({ children }: { children: ReactNode }) {
   const patchRecord = useCallback(
     (slotId: string, patch: Partial<SlotSpecRecord>) => {
       setRecords((prev) => {
-        const current = prev[slotId];
+        const current = mergeSlotSpecRecord(slotId, prev[slotId]);
         if (!current) return prev;
         return { ...prev, [slotId]: { ...current, ...patch, slotId } };
       });

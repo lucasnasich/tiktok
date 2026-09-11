@@ -122,7 +122,6 @@ export const accountPlanningPillars: PlanningPillar[] = [
 
 /** accountId → IDs de pilares extra (además de `planningPillars`). */
 export const ACCOUNT_PLANNING_PILLAR_IDS: Record<string, string[]> = {
-  "mercantis-study": ["estudiantes"],
 };
 
 const pillarById = new Map(

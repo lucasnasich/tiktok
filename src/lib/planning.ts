@@ -1,7 +1,6 @@
 import {
   PLANNING_ALL_ACCOUNTS_ID,
   getPlanningAccountLabel,
-  planningAccounts,
   type PlanningAccount,
 } from "@/content/planning-accounts";
 import type { PlanningSlot } from "@/content/planned-slots";
@@ -31,6 +30,7 @@ export {
 } from "@/lib/planning-dates";
 
 export {
+  dedupeSlotsForAllAccountsView,
   filterSlotsByAccount,
   filterSlotsByDates,
   groupSlotsByDate,
@@ -44,9 +44,7 @@ export function filterSlotsByWeek(
   return filterSlotsByDates(slots, weekDates);
 }
 
-export function getPlanningAccountOptions(
-  accounts: PlanningAccount[] = planningAccounts,
-) {
+export function getPlanningAccountOptions(accounts: PlanningAccount[] = []) {
   return [
     {
       id: PLANNING_ALL_ACCOUNTS_ID,

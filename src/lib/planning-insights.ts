@@ -6,14 +6,13 @@ import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   PLANNING_ALL_ACCOUNTS_ID,
   getPlanningAccountLabel,
-  planningAccounts,
 } from "@/content/planning-accounts";
 import {
   getPlanningPillarLabel,
   normalizePillarId,
   normalizePillarTargets,
 } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
+import { slotMatchesAccount, type PlanningSlot } from "@/content/planned-slots";
 import { isActiveDay } from "@/lib/planning-generator";
 import { filterSlotsByDates } from "@/lib/planning-slot-utils";
 
@@ -214,7 +213,7 @@ function detectAngleVariety(
 
 export function computePlanningInsights({
   slots,
-  accounts = planningAccounts,
+  accounts = [],
   rangeDates,
   todayIso,
   accountFilter = PLANNING_ALL_ACCOUNTS_ID,
@@ -235,15 +234,20 @@ export function computePlanningInsights({
 
   for (const account of visibleAccounts) {
     insights.push(...computeDailyGaps(account, periodSlots, todayIso));
-    insights.push(...detectTargetDrift(account, periodSlots.filter((s) => s.accountId === account.id)));
+    insights.push(
+      ...detectTargetDrift(
+        account,
+        periodSlots.filter((slot) => slotMatchesAccount(slot, account.id)),
+      ),
+    );
     insights.push(...detectPillarStreaks(periodSlots, account));
     insights.push(...detectAngleVariety(periodSlots, account));
 
     const expectedPieces = rangeDates.filter((date) =>
       isActiveDay(account, date),
     ).length * account.postsPerDay;
-    const actualPieces = periodSlots.filter(
-      (slot) => slot.accountId === account.id,
+    const actualPieces = periodSlots.filter((slot) =>
+      slotMatchesAccount(slot, account.id),
     ).length;
     const missingInPeriod = expectedPieces - actualPieces;
 

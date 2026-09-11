@@ -32,6 +32,10 @@ export function parseSlotSpecRecord(raw: unknown): SlotSpecRecord | undefined {
         ? value.creativeMechanism
         : undefined,
     notes: stringArray(value.notes),
+    editorialDescription:
+      typeof value.editorialDescription === "string"
+        ? value.editorialDescription
+        : undefined,
     status,
     preparedAt: typeof value.preparedAt === "string" ? value.preparedAt : undefined,
   };

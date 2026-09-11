@@ -3,6 +3,7 @@ import type { PlanningAccountType } from "@/content/planning-accounts";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { cameraPresenceConstraint } from "@/content/camera-presence";
 import type { PlanningSlot } from "@/content/planned-slots";
 
 const ALWAYS_BRAIN_REFS = ["contenido-comunicacion.md"];
@@ -82,6 +83,9 @@ export function editorialConstraintsForSlot(
   }
   if (accountType === "official") {
     constraints.push("Cuenta oficial: seria, pulida, no memes.");
+  }
+  if (slot.cameraPresence) {
+    constraints.push(cameraPresenceConstraint(slot.cameraPresence));
   }
 
   return constraints;

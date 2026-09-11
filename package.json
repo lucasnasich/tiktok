@@ -20,6 +20,10 @@
     "competitor:logos:fetch": "node scripts/fetch-competitor-logos.mjs",
     "test:planning": "node scripts/planning-generator.test.mjs",
     "test:workflow": "node scripts/slot-workflow.test.mjs",
+    "studio:reset-workflow": "node scripts/reset-studio-workflow.mjs",
+    "planning:store": "node scripts/planning-store-cli.mjs",
+    "planning:store:status": "node scripts/planning-store-cli.mjs status",
+    "planning:store:reset": "node scripts/planning-store-cli.mjs reset",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

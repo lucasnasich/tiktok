@@ -9,6 +9,7 @@ export const INSPIRATION_ALL_FORMATS_ID = "all";
 /** IDs legacy → taxonomía actual en `formats`. */
 export const FORMAT_ID_MIGRATION: Record<string, string> = {
   "x-señales": "x-senales",
+  "alerta-poco-stock": "cupos-limitados",
 };
 
 export const formats: Format[] = [
@@ -53,9 +54,9 @@ export const formats: Format[] = [
     summary: "Explicación a mano alzada. Educativo y humano.",
   },
   {
-    id: "alerta-poco-stock",
-    label: "Alerta de poco stock",
-    summary: "Escasez visual. Empuja acción sin sonar a promo genérica.",
+    id: "cupos-limitados",
+    label: "Cupos limitados",
+    summary: "Placa de escasez por cupos, plazas o lugares — no stock de producto.",
   },
   {
     id: "pedimos-disculpas",

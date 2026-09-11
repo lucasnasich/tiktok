@@ -1,6 +1,7 @@
 import { PlanningDayColumn } from "@/components/planning/PlanningDayColumn";
 import type { PlanningViewId } from "@/content/planning-view";
 import { PLANNING_VIEW } from "@/content/planning-view";
+import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { groupSlotsByDate } from "@/lib/planning";
 import { cn } from "@/lib/utils";
@@ -17,23 +18,25 @@ export function PlanningGridCalendar({
   dates,
   slots,
   todayIso,
+  accountFilter,
+  studioAccounts,
   onOpenSlot,
 }: {
   view: PlanningViewId;
   dates: string[];
   slots: PlanningSlot[];
   todayIso: string;
+  accountFilter?: string;
+  studioAccounts?: PlanningStudioAccount[];
   onOpenSlot?: (slot: PlanningSlot) => void;
 }) {
   const grouped = groupSlotsByDate(slots, dates);
-  const isDayView = view === PLANNING_VIEW.day.id;
 
   return (
     <div
       className={cn(
-        "grid w-full min-h-[calc(100vh-14rem)] gap-px bg-border",
+        "grid h-full min-h-0 w-full flex-1 auto-rows-fr gap-px bg-border",
         GRID_CLASS[view],
-        isDayView && "grid-cols-1",
       )}
     >
       {dates.map((date) => (
@@ -42,11 +45,11 @@ export function PlanningGridCalendar({
           date={date}
           slots={grouped[date] ?? []}
           todayIso={todayIso}
+          accountFilter={accountFilter}
+          studioAccounts={studioAccounts}
           onOpenSlot={onOpenSlot}
-          className={cn(
-            "min-h-[calc(100vh-14rem)]",
-            !isDayView && "min-h-[12rem] lg:min-h-[calc(100vh-14rem)]",
-          )}
+          dense
+          className="h-full min-h-0"
         />
       ))}
     </div>

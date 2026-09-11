@@ -107,7 +107,7 @@ export const STUDIO_PREFERENCE_DEFAULTS = {
   inspirationView: INSPIRATION_VIEW.revisar.id,
   inspirationFormat: INSPIRATION_ALL_FORMATS_ID,
   ideasTab: "idea",
-  planningAccount: "mercantis-oficial",
+  planningAccount: "all",
   planningView: PLANNING_VIEW.week.id,
   planningMode: PLANNING_MODE.calendar.id,
   galleryMode: GALLERY_MODE.creativos.id,

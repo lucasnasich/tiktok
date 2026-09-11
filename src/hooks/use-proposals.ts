@@ -13,7 +13,6 @@ import {
   SEED_PROPOSALS,
   mergeSeedProposals,
   parseProposals,
-  readLegacyIdeasFromStorage,
   replaceProposalsForSlot,
   selectProposalInList,
 } from "@/lib/proposals-store";
@@ -29,7 +28,7 @@ type ProposalsApi = {
 const ProposalsContext = createContext<ProposalsApi | null>(null);
 
 function initialProposals(): Proposal[] {
-  return readLegacyIdeasFromStorage() ?? SEED_PROPOSALS;
+  return SEED_PROPOSALS;
 }
 
 export function ProposalsProvider({ children }: { children: ReactNode }) {

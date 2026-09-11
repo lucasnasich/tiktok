@@ -1,6 +1,6 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import {
-  planningAccounts,
+  createPlanningAccountTemplate,
   type PlanningAccount,
   type PlanningAccountType,
 } from "@/content/planning-accounts";
@@ -11,6 +11,13 @@ import {
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
+import { isWizardDraftProfileId } from "@/lib/planning-wizard-session";
+
+/** Perfiles aplican a cualquier cuenta; el tipo vive en la cuenta, no en el perfil. */
+export const PROFILE_ACCOUNT_TYPES: PlanningAccountType[] = [
+  "official",
+  "satellite",
+];
 
 export type PlanningProfile = {
   id: string;
@@ -40,8 +47,10 @@ export function getProfilesForAccountType(
   accountType: PlanningAccountType,
   profiles: PlanningProfile[] = [],
 ): PlanningProfile[] {
-  return profiles.filter((profile) =>
-    profile.accountTypes.includes(accountType),
+  return profiles.filter(
+    (profile) =>
+      profile.accountTypes.includes(accountType) &&
+      !isWizardDraftProfileId(profile.id),
   );
 }
 
@@ -95,12 +104,12 @@ export function createProfileDraft(
   accountType: PlanningAccountType,
   settings?: PlanningAccountOverride,
 ): PlanningProfile {
-  const templateAccount = planningAccounts.find((a) => a.type === accountType)!;
+  const templateAccount = createPlanningAccountTemplate(accountType);
   return {
     id: `profile:${Date.now()}`,
     label,
     description: "",
-    accountTypes: [accountType],
+    accountTypes: [...PROFILE_ACCOUNT_TYPES],
     settings:
       settings ??
       accountToSettings({

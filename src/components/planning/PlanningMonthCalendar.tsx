@@ -23,12 +23,12 @@ export function PlanningMonthCalendar({
   const grouped = groupSlotsByDate(slots, dates);
 
   return (
-    <div className="flex min-h-[calc(100vh-14rem)] w-full flex-col">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col">
       <div className="grid shrink-0 grid-cols-7 gap-px bg-border">
         {WEEKDAY_LABELS.map((label) => (
           <div
             key={label}
-            className="bg-card px-2 py-2 text-center text-[11px] font-medium text-muted-foreground"
+            className="bg-secondary px-2 py-2 text-center text-[11px] font-medium text-muted-foreground"
           >
             {label}
           </div>
@@ -48,17 +48,21 @@ export function PlanningMonthCalendar({
             <section
               key={day.iso}
               className={cn(
-                "flex min-h-[6rem] flex-col bg-card p-2",
-                !day.inCurrentMonth && "bg-muted/20",
-                isToday && "ring-1 ring-inset ring-foreground/20",
+                "flex min-h-[6rem] min-w-0 flex-col border-l-[3px] border-l-transparent bg-secondary",
+                isToday && "border-l-calendar-today",
               )}
             >
-              <header className="mb-1.5 flex items-center justify-between gap-1">
+              <header
+                className={cn(
+                  "flex items-center justify-between gap-1 border-b border-border px-2 py-1.5",
+                  isToday && "bg-calendar-today-muted",
+                )}
+              >
                 <span
                   className={cn(
                     "text-[12px] font-medium tabular-nums",
                     isToday
-                      ? "text-foreground"
+                      ? "text-calendar-today"
                       : day.inCurrentMonth
                         ? "text-foreground/80"
                         : "text-muted-foreground",
@@ -73,7 +77,7 @@ export function PlanningMonthCalendar({
                 ) : null}
               </header>
 
-              <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-hidden">
+              <div className="flex min-h-0 flex-1 flex-col divide-y divide-border overflow-hidden">
                 {daySlots.slice(0, 3).map((slot) => (
                   <PlanningSlotChip
                     key={slot.id}
@@ -83,7 +87,7 @@ export function PlanningMonthCalendar({
                   />
                 ))}
                 {daySlots.length > 3 ? (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="px-2 py-1 text-[10px] text-muted-foreground">
                     +{daySlots.length - 3} más
                   </span>
                 ) : null}

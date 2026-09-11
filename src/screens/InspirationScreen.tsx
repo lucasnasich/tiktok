@@ -1,4 +1,3 @@
-import { useMemo } from "react";
 import { GridFourIcon, ScanIcon } from "@phosphor-icons/react";
 
 import { Playground } from "@/components/AppShell";
@@ -12,12 +11,9 @@ import {
   INSPIRATION_VIEW,
   type InspirationViewId,
 } from "@/content/inspiration-view";
-import { plannedSlots } from "@/content/planned-slots";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
 import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
-import { toIsoDate } from "@/lib/planning-dates";
-import { getPlanningHorizonSlots } from "@/lib/planning-generator";
 import {
   STUDIO_PREFERENCE_DEFAULTS,
   STUDIO_PREFERENCE_KEYS,
@@ -28,7 +24,7 @@ import {
 } from "@/lib/studio-preferences";
 
 export function InspirationScreen() {
-  const { accounts } = usePlanningConfig();
+  const { allCalendarSlots: horizonSlotsFromGenerations } = usePlanningConfig();
   const [referenceKey, setReferenceKey] = useSheetSearchParam("reference");
   const [activeSource, setActiveSource] = usePersistedState(
     STUDIO_PREFERENCE_KEYS.inspirationSource,
@@ -50,11 +46,7 @@ export function InspirationScreen() {
     STUDIO_PREFERENCE_DEFAULTS.inspirationFormat,
     parseInspirationFormat,
   );
-  const todayIso = toIsoDate(new Date());
-  const slots = useMemo(
-    () => getPlanningHorizonSlots(plannedSlots, accounts, todayIso),
-    [accounts, todayIso],
-  );
+  const slots = horizonSlotsFromGenerations;
 
   const isListView = view === INSPIRATION_VIEW.listado.id;
   const viewMeta =

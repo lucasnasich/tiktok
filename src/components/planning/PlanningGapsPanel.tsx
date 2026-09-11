@@ -23,41 +23,65 @@ const INSIGHT_STYLES = {
   },
 } as const;
 
-export function PlanningGapsPanel({ insights }: { insights: PlanningInsight[] }) {
+function PlanningGapsList({ insights }: { insights: PlanningInsight[] }) {
+  if (insights.length === 0) {
+    return (
+      <p className="text-[13px] leading-relaxed text-muted-foreground">
+        El calendario está alineado con los targets del período visible.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-3">
+      {insights.map((insight) => {
+        const style = INSIGHT_STYLES[insight.kind];
+        const Icon = style.icon;
+
+        return (
+          <li
+            key={insight.id}
+            className="flex items-start gap-2 text-[13px] leading-relaxed text-foreground"
+          >
+            <Icon
+              className={cn("mt-0.5 size-4 shrink-0", style.className)}
+              aria-hidden
+            />
+            <span>{insight.message}</span>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+export function PlanningGapsPanel({
+  insights,
+  embedded = false,
+  periodLabel,
+}: {
+  insights: PlanningInsight[];
+  embedded?: boolean;
+  periodLabel?: string;
+}) {
+  const description = periodLabel
+    ? `Brechas vs. targets y señales de variedad para ${periodLabel}.`
+    : "Brechas vs. targets y señales de variedad para el período visible.";
+
+  if (embedded) {
+    return <PlanningGapsList insights={insights} />;
+  }
+
   return (
     <Card size="sm" className="ring-border/80">
       <CardHeader className="gap-1">
         <CardTitle className="text-[15px] tracking-tight">Qué falta</CardTitle>
         <p className="text-[13px] leading-relaxed text-muted-foreground">
-          Brechas vs. targets y señales de variedad para la semana.
+          {description}
         </p>
       </CardHeader>
       <CardContent className="pt-0">
-        {insights.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">
-            El calendario está alineado con los targets de esta semana.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {insights.map((insight) => {
-              const style = INSIGHT_STYLES[insight.kind];
-              const Icon = style.icon;
-
-              return (
-                <li
-                  key={insight.id}
-                  className="flex items-start gap-2 text-[13px] leading-relaxed text-foreground"
-                >
-                  <Icon
-                    className={cn("mt-0.5 size-4 shrink-0", style.className)}
-                    aria-hidden
-                  />
-                  <span>{insight.message}</span>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <PlanningGapsList insights={insights} />
       </CardContent>
     </Card>
   );

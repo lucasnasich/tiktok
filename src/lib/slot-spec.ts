@@ -11,6 +11,7 @@ import { getPlanningAccount, getPlanningAccountLabel } from "@/content/planning-
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
+import { cameraPresenceShortLabel } from "@/content/camera-presence";
 import { brainRefsForSlot, editorialConstraintsForSlot } from "@/content/slot-brain";
 import type { SlotSpec, SlotSpecRecord } from "@/content/slot-specs";
 import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
@@ -68,6 +69,7 @@ export function assembleSlotSpec(
       : undefined,
     brainRefs: brainRefsForSlot(slot),
     editorialConstraints: editorialConstraintsForSlot(slot, account?.type),
+    cameraPresence: slot.cameraPresence,
     notes: record?.notes,
     status: record?.status ?? "draft",
   };
@@ -113,6 +115,9 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     `- Rol: ${getContentRoleLabel(spec.roleId)}`,
     `- Pilar: ${getPlanningPillarLabel(spec.pillarId)}`,
     `- Formato: ${getFormatLabel(spec.formatId)}`,
+    spec.cameraPresence
+      ? `- Producción: ${cameraPresenceShortLabel(spec.cameraPresence)}`
+      : "- Producción: —",
     "",
     "## Inspiración",
     spec.inspirationRef
@@ -152,4 +157,22 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
 
 export function cursorPromptForSpec(spec: SlotSpec) {
   return `Desarrollá propuestas para este slot.\n\n${formatSlotSpecMarkdown(spec)}`;
+}
+
+export function cursorPromptForSlotDescription(spec: SlotSpec) {
+  return [
+    "Redactá la descripción editorial de este slot de contenido Mercantis.",
+    "",
+    "Requisitos:",
+    "- 2 a 4 oraciones en español argentino, prosa continua y amigable.",
+    "- Sin listas, viñetas, guiones largos (—) ni prefijos del tipo \"Rol:\", \"Pilar:\" o \"Formato:\".",
+    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, pilar, formato y producción.",
+    "- No inventes features, pricing, clientes ni claims. Consultá el Mercantis Brain.",
+    "",
+    "Después de redactarla, guardala en el SlotSpecRecord del slot (`editorialDescription`) en el planning store del Studio.",
+    "",
+    `Slot ID: ${spec.slotId}`,
+    "",
+    formatSlotSpecMarkdown(spec),
+  ].join("\n");
 }

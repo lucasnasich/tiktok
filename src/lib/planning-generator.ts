@@ -1,6 +1,5 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
-import { planningAccounts } from "@/content/planning-accounts";
 import {
   DEFAULT_FORMAT_TARGETS,
   DEFAULT_PILLAR_TARGETS_OFFICIAL,
@@ -254,13 +253,45 @@ function pickFromTargets(
   return scored[0]?.id ?? entries[0][0];
 }
 
-function availableTimes(account: PlanningAccount, daySlots: PlanningSlot[]): string[] {
+function timeSlotRotationOffset(date: string, slotCount: number): number {
+  if (slotCount <= 0) return 0;
+  const dayNumber = Math.floor(parseIsoDate(date).getTime() / 86_400_000);
+  return dayNumber % slotCount;
+}
+
+/**
+ * Horarios del día según `postsPerDay` y la ventana rotativa.
+ * Si hay más horarios que piezas/día, cada día omite uno distinto (ciclo).
+ */
+export function getPlannedTimesForDay(
+  timeSlots: string[],
+  postsPerDay: number,
+  date: string,
+): string[] {
+  const sorted = [...timeSlots].sort((a, b) => a.localeCompare(b));
+  if (sorted.length === 0 || postsPerDay <= 0) return [];
+  if (postsPerDay >= sorted.length) return sorted;
+
+  const offset = timeSlotRotationOffset(date, sorted.length);
+  const rotated = [...sorted.slice(offset), ...sorted.slice(0, offset)];
+  return rotated.slice(0, postsPerDay);
+}
+
+function timesForDay(
+  account: PlanningAccount,
+  date: string,
+  daySlots: PlanningSlot[],
+): string[] {
   const used = new Set(daySlots.map((slot) => slot.time));
-  return account.timeSlots.filter((time) => !used.has(time));
+  return getPlannedTimesForDay(
+    account.timeSlots,
+    account.postsPerDay,
+    date,
+  ).filter((time) => !used.has(time));
 }
 
 export function generateMissingSlots({
-  accounts = planningAccounts,
+  accounts = [],
   dateFrom,
   dateTo,
   existingSlots,
@@ -282,7 +313,7 @@ export function generateMissingSlots({
         .sort((a, b) => a.time.localeCompare(b.time));
 
       const missingCount = Math.max(account.postsPerDay - daySlots.length, 0);
-      const times = availableTimes(account, daySlots);
+      const times = timesForDay(account, date, daySlots);
       const weekStart = weekStartIso(date);
 
       for (let index = 0; index < missingCount; index += 1) {
@@ -374,11 +405,24 @@ export function mergePlanningSlots(
   );
 }
 
+export function snapshotPlanningHorizonSlots(
+  accounts: PlanningAccount[],
+  todayIso: string,
+): PlanningSlot[] {
+  const horizon = toIsoDate(addDays(parseIsoDate(todayIso), 28));
+  return generateMissingSlots({
+    accounts,
+    dateFrom: todayIso,
+    dateTo: horizon,
+    existingSlots: [],
+  });
+}
+
 export function getCalendarSlots(
   existingSlots: PlanningSlot[],
   dateFrom: string,
   dateTo: string,
-  accounts = planningAccounts,
+  accounts: PlanningAccount[] = [],
 ): PlanningSlot[] {
   const generated = generateMissingSlots({
     accounts,

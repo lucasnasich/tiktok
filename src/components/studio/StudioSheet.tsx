@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
-import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react";
 
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -10,6 +8,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+
+const SHEET_WIDTH_CLASS = {
+  default:
+    "sm:max-w-[40rem] data-[side=right]:sm:max-w-[40rem] md:max-w-[42rem] data-[side=right]:md:max-w-[42rem]",
+  narrow:
+    "sm:max-w-[22rem] data-[side=right]:sm:max-w-[22rem] md:max-w-[24rem] data-[side=right]:md:max-w-[24rem]",
+} as const;
 
 export function StudioSheet({
   open,
@@ -22,6 +27,7 @@ export function StudioSheet({
   nextDisabled,
   children,
   footer,
+  size = "default",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -33,6 +39,7 @@ export function StudioSheet({
   nextDisabled?: boolean;
   children: ReactNode;
   footer?: ReactNode;
+  size?: keyof typeof SHEET_WIDTH_CLASS;
 }) {
   const showNav = Boolean(onPrev || onNext);
 
@@ -40,40 +47,26 @@ export function StudioSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-full gap-0 overflow-hidden p-0 sm:max-w-[40rem] data-[side=right]:sm:max-w-[40rem] md:max-w-[42rem] data-[side=right]:md:max-w-[42rem]"
+        className={cn(
+          "w-full gap-0 overflow-hidden p-0",
+          SHEET_WIDTH_CLASS[size],
+        )}
+        onPrev={onPrev}
+        onNext={onNext}
+        prevDisabled={prevDisabled}
+        nextDisabled={nextDisabled}
       >
         <div className="flex h-full min-h-0 flex-col">
-          <SheetHeader className="border-b border-border pr-12">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <SheetTitle>{title}</SheetTitle>
-                {description ? (
-                  <SheetDescription>{description}</SheetDescription>
-                ) : null}
-              </div>
-              {showNav ? (
-                <div className="flex shrink-0 items-center gap-1 pt-0.5">
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    disabled={!onPrev || prevDisabled}
-                    onClick={onPrev}
-                    aria-label="Anterior"
-                  >
-                    <CaretLeftIcon className="size-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    size="icon-sm"
-                    variant="ghost"
-                    disabled={!onNext || nextDisabled}
-                    onClick={onNext}
-                    aria-label="Siguiente"
-                  >
-                    <CaretRightIcon className="size-4" />
-                  </Button>
-                </div>
+          <SheetHeader
+            className={cn(
+              "border-b border-border",
+              showNav ? "pr-[8.75rem]" : "pr-12",
+            )}
+          >
+            <div className="min-w-0">
+              <SheetTitle>{title}</SheetTitle>
+              {description ? (
+                <SheetDescription>{description}</SheetDescription>
               ) : null}
             </div>
           </SheetHeader>

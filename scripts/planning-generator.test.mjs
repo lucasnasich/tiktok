@@ -59,4 +59,38 @@ assert.equal(
 const times = ["11:00", "13:00", "16:00", "21:00"];
 assert.equal(times.length >= 3, true, "hay horarios suficientes para 3 piezas/día");
 
+function timeSlotRotationOffset(date, slotCount) {
+  const dayNumber = Math.floor(new Date(`${date}T12:00:00`).getTime() / 86_400_000);
+  return slotCount > 0 ? dayNumber % slotCount : 0;
+}
+
+function getPlannedTimesForDay(timeSlots, postsPerDay, date) {
+  const sorted = [...timeSlots].sort((a, b) => a.localeCompare(b));
+  if (sorted.length === 0 || postsPerDay <= 0) return [];
+  if (postsPerDay >= sorted.length) return sorted;
+  const offset = timeSlotRotationOffset(date, sorted.length);
+  const rotated = [...sorted.slice(offset), ...sorted.slice(0, offset)];
+  return rotated.slice(0, postsPerDay);
+}
+
+assert.deepEqual(
+  getPlannedTimesForDay(times, 3, "2026-09-08"),
+  ["11:00", "13:00", "16:00"],
+  "día 0 del ciclo: omite el último horario",
+);
+
+const rotatedDay = getPlannedTimesForDay(times, 3, "2026-09-09");
+assert.equal(
+  rotatedDay.includes("21:00"),
+  true,
+  "otro día del ciclo incluye el horario nocturno",
+);
+assert.equal(rotatedDay.length, 3, "sigue habiendo 3 piezas por día");
+
+assert.deepEqual(
+  getPlannedTimesForDay(times, 4, "2026-09-08"),
+  times,
+  "si piezas/día = horarios, usa todos",
+);
+
 console.log("planning-generator.test.mjs OK");

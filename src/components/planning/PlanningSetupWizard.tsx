@@ -5,25 +5,17 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import {
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  CheckCircleIcon,
-  CheckIcon,
-  LightbulbIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon, ArrowRightIcon, LightbulbIcon } from "@phosphor-icons/react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { contentRoles } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
 import {
-  planningAccounts,
+  createPlanningAccountTemplate,
   type PlanningAccount,
 } from "@/content/planning-accounts";
 import {
-  formatProfileRoleSummary,
   profileSettingsToAccount,
   type PlanningProfile,
 } from "@/content/planning-profiles";
@@ -32,15 +24,12 @@ import {
 } from "@/content/planning-defaults";
 import {
   OFFICIAL_ROLE_MIX_PRESETS,
-  VARIETY_PRESETS,
-  buildOfficialRecommendedSettings,
-  hasEditorialMix,
+  FORMAT_ROTATION_PRESETS,
+  formatRotationPresetIdFor,
   officialFormatIds,
-  officialPillarPriorities,
-  varietyPresetIdFor,
+  repetitionLimitsWithFormatRotation,
 } from "@/content/planning-presets";
 import type { PlanningPlatform } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
   PILLAR_PRIORITY_WEIGHT,
@@ -52,24 +41,27 @@ import {
   type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
 import { WEEKDAY_LABELS } from "@/lib/planning-dates";
+import { accountToOverride } from "@/lib/planning-config-store";
 import {
   normalizePercentTargets,
   sumPercentTargets,
 } from "@/lib/planning-percent";
+import { settingsRichness } from "@/lib/planning-settings-richness";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { FormatIcon } from "@/components/planning/format-icons";
+import { FormatGuideSheet } from "@/components/planning/FormatGuideSheet";
+import { FormatSetupOption } from "@/components/planning/FormatSetupOption";
 import { PlanningPillarIcon } from "@/components/planning/planning-pillar-icons";
 import {
   buildMergedWizardAccount,
   buildPillarPrioritiesFromTargets,
   buildWizardSessionSnapshot,
-  getWizardDraftProfileId,
+  isWizardDraftProfileId,
   sessionToAccount,
+  wizardSessionKey,
   type PlanningWizardSession,
 } from "@/lib/planning-wizard-session";
 import { cn } from "@/lib/utils";
 
-const WEEKDAY_BY_ISO = ["", ...WEEKDAY_LABELS];
 const TIME_OPTIONS = [...DEFAULT_TIME_SLOTS];
 
 function SingleChoice<T extends string>({
@@ -139,16 +131,10 @@ function MultiChoice<T extends string>({
 }
 
 type PlanningSetupWizardProps = {
-  initialAccountId?: string;
+  embedded?: boolean;
   initialProfileId?: string;
-  getAccountDraft: (accountId: string) => PlanningAccount;
-  getAccountDraftFromProfile: (
-    accountId: string,
-    profileId: string,
-  ) => PlanningAccount;
-  getProfilesForAccount: (accountId: string) => PlanningProfile[];
-  getAssignedProfileId: (accountId: string) => string | undefined;
-  getWizardSession: (accountId: string) => PlanningWizardSession | undefined;
+  getProfile: (profileId: string) => PlanningProfile | undefined;
+  getWizardSession: (sessionKey: string) => PlanningWizardSession | undefined;
   persistWizardDraft: (session: PlanningWizardSession) => void;
   onSave: (
     account: PlanningAccount,
@@ -163,6 +149,7 @@ type StepValidationContext = {
   selectedFormats: Set<string>;
   pillarPriorities: Record<string, PillarPriority>;
   relevantPillarIds: string[];
+  profileLabel: string;
 };
 
 function isStepComplete(
@@ -170,10 +157,8 @@ function isStepComplete(
   ctx: StepValidationContext,
 ): boolean {
   switch (stepId) {
-    case "welcome":
-    case "account":
-    case "review":
-      return true;
+    case "profile":
+      return ctx.profileLabel.trim().length > 0;
     case "rhythm":
       return (
         ctx.draft.postsPerDay > 0 &&
@@ -245,115 +230,75 @@ function GuideCallout({ children }: { children: React.ReactNode }) {
 }
 
 function resolveWizardInitialState({
-  accountId: preferredAccountId,
   profileId: preferredProfileId,
+  getProfile,
   getWizardSession,
-  getAccountDraft,
-  getAccountDraftFromProfile,
-  getProfilesForAccount,
-  getAssignedProfileId,
 }: {
-  accountId: string;
   profileId?: string;
-  getWizardSession: (accountId: string) => PlanningWizardSession | undefined;
-  getAccountDraft: (accountId: string) => PlanningAccount;
-  getAccountDraftFromProfile: (
-    accountId: string,
-    profileId: string,
-  ) => PlanningAccount;
-  getProfilesForAccount: (accountId: string) => PlanningProfile[];
-  getAssignedProfileId: (accountId: string) => string | undefined;
+  getProfile: (profileId: string) => PlanningProfile | undefined;
+  getWizardSession: (sessionKey: string) => PlanningWizardSession | undefined;
 }) {
-  const session = getWizardSession(preferredAccountId);
-  if (session && (!preferredProfileId || session.profileId === preferredProfileId)) {
-    const base = planningAccounts.find((a) => a.id === session.accountId)!;
-    const draft = sessionToAccount(base, session);
-    return {
-      accountId: session.accountId,
-      stepIndex: Math.min(
-        Math.max(0, session.stepIndex),
-        PLANNING_SETUP_STEPS.length - 1,
-      ),
-      selectedProfileId:
-        session.profileId ?? getAssignedProfileId(session.accountId),
-      profileLabel: session.profileLabel,
-      draft,
-      pillarPriorities: session.pillarPriorities,
-      selectedFormats: new Set(session.selectedFormatIds),
-    };
+  const sessionKey = wizardSessionKey(preferredProfileId);
+  const session = getWizardSession(sessionKey);
+  const existingProfile =
+    preferredProfileId && !isWizardDraftProfileId(preferredProfileId)
+      ? getProfile(preferredProfileId)
+      : undefined;
+  const draftTemplate = createPlanningAccountTemplate("official");
+
+  let draft = existingProfile
+    ? profileSettingsToAccount(draftTemplate, existingProfile.settings)
+    : draftTemplate;
+
+  if (session) {
+    const fromSession = sessionToAccount(draftTemplate, session);
+    if (
+      settingsRichness(accountToOverride(fromSession)) >
+      settingsRichness(accountToOverride(draft))
+    ) {
+      draft = fromSession;
+    }
   }
 
-  const profileId =
-    preferredProfileId ?? getAssignedProfileId(preferredAccountId);
-  let draft = profileId
-    ? getAccountDraftFromProfile(preferredAccountId, profileId)
-    : getAccountDraft(preferredAccountId);
-  let pillarPriorities = buildPillarPrioritiesFromTargets(draft);
-  let selectedFormats = new Set(Object.keys(draft.formatTargets));
-
-  if (
-    preferredAccountId === "mercantis-oficial" &&
-    !hasEditorialMix(draft)
-  ) {
-    const base = planningAccounts.find((account) => account.id === preferredAccountId)!;
-    draft = profileSettingsToAccount(base, buildOfficialRecommendedSettings());
-    pillarPriorities = {
-      ...officialPillarPriorities(),
-      ...buildPillarPrioritiesFromTargets(draft),
-    };
-    selectedFormats = new Set(officialFormatIds());
-  }
-
-  let profileLabel = "Mi perfil";
-  if (!profileId) {
-    const account = planningAccounts.find((a) => a.id === preferredAccountId);
-    profileLabel = account ? `Perfil · ${account.label}` : profileLabel;
-  } else {
-    const profile = getProfilesForAccount(preferredAccountId).find(
-      (p) => p.id === profileId,
-    );
-    profileLabel = profile?.label ?? profileLabel;
-  }
+  const pillarPriorities =
+    session && Object.keys(session.pillarPriorities).length > 0
+      ? session.pillarPriorities
+      : buildPillarPrioritiesFromTargets(draft);
+  const selectedFormats =
+    session && session.selectedFormatIds.length > 0
+      ? new Set(session.selectedFormatIds)
+      : new Set(Object.keys(draft.formatTargets));
 
   return {
-    accountId: preferredAccountId,
-    stepIndex: 0,
-    selectedProfileId: profileId,
-    profileLabel,
+    stepIndex: session
+      ? Math.min(Math.max(0, session.stepIndex), PLANNING_SETUP_STEPS.length - 1)
+      : 0,
+    selectedProfileId: preferredProfileId,
+    profileLabel:
+      existingProfile?.label ?? session?.profileLabel ?? "Mi perfil editorial",
     draft,
     pillarPriorities,
-    selectedFormats: new Set(selectedFormats),
+    selectedFormats,
   };
 }
 
 export function PlanningSetupWizard({
-  initialAccountId,
+  embedded = false,
   initialProfileId,
-  getAccountDraft,
-  getAccountDraftFromProfile,
-  getProfilesForAccount,
-  getAssignedProfileId,
+  getProfile,
   getWizardSession,
   persistWizardDraft,
   onSave,
   onComplete,
 }: PlanningSetupWizardProps) {
-  const initialAccId = initialAccountId ?? planningAccounts[0].id;
   const initialState = resolveWizardInitialState({
-    accountId: initialAccId,
     profileId: initialProfileId,
+    getProfile,
     getWizardSession,
-    getAccountDraft,
-    getAccountDraftFromProfile,
-    getProfilesForAccount,
-    getAssignedProfileId,
   });
 
   const [stepIndex, setStepIndex] = useState(initialState.stepIndex);
-  const [accountId, setAccountId] = useState(initialState.accountId);
-  const [selectedProfileId, setSelectedProfileId] = useState<string | undefined>(
-    initialState.selectedProfileId,
-  );
+  const selectedProfileId = initialProfileId;
   const [profileLabel, setProfileLabel] = useState(initialState.profileLabel);
   const [draft, setDraft] = useState<PlanningAccount>(initialState.draft);
   const [pillarPriorities, setPillarPriorities] = useState<
@@ -362,65 +307,19 @@ export function PlanningSetupWizard({
   const [selectedFormats, setSelectedFormats] = useState<Set<string>>(
     initialState.selectedFormats,
   );
+  const [formatGuideId, setFormatGuideId] = useState<string | null>(null);
 
   const step = PLANNING_SETUP_STEPS[stepIndex];
-  const accountMeta = planningAccounts.find((a) => a.id === accountId)!;
-
   const relevantPillars = useMemo(
-    () => getPlanningPillarsForAccount(accountId, accountMeta.type),
-    [accountId, accountMeta.type],
-  );
-
-  const compatibleProfiles = useMemo(
-    () => getProfilesForAccount(accountId),
-    [accountId, getProfilesForAccount],
-  );
-
-  const applyProfile = useCallback(
-    (profileId: string) => {
-      setSelectedProfileId(profileId);
-      const nextDraft = getAccountDraftFromProfile(accountId, profileId);
-      setDraft(nextDraft);
-      setPillarPriorities(buildPillarPrioritiesFromTargets(nextDraft));
-      setSelectedFormats(new Set(Object.keys(nextDraft.formatTargets)));
-      const profile = compatibleProfiles.find((p) => p.id === profileId);
-      if (profile) setProfileLabel(profile.label);
-    },
-    [accountId, compatibleProfiles, getAccountDraftFromProfile],
-  );
-
-  const switchAccount = useCallback(
-    (nextId: string) => {
-      const nextState = resolveWizardInitialState({
-        accountId: nextId,
-        getWizardSession,
-        getAccountDraft,
-        getAccountDraftFromProfile,
-        getProfilesForAccount,
-        getAssignedProfileId,
-      });
-      setAccountId(nextState.accountId);
-      setStepIndex(nextState.stepIndex);
-      setSelectedProfileId(nextState.selectedProfileId);
-      setProfileLabel(nextState.profileLabel);
-      setDraft(nextState.draft);
-      setPillarPriorities(nextState.pillarPriorities);
-      setSelectedFormats(nextState.selectedFormats);
-    },
-    [
-      getAccountDraft,
-      getAccountDraftFromProfile,
-      getAssignedProfileId,
-      getProfilesForAccount,
-      getWizardSession,
-    ],
+    () => getPlanningPillarsForAccount("profile-wizard", "official"),
+    [],
   );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       persistWizardDraft(
         buildWizardSessionSnapshot({
-          accountId,
+          accountId: wizardSessionKey(selectedProfileId),
           profileId: selectedProfileId,
           profileLabel,
           stepIndex,
@@ -434,7 +333,6 @@ export function PlanningSetupWizard({
 
     return () => window.clearTimeout(timer);
   }, [
-    accountId,
     draft,
     persistWizardDraft,
     pillarPriorities,
@@ -514,11 +412,13 @@ export function PlanningSetupWizard({
     );
     onSave(mergedDraft, {
       profileLabel: profileLabel.trim() || `Perfil · ${mergedDraft.label}`,
-      profileId: selectedProfileId ?? getWizardDraftProfileId(accountId),
+      profileId:
+        selectedProfileId && !isWizardDraftProfileId(selectedProfileId)
+          ? selectedProfileId
+          : undefined,
     });
     onComplete();
   }, [
-    accountId,
     applyStepSideEffects,
     draft,
     onComplete,
@@ -546,11 +446,16 @@ export function PlanningSetupWizard({
     selectedFormats,
     pillarPriorities,
     relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
+    profileLabel,
   };
   const canAdvance = isStepComplete(step.id, stepValidation);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-5 py-6">
+    <div
+      className={
+        embedded ? "space-y-6" : "mx-auto max-w-3xl space-y-6 px-5 py-6"
+      }
+    >
       <StepProgress
         currentIndex={stepIndex}
         validation={stepValidation}
@@ -564,96 +469,15 @@ export function PlanningSetupWizard({
         </p>
       </div>
 
-      {step.id === "welcome" && (
-        <GuideCallout>
-          El calendario arma slots con cuenta, hora, rol, pilar y formato. Después
-          elegís inspiración, el Studio prepara el spec y Cursor desarrolla las
-          propuestas. Arrancamos por Mercantis oficial.
-        </GuideCallout>
-      )}
-
-      {step.id === "account" && (
-        <div className="space-y-5">
-          <div className="grid gap-3">
-            {planningAccounts.map((account) => (
-              <button
-                key={account.id}
-                type="button"
-                onClick={() => switchAccount(account.id)}
-                className={cn(
-                  "rounded-lg border px-4 py-3 text-left transition-colors",
-                  accountId === account.id
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:bg-muted/50",
-                )}
-              >
-                <p className="font-medium text-foreground">{account.label}</p>
-                <p className="mt-1 text-[13px] text-muted-foreground">
-                  {account.type === "official"
-                    ? "Cuenta piloto · TikTok + Instagram"
-                    : `Satélite · ${account.platforms.map((p) => p.toUpperCase()).join(" + ")}`}
-                </p>
-              </button>
-            ))}
-          </div>
-
-          {accountId === "mercantis-oficial" ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const base = planningAccounts.find((account) => account.id === accountId)!;
-                const next = profileSettingsToAccount(
-                  base,
-                  buildOfficialRecommendedSettings(),
-                );
-                setDraft(next);
-                setPillarPriorities(officialPillarPriorities());
-                setSelectedFormats(new Set(officialFormatIds()));
-                setProfileLabel("Perfil · Mercantis oficial");
-              }}
-            >
-              Usar preset oficial
-            </Button>
-          ) : null}
-
-          {compatibleProfiles.length > 0 ? (
-            <div>
-              <p className="mb-2 text-[13px] font-medium">
-                ¿Partís de un perfil que ya creaste?
-              </p>
-              <GuideCallout>
-                Opcional: elegí un perfil existente como base. Si no, seguí al
-                siguiente paso y armás uno nuevo desde cero.
-              </GuideCallout>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {compatibleProfiles.map((profile) => (
-                  <button
-                    key={profile.id}
-                    type="button"
-                    onClick={() => applyProfile(profile.id)}
-                    className={cn(
-                      "rounded-lg border px-3 py-2.5 text-left transition-colors",
-                      selectedProfileId === profile.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:bg-muted/50",
-                    )}
-                  >
-                    <p className="text-[13px] font-medium">{profile.label}</p>
-                    <p className="mt-0.5 text-[12px] text-muted-foreground">
-                      {formatProfileRoleSummary(profile.settings)}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <GuideCallout>
-              Todavía no tenés perfiles. En los pasos siguientes vas a crear el
-              primero para esta cuenta.
-            </GuideCallout>
-          )}
+      {step.id === "profile" && (
+        <div>
+          <p className="mb-2 text-[13px] font-medium">Nombre del perfil</p>
+          <Input
+            value={profileLabel}
+            onChange={(event) => setProfileLabel(event.target.value)}
+            placeholder="Ej. Institucional, Q4 alcance…"
+            className="max-w-md"
+          />
         </div>
       )}
 
@@ -740,8 +564,7 @@ export function PlanningSetupWizard({
             la semana, no cada día.
           </GuideCallout>
 
-          {accountId === "mercantis-oficial" ? (
-            <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
               {OFFICIAL_ROLE_MIX_PRESETS.map((preset) => (
                 <Button
                   key={preset.id}
@@ -753,8 +576,7 @@ export function PlanningSetupWizard({
                   {preset.label}
                 </Button>
               ))}
-            </div>
-          ) : null}
+          </div>
 
           <div className="space-y-3">
             {contentRoles.map((role) => {
@@ -876,25 +698,23 @@ export function PlanningSetupWizard({
             Elegí los formatos que querés rotar ({getSetupFormats().length}{" "}
             disponibles). Mejor pocos bien distribuidos que marcar todos.
           </GuideCallout>
-          {accountId === "mercantis-oficial" ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={() => setSelectedFormats(new Set(officialFormatIds()))}
-            >
-              Usar formatos recomendados
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => setSelectedFormats(new Set(officialFormatIds()))}
+          >
+            Usar formatos recomendados
+          </Button>
           <div className="grid gap-2 sm:grid-cols-2">
             {getSetupFormats().map((format) => {
               const active = selectedFormats.has(format.id);
               return (
-                <button
+                <FormatSetupOption
                   key={format.id}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() =>
+                  format={format}
+                  active={active}
+                  onToggle={() =>
                     setSelectedFormats((prev) => {
                       const next = new Set(prev);
                       if (next.has(format.id)) next.delete(format.id);
@@ -902,125 +722,62 @@ export function PlanningSetupWizard({
                       return next;
                     })
                   }
-                  className={cn(
-                    "flex items-start gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors",
-                    active
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:bg-muted/50",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors",
-                      active
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-foreground",
-                    )}
-                  >
-                    <FormatIcon formatId={format.id} className="size-4" />
-                  </div>
-                  <div className="min-w-0 flex-1 space-y-0.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="text-[13px] font-medium leading-snug">
-                        {format.label}
-                      </p>
-                      {active ? (
-                        <CheckIcon
-                          className="mt-0.5 size-4 shrink-0 text-primary"
-                          weight="bold"
-                        />
-                      ) : null}
-                    </div>
-                    <p className="text-[12px] leading-snug text-muted-foreground">
-                      {format.summary}
-                    </p>
-                  </div>
-                </button>
+                  onOpenGuide={() => setFormatGuideId(format.id)}
+                />
               );
             })}
           </div>
+          <FormatGuideSheet
+            formatId={formatGuideId}
+            open={formatGuideId !== null}
+            onOpenChange={(open) => {
+              if (!open) setFormatGuideId(null);
+            }}
+          />
           <p className="text-[13px] text-muted-foreground">
             {selectedFormats.size} formatos seleccionados
           </p>
-        </div>
-      )}
 
-      {step.id === "review" && (
-        <div className="space-y-4">
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Variedad</p>
-            <p className="mb-2 text-[12px] text-muted-foreground">
-              El motor no bloquea repetición: solo baja prioridad cuando se satura.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {VARIETY_PRESETS.map((preset) => (
+          <div className="border-t border-border pt-4">
+            <p className="mb-2 text-[13px] font-medium">Rotación de formatos</p>
+            <GuideCallout>
+              Los roles ya vienen del mix del paso Roles. Los pilares, de las
+              prioridades del paso Pilares. Acá definís cuánto puede repetirse
+              el mismo formato en la semana — el motor baja prioridad, no bloquea.
+            </GuideCallout>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {FORMAT_ROTATION_PRESETS.map((preset) => (
                 <Button
                   key={preset.id}
                   type="button"
                   size="sm"
                   variant={
-                    varietyPresetIdFor(draft.repetitionLimits) === preset.id
+                    formatRotationPresetIdFor(draft.repetitionLimits) ===
+                    preset.id
                       ? "default"
                       : "outline"
                   }
                   onClick={() =>
-                    updateDraft({ repetitionLimits: preset.limits })
+                    updateDraft({
+                      repetitionLimits: repetitionLimitsWithFormatRotation(
+                        preset.maxSameFormatInPeriod,
+                      ),
+                    })
                   }
                 >
                   {preset.label}
                 </Button>
               ))}
             </div>
-          </div>
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Nombre del perfil</p>
-            <Input
-              value={profileLabel}
-              onChange={(e) => setProfileLabel(e.target.value)}
-              placeholder="Ej. Oficial Q4 · más alcance"
-              className="max-w-md"
-            />
-            <p className="mt-1.5 text-[12px] text-muted-foreground">
-              Se guarda como perfil reutilizable y se asigna a {draft.label}.
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              {
+                FORMAT_ROTATION_PRESETS.find(
+                  (preset) =>
+                    preset.id === formatRotationPresetIdFor(draft.repetitionLimits),
+                )?.hint
+              }
             </p>
           </div>
-        <Card size="sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-[15px]">
-              <CheckCircleIcon className="size-4 text-primary" />
-              {draft.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-0 text-[13px] text-muted-foreground">
-            <p>
-              {draft.postsPerDay} piezas/día ·{" "}
-              {draft.activeDays.map((d) => WEEKDAY_BY_ISO[d]).join(", ")} ·{" "}
-              {draft.timeSlots.join(", ")}
-            </p>
-            <p>
-              Roles:{" "}
-              {Object.entries(draft.roleTargets)
-                .filter(([, v]) => v)
-                .map(([id, v]) => `${id} ${v}%`)
-                .join(" · ")}
-            </p>
-            <p>
-              Pilares activos:{" "}
-              {Object.entries(draft.pillarTargets)
-                .filter(([, v]) => v > 0)
-                .map(([id, v]) => `${getPlanningPillarLabel(id)} ${v}%`)
-                .join(" · ")}
-            </p>
-            <p>
-              Formatos:{" "}
-              {Object.keys(draft.formatTargets)
-                .slice(0, 6)
-                .map(getFormatLabel)
-                .join(", ")}
-              {Object.keys(draft.formatTargets).length > 6 ? "…" : ""}
-            </p>
-          </CardContent>
-        </Card>
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { CalendarBlankIcon } from "@phosphor-icons/react";
 
-import { Button } from "@/components/ui/button";
+import { PlanningToolbarIconButton } from "@/components/planning/PlanningToolbarButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,13 +32,9 @@ export function PlanningViewFilter({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="icon-sm"
-          aria-label={`Vista: ${activeLabel}`}
-        >
-          <CalendarBlankIcon className="size-4" />
-        </Button>
+        <PlanningToolbarIconButton aria-label={`Vista: ${activeLabel}`}>
+          <CalendarBlankIcon />
+        </PlanningToolbarIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-36">
         <DropdownMenuRadioGroup

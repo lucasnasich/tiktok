@@ -1,7 +1,10 @@
+import { SlotPublicationLed } from "@/components/planning/SlotPublicationLed";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
+import { useProposals } from "@/hooks/use-proposals";
+import { deriveSlotPublicationLed } from "@/lib/slot-workflow";
 import { cn } from "@/lib/utils";
 
 const ROLE_CHIP_CLASS: Record<string, string> = {
@@ -22,35 +25,42 @@ export function PlanningSlotChip({
   showAccount?: boolean;
   onOpen?: (slot: PlanningSlot) => void;
 }) {
+  const { proposals } = useProposals();
+  const publicationLed = deriveSlotPublicationLed(slot, proposals);
   const label = `${getContentRoleLabel(slot.roleId)} · ${getPlanningPillarLabel(slot.pillarId)}`;
   const className = cn(
-    "truncate rounded px-1.5 py-0.5 text-[10px] font-medium leading-tight",
+    "flex w-full min-w-0 items-center gap-1 px-2 py-1 text-left text-[10px] font-medium leading-tight",
     ROLE_CHIP_CLASS[slot.roleId],
-    onOpen && "cursor-pointer hover:ring-1 hover:ring-foreground/20",
+    onOpen && "cursor-pointer hover:bg-muted/40",
+  );
+  const content = (
+    <>
+      <SlotPublicationLed status={publicationLed} />
+      <span className="min-w-0 truncate">
+        {showAccount
+          ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
+          : null}
+        {getPlanningPillarLabel(slot.pillarId)}
+      </span>
+    </>
   );
 
   if (onOpen) {
     return (
       <button
         type="button"
-        className={cn(className, "w-full text-left")}
+        className={className}
         title={label}
         onClick={() => onOpen(slot)}
       >
-        {showAccount
-          ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
-          : null}
-        {getPlanningPillarLabel(slot.pillarId)}
+        {content}
       </button>
     );
   }
 
   return (
     <div className={className} title={label}>
-      {showAccount
-        ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
-        : null}
-      {getPlanningPillarLabel(slot.pillarId)}
+      {content}
     </div>
   );
 }

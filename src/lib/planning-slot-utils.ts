@@ -1,12 +1,67 @@
 import { PLANNING_ALL_ACCOUNTS_ID } from "@/content/planning-accounts";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  getSlotAccountIds,
+  slotMatchesAccount,
+  type PlanningSlot,
+} from "@/content/planned-slots";
+
+function sharedSlotFingerprint(slot: PlanningSlot): string {
+  return [
+    slot.generationId ?? "",
+    slot.date,
+    slot.time,
+    slot.roleId,
+    slot.pillarId,
+    slot.formatId,
+  ].join("|");
+}
+
+/** En vista "todas las cuentas", una pieza unificada no se lista dos veces. */
+export function dedupeSlotsForAllAccountsView(
+  slots: PlanningSlot[],
+): PlanningSlot[] {
+  const groups = new Map<string, PlanningSlot[]>();
+
+  for (const slot of slots) {
+    const key = sharedSlotFingerprint(slot);
+    const group = groups.get(key) ?? [];
+    group.push(slot);
+    groups.set(key, group);
+  }
+
+  const merged = [...groups.values()].map((group) => {
+    if (group.length === 1) return group[0];
+
+    const unified = group.find(
+      (slot) => slot.accountIds && slot.accountIds.length > 1,
+    );
+    const primary = unified ?? group[0];
+    const accountIds = [
+      ...new Set(group.flatMap((slot) => getSlotAccountIds(slot))),
+    ];
+    const platforms = [...new Set(group.flatMap((slot) => slot.platforms))];
+
+    return {
+      ...primary,
+      accountIds,
+      platforms,
+    };
+  });
+
+  return merged.sort(
+    (a, b) =>
+      a.date.localeCompare(b.date) ||
+      a.time.localeCompare(b.time) ||
+      a.accountId.localeCompare(b.accountId),
+  );
+}
 
 export function filterSlotsByAccount(
   slots: PlanningSlot[],
   accountId: string,
 ): PlanningSlot[] {
   if (accountId === PLANNING_ALL_ACCOUNTS_ID) return slots;
-  return slots.filter((slot) => slot.accountId === accountId);
+  return slots.filter((slot) => slotMatchesAccount(slot, accountId));
 }
 
 export function filterSlotsByDates(

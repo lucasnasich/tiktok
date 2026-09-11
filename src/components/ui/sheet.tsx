@@ -3,7 +3,9 @@ import { cn } from "@/lib/utils"
 import { Dialog as SheetPrimitive } from "radix-ui"
 
 import { Button } from "@/components/ui/button"
-import { XIcon } from "@phosphor-icons/react"
+import { ArrowLeftIcon, ArrowRightIcon, XIcon } from "@phosphor-icons/react"
+
+const SHEET_ICON_BUTTON_CLASS = "size-8 [&_svg]:size-3.5"
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -48,11 +50,22 @@ function SheetContent({
   children,
   side = "right",
   showCloseButton = true,
+  onPrev,
+  onNext,
+  prevDisabled,
+  nextDisabled,
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
   side?: "top" | "right" | "bottom" | "left"
   showCloseButton?: boolean
+  onPrev?: () => void
+  onNext?: () => void
+  prevDisabled?: boolean
+  nextDisabled?: boolean
 }) {
+  const showNav = Boolean(onPrev || onNext)
+  const showToolbar = showNav || showCloseButton
+
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -66,19 +79,50 @@ function SheetContent({
         {...props}
       >
         {children}
-        {showCloseButton && (
-          <SheetPrimitive.Close data-slot="sheet-close" asChild>
-            <Button
-              variant="ghost"
-              className="absolute top-3 right-3"
-              size="icon-sm"
-            >
-              <XIcon
-              />
-              <span className="sr-only">Close</span>
-            </Button>
-          </SheetPrimitive.Close>
-        )}
+        {showToolbar ? (
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            {onPrev ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={SHEET_ICON_BUTTON_CLASS}
+                disabled={prevDisabled}
+                aria-label="Slot anterior"
+                onClick={onPrev}
+              >
+                <ArrowLeftIcon />
+              </Button>
+            ) : null}
+            {onNext ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className={SHEET_ICON_BUTTON_CLASS}
+                disabled={nextDisabled}
+                aria-label="Slot siguiente"
+                onClick={onNext}
+              >
+                <ArrowRightIcon />
+              </Button>
+            ) : null}
+            {showCloseButton ? (
+              <SheetPrimitive.Close data-slot="sheet-close" asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className={SHEET_ICON_BUTTON_CLASS}
+                  aria-label="Cerrar"
+                >
+                  <XIcon />
+                  <span className="sr-only">Cerrar</span>
+                </Button>
+              </SheetPrimitive.Close>
+            ) : null}
+          </div>
+        ) : null}
       </SheetPrimitive.Content>
     </SheetPortal>
   )

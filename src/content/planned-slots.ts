@@ -1,5 +1,12 @@
+import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { ContentRoleId } from "@/content/content-roles";
-import type { PlanningPlatform } from "@/content/planning-accounts";
+import {
+  PLANNING_ALL_ACCOUNTS_ID,
+  type PlanningPlatform,
+} from "@/content/planning-accounts";
+import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
+
+const PLATFORM_ORDER: PlanningPlatform[] = ["tiktok", "instagram"];
 
 export type DistributionType = "organic" | "paid" | "boosted";
 
@@ -29,8 +36,48 @@ export type PlanningSlot = {
   distributionType?: DistributionType;
   /** true si lo creó el generador automático */
   generated?: boolean;
+  /** Lote de calendario al que pertenece (snapshot al generar). */
+  generationId?: string;
+  /** Restricción de producción heredada de la generación. */
+  cameraPresence?: CameraPresenceMode;
+  /** Pieza unificada: aplica a varias cuentas sin duplicar el slot. */
+  accountIds?: string[];
   notes?: string;
 };
+
+export function getSlotAccountIds(slot: PlanningSlot): string[] {
+  return slot.accountIds?.length ? slot.accountIds : [slot.accountId];
+}
+
+export function slotMatchesAccount(
+  slot: PlanningSlot,
+  accountId: string,
+): boolean {
+  return getSlotAccountIds(slot).includes(accountId);
+}
+
+export function sortSlotPlatforms(
+  platforms: PlanningPlatform[],
+): PlanningPlatform[] {
+  return [...new Set(platforms)].sort(
+    (a, b) => PLATFORM_ORDER.indexOf(a) - PLATFORM_ORDER.indexOf(b),
+  );
+}
+
+export function getSlotDisplayPlatforms(
+  slot: PlanningSlot,
+  accountFilter: string | undefined,
+  studioAccounts: PlanningStudioAccount[] = [],
+): PlanningPlatform[] {
+  if (!accountFilter || accountFilter === PLANNING_ALL_ACCOUNTS_ID) {
+    return sortSlotPlatforms(slot.platforms);
+  }
+
+  const account = studioAccounts.find((item) => item.id === accountFilter);
+  if (account) return [account.platform];
+
+  return sortSlotPlatforms(slot.platforms);
+}
 
 export const PLANNING_SLOT_STATUS_LABELS: Record<PlanningSlotStatus, string> = {
   pendiente: "Pendiente",
@@ -49,200 +96,8 @@ export const DISTRIBUTION_TYPE_LABELS: Record<DistributionType, string> = {
  * Slots manuales / en curso — el generador completa huecos sin tocarlos.
  * Una pieza = un slot con `platforms[]` (ej. TikTok + Instagram juntos).
  */
-export const plannedSlots: PlanningSlot[] = [
-  {
-    id: "slot-2026-09-08-oficial-1",
-    date: "2026-09-08",
-    time: "11:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "ventas-atencion",
-    formatId: "x-razones",
-    angleId: "dolor",
-    status: "publicado",
-    postId: "post-001",
-    distributionType: "organic",
-  },
-  {
-    id: "slot-2026-09-08-oficial-2",
-    date: "2026-09-08",
-    time: "13:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "valor",
-    pillarId: "operacion-gestion",
-    formatId: "nota-iphone",
-    angleId: "educativo",
-    status: "publicado",
-    postId: "post-002",
-  },
-  {
-    id: "slot-2026-09-08-oficial-3",
-    date: "2026-09-08",
-    time: "16:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "prueba",
-    pillarId: "producto-mercantis",
-    formatId: "testimonio-cliente",
-    angleId: "storytelling",
-    status: "publicado",
-    postId: "post-003",
-  },
-  {
-    id: "slot-2026-09-09-oficial-1",
-    date: "2026-09-09",
-    time: "11:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "emprendimiento",
-    formatId: "mito-vs-realidad",
-    angleId: "polemico",
-    status: "listo",
-    postId: "post-004",
-  },
-  {
-    id: "slot-2026-09-09-oficial-2",
-    date: "2026-09-09",
-    time: "13:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "valor",
-    pillarId: "inventario-stock",
-    formatId: "pizarra",
-    angleId: "educativo",
-    status: "en-produccion",
-  },
-  {
-    id: "slot-2026-09-09-oficial-3",
-    date: "2026-09-09",
-    time: "16:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "conversion",
-    pillarId: "producto-mercantis",
-    formatId: "advertencia",
-    angleId: "oportunidad",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-10-oficial-1",
-    date: "2026-09-10",
-    time: "11:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "ventas-atencion",
-    formatId: "captura-chat",
-    angleId: "dolor",
-    status: "en-produccion",
-  },
-  {
-    id: "slot-2026-09-10-latam-1",
-    date: "2026-09-10",
-    time: "11:00",
-    accountId: "mercantis-latam",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "mercado-tendencias",
-    formatId: "tier-list",
-    angleId: "comparacion",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-10-latam-2",
-    date: "2026-09-10",
-    time: "13:00",
-    accountId: "mercantis-latam",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "emprendimiento",
-    formatId: "green-screen",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-11-oficial-1",
-    date: "2026-09-11",
-    time: "11:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "alcance",
-    pillarId: "pagos-cobros",
-    formatId: "busqueda-google",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-11-oficial-2",
-    date: "2026-09-11",
-    time: "13:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "valor",
-    pillarId: "ventas-atencion",
-    formatId: "x-senales",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-11-oficial-3",
-    date: "2026-09-11",
-    time: "16:00",
-    accountId: "mercantis-oficial",
-    platforms: ["tiktok", "instagram"],
-    roleId: "prueba",
-    pillarId: "producto-mercantis",
-    formatId: "transformacion",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-08-study-1",
-    date: "2026-09-08",
-    time: "11:00",
-    accountId: "mercantis-study",
-    platforms: ["tiktok"],
-    roleId: "alcance",
-    pillarId: "estudiantes",
-    formatId: "x-razones",
-    angleId: "aspiracional",
-    status: "publicado",
-    postId: "post-study-01",
-  },
-  {
-    id: "slot-2026-09-09-study-1",
-    date: "2026-09-09",
-    time: "11:00",
-    accountId: "mercantis-study",
-    platforms: ["tiktok"],
-    roleId: "alcance",
-    pillarId: "estudiantes",
-    formatId: "nota-iphone",
-    status: "listo",
-  },
-  {
-    id: "slot-2026-09-09-study-2",
-    date: "2026-09-09",
-    time: "13:00",
-    accountId: "mercantis-study",
-    platforms: ["tiktok"],
-    roleId: "valor",
-    pillarId: "estudiantes",
-    formatId: "pizarra",
-    angleId: "educativo",
-    status: "pendiente",
-  },
-  {
-    id: "slot-2026-09-12-study-1",
-    date: "2026-09-12",
-    time: "11:00",
-    accountId: "mercantis-study",
-    platforms: ["tiktok"],
-    roleId: "alcance",
-    pillarId: "estudiantes",
-    formatId: "garabato",
-    status: "pendiente",
-  },
-];
+/** Slots manuales en curso. El generador completa huecos sin tocarlos. */
+export const plannedSlots: PlanningSlot[] = [];
 
 export function getSlotDistributionType(
   slot: PlanningSlot,

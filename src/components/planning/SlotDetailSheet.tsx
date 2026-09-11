@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftIcon, CopyIcon } from "@phosphor-icons/react";
 
 import { InspirationDetailBody, InspirationThumb } from "@/components/inspiration/InspirationDetailBody";
-import { StudioBriefRow, StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
+import { SlotBriefCards } from "@/components/planning/SlotBriefCards";
+import { SlotEditorialDescription } from "@/components/planning/SlotEditorialDescription";
+import { StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAngleLabel } from "@/content/angles";
@@ -13,9 +15,16 @@ import {
   INSPIRATION_ORIGIN_LABELS,
   INSPIRATION_TYPE_LABELS,
 } from "@/content/inspiration-taxonomy";
-import { getPlanningAccount, getPlanningAccountLabel } from "@/content/planning-accounts";
+import {
+  getPlanningAccount,
+  getSlotAccountLabel,
+} from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  getSlotAccountIds,
+  type PlanningSlot,
+} from "@/content/planned-slots";
+import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import { PROPOSAL_STATUS_LABELS } from "@/content/proposals";
 import { SLOT_SPEC_STATUS_LABELS } from "@/content/slot-specs";
 import { signalPresetsForPillar } from "@/content/slot-signals";
@@ -40,14 +49,10 @@ import {
 import { deriveSlotWorkflowStatus } from "@/lib/slot-workflow";
 import { cn } from "@/lib/utils";
 
-const PLATFORM_LABELS: Record<string, string> = {
-  tiktok: "TikTok",
-  instagram: "IG",
-};
-
 export function SlotDetailSheet({
   slot,
   slots,
+  studioAccounts = [],
   open,
   onOpenChange,
   onPrev,
@@ -57,6 +62,7 @@ export function SlotDetailSheet({
 }: {
   slot: PlanningSlot | undefined;
   slots: PlanningSlot[];
+  studioAccounts?: PlanningStudioAccount[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPrev?: () => void;
@@ -177,11 +183,12 @@ export function SlotDetailSheet({
         }
         onOpenChange(next);
       }}
-      title={pane === "inspiration" ? "Referencia" : "Detalle del slot"}
-      description={
+      title={
         pane === "inspiration"
-          ? "Volvé al slot sin perder el calendario."
-          : "El Studio prepara. Vos elegís. Cursor desarrolla."
+          ? inspecting?.title ?? "Referencia"
+          : slot
+            ? getPlanningPillarLabel(slot.pillarId)
+            : "Slot"
       }
       onPrev={pane === "slot" ? onPrev : undefined}
       onNext={pane === "slot" ? onNext : undefined}
@@ -234,36 +241,12 @@ export function SlotDetailSheet({
               ) : null}
             </div>
 
-            <StudioSection title="Brief">
-              <div className="grid grid-cols-2 gap-3">
-                <StudioBriefRow
-                  label="Cuenta"
-                  value={getPlanningAccountLabel(slot.accountId)}
-                />
-                <StudioBriefRow
-                  label="Fecha / hora"
-                  value={`${slot.date} · ${slot.time}`}
-                />
-                <StudioBriefRow
-                  label="Plataformas"
-                  value={slot.platforms
-                    .map((platform) => PLATFORM_LABELS[platform] ?? platform)
-                    .join(" + ")}
-                />
-                <StudioBriefRow
-                  label="Rol"
-                  value={getContentRoleLabel(slot.roleId)}
-                />
-                <StudioBriefRow
-                  label="Pilar"
-                  value={getPlanningPillarLabel(slot.pillarId)}
-                />
-                <StudioBriefRow
-                  label="Formato"
-                  value={getFormatLabel(slot.formatId)}
-                />
-              </div>
-            </StudioSection>
+            <SlotBriefCards slot={slot} studioAccounts={studioAccounts} />
+
+            <SlotEditorialDescription
+              spec={spec}
+              editorialDescription={record?.editorialDescription}
+            />
 
             <StudioSection
               title="Recomendadas para este slot"
@@ -394,7 +377,7 @@ export function SlotDetailSheet({
             >
               <div className="space-y-2 rounded-lg border border-border px-3 py-3 text-[13px] leading-relaxed">
                 <p>
-                  {getPlanningAccountLabel(spec.accountId)} · {spec.date} {spec.time}
+                  {getSlotAccountLabel(slot, studioAccounts)} · {spec.date} {spec.time}
                 </p>
                 <p>
                   {getContentRoleLabel(spec.roleId)} · {getPlanningPillarLabel(spec.pillarId)} ·{" "}
@@ -408,7 +391,10 @@ export function SlotDetailSheet({
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
-                {getPlanningAccount(slot.accountId)?.type === "official" ? (
+                {getSlotAccountIds(slot).some(
+                  (id) =>
+                    getPlanningAccount(id, studioAccounts)?.type === "official",
+                ) ? (
                   <p className="text-[12px] text-muted-foreground">
                     Cuenta piloto: Mercantis oficial.
                   </p>

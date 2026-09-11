@@ -1,0 +1,118 @@
+{
+  "meta": {
+    "updatedAt": "2026-09-11T16:40:00.000Z",
+    "source": "studio-app",
+    "note": "Sincronizado desde el Studio."
+  },
+  "planning": {
+    "version": 6,
+    "setupCompleted": true,
+    "lastAccountId": "account:1789142522146",
+    "profiles": [
+      {
+        "id": "profile:1789142837411",
+        "label": "Institucional",
+        "description": "",
+        "accountTypes": [
+          "official",
+          "satellite"
+        ],
+        "settings": {
+          "platforms": [
+            "tiktok",
+            "instagram"
+          ],
+          "postsPerDay": 3,
+          "activeDays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "timeSlots": [
+            "11:00",
+            "13:00",
+            "16:00",
+            "21:00"
+          ],
+          "roleTargets": {
+            "alcance": 35,
+            "valor": 25,
+            "prueba": 15,
+            "conversion": 5,
+            "marca": 10,
+            "comunidad": 10
+          },
+          "pillarTargets": {
+            "ventas-atencion": 5,
+            "inventario-stock": 15,
+            "pedidos-logistica": 5,
+            "pagos-cobros": 5,
+            "catalogo-ecommerce": 5,
+            "operacion-gestion": 5,
+            "marketing-crecimiento": 5,
+            "automatizacion-ia": 15,
+            "equipo-sucursales": 15,
+            "clientes-fidelizacion": 5,
+            "numeros-negocio": 5,
+            "producto-mercantis": 5,
+            "emprendimiento": 5,
+            "mercado-tendencias": 5
+          },
+          "formatTargets": {
+            "x-razones": 5,
+            "nosotros-vs-ellos": 5,
+            "diagrama-venn": 5,
+            "nota-iphone": 5,
+            "captura-chat": 5,
+            "pizarra": 5,
+            "testimonio-cliente": 5,
+            "lo-nuevo-vs-lo-viejo": 5,
+            "ultima-hora": 5,
+            "transformacion": 5,
+            "busqueda-google": 5,
+            "problema-vs-solucion": 5,
+            "titular-con-dato": 5,
+            "garabato": 5,
+            "no-seas-ese-que": 5,
+            "resenas": 5,
+            "tier-list": 5,
+            "green-screen": 5,
+            "x-senales": 5,
+            "mito-vs-realidad": 5,
+            "lo-que-podes-evitar": 5,
+            "advertencia": -5
+          },
+          "repetitionLimits": {
+            "maxConsecutiveSamePillar": 2,
+            "maxSameFormatInPeriod": 3,
+            "maxSameRoleInRow": 2
+          },
+          "defaultDistributionType": "organic"
+        }
+      }
+    ],
+    "accounts": [
+      {
+        "id": "account:1789142522146--tiktok",
+        "displayName": "Mercantis",
+        "type": "official",
+        "platform": "tiktok",
+        "handle": "mercantis.io"
+      },
+      {
+        "id": "account:1789142522146--instagram",
+        "displayName": "Mercantis",
+        "type": "official",
+        "platform": "instagram",
+        "handle": "mercantis.io"
+      }
+    ],
+    "accountProfileIds": {},
+    "calendarGenerations": [],
+    "wizardSessions": {}
+  }
+}

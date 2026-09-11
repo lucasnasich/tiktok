@@ -1,6 +1,7 @@
 import { UsersIcon } from "@phosphor-icons/react";
 
-import { Button } from "@/components/ui/button";
+import { PlatformIcon } from "@/components/icons/platform-icon";
+import { PlanningToolbarButton } from "@/components/planning/PlanningToolbarButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +9,27 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PLANNING_ALL_ACCOUNTS_ID } from "@/content/planning-accounts";
 import {
-  getPlanningAccountLabel,
-  type PlanningAccount,
-} from "@/content/planning-accounts";
-import { getPlanningAccountOptions } from "@/lib/planning";
+  studioAccountSocialLabel,
+  type PlanningStudioAccount,
+} from "@/content/planning-studio-accounts";
+
+function AccountFilterOption({
+  account,
+}: {
+  account: PlanningStudioAccount;
+}) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <PlatformIcon
+        platform={account.platform}
+        className="size-3.5 shrink-0 text-muted-foreground"
+      />
+      <span className="truncate">{studioAccountSocialLabel(account)}</span>
+    </span>
+  );
+}
 
 export function PlanningAccountFilter({
   value,
@@ -21,28 +38,43 @@ export function PlanningAccountFilter({
 }: {
   value: string;
   onChange: (accountId: string) => void;
-  accounts?: PlanningAccount[];
+  accounts: PlanningStudioAccount[];
 }) {
-  const options = getPlanningAccountOptions(accounts);
-  const activeLabel = getPlanningAccountLabel(value);
+  const activeAccount = accounts.find((account) => account.id === value);
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 gap-1.5 px-2.5 text-xs font-medium"
-        >
-          <UsersIcon className="size-3.5" />
-          <span className="whitespace-nowrap">{activeLabel}</span>
-        </Button>
+        <PlanningToolbarButton className="max-w-[220px]">
+          {value === PLANNING_ALL_ACCOUNTS_ID || !activeAccount ? (
+            <>
+              <UsersIcon className="size-3.5 shrink-0" />
+              <span className="truncate">Todas las cuentas</span>
+            </>
+          ) : (
+            <>
+              <PlatformIcon
+                platform={activeAccount.platform}
+                className="size-3.5 shrink-0"
+              />
+              <span className="truncate">
+                {studioAccountSocialLabel(activeAccount)}
+              </span>
+            </>
+          )}
+        </PlanningToolbarButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-52">
         <DropdownMenuRadioGroup value={value} onValueChange={onChange}>
-          {options.map((option) => (
-            <DropdownMenuRadioItem key={option.id} value={option.id}>
-              {option.label}
+          <DropdownMenuRadioItem value={PLANNING_ALL_ACCOUNTS_ID}>
+            <span className="flex items-center gap-2">
+              <UsersIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              Todas las cuentas
+            </span>
+          </DropdownMenuRadioItem>
+          {accounts.map((account) => (
+            <DropdownMenuRadioItem key={account.id} value={account.id}>
+              <AccountFilterOption account={account} />
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

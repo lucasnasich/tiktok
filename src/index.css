@@ -35,6 +35,11 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --calendar-today: oklch(0.52 0.11 25);
+  --calendar-today-muted: oklch(0.52 0.11 25 / 12%);
+  --slot-led-pending: oklch(0.55 0.22 27);
+  --slot-led-scheduled: oklch(0.52 0.16 250);
+  --slot-led-published: oklch(0.58 0.17 145);
   --input: oklch(0.922 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -83,6 +88,11 @@
   --color-chart-1: var(--chart-1);
   --color-input: var(--input);
   --color-destructive: var(--destructive);
+  --color-calendar-today: var(--calendar-today);
+  --color-calendar-today-muted: var(--calendar-today-muted);
+  --color-slot-led-pending: var(--slot-led-pending);
+  --color-slot-led-scheduled: var(--slot-led-scheduled);
+  --color-slot-led-published: var(--slot-led-published);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --radius-xl: calc(var(--radius) * 1.4);
@@ -138,6 +148,11 @@ a {
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --calendar-today: oklch(0.72 0.09 22);
+  --calendar-today-muted: oklch(0.72 0.09 22 / 16%);
+  --slot-led-pending: oklch(0.68 0.19 25);
+  --slot-led-scheduled: oklch(0.68 0.14 250);
+  --slot-led-published: oklch(0.72 0.15 145);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);

@@ -36,9 +36,10 @@ export function getWeekDates(weekStart: Date): string[] {
   );
 }
 
-export function getFourDayDates(focusDate: Date): string[] {
+export function getFourDayDates(focusDate: Date, todayIso?: string): string[] {
+  const anchor = todayIso ? parseIsoDate(todayIso) : focusDate;
   return Array.from({ length: 4 }, (_, index) =>
-    toIsoDate(addDays(focusDate, index)),
+    toIsoDate(addDays(anchor, index)),
   );
 }
 
@@ -68,12 +69,13 @@ export function getMonthCalendarDays(focusDate: Date): MonthCalendarDay[] {
 export function getDatesForView(
   view: PlanningViewId,
   focusDate: Date,
+  todayIso?: string,
 ): string[] {
   switch (view) {
     case PLANNING_VIEW.day.id:
-      return [toIsoDate(focusDate)];
+      return todayIso ? [todayIso] : [toIsoDate(focusDate)];
     case PLANNING_VIEW.fourDay.id:
-      return getFourDayDates(focusDate);
+      return getFourDayDates(focusDate, todayIso);
     case PLANNING_VIEW.week.id:
       return getWeekDates(startOfWeek(focusDate));
     case PLANNING_VIEW.month.id:

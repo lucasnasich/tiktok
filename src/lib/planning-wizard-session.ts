@@ -29,6 +29,13 @@ export function isWizardDraftProfileId(profileId: string): boolean {
   return profileId.startsWith("draft:");
 }
 
+export const WIZARD_DRAFT_SESSION_KEY = "wizard:draft";
+
+export function wizardSessionKey(profileId?: string): string {
+  if (profileId && !isWizardDraftProfileId(profileId)) return profileId;
+  return WIZARD_DRAFT_SESSION_KEY;
+}
+
 export function buildMergedWizardAccount(
   draft: PlanningAccount,
   pillarPriorities: Record<string, PillarPriority>,
