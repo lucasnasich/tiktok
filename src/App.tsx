@@ -17,7 +17,6 @@ import { PlanningConfigScreen } from "@/screens/PlanningConfigScreen";
 import { ProposalsScreen } from "@/screens/ProposalsScreen";
 import { ProposalsProvider } from "@/hooks/use-proposals";
 import { SlotSpecsProvider } from "@/hooks/use-slot-specs";
-import { InspirationClassificationNotesProvider } from "@/hooks/use-inspiration-classification-notes";
 import { InspirationOverridesProvider } from "@/hooks/use-inspiration-overrides";
 
 function LegacyIdeasRedirect() {
@@ -38,7 +37,6 @@ export function App() {
         <ProposalsProvider>
         <SlotSpecsProvider>
         <InspirationOverridesProvider>
-        <InspirationClassificationNotesProvider>
         <SidebarProvider
           className="h-svh overflow-hidden"
           style={
@@ -91,7 +89,6 @@ export function App() {
             </div>
           </SidebarInset>
         </SidebarProvider>
-        </InspirationClassificationNotesProvider>
         </InspirationOverridesProvider>
         </SlotSpecsProvider>
         </ProposalsProvider>

@@ -1,18 +1,10 @@
 import { useCallback, useMemo, type ReactNode, createContext, createElement, useContext } from "react";
 
-import { inspirationClassificationRecords } from "@/content/inspiration-classification-records";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import {
   parseInspirationOverrides,
   type InspirationMetaOverride,
 } from "@/lib/inspiration-overrides-store";
-
-const RECORD_OVERRIDES = Object.fromEntries(
-  inspirationClassificationRecords.map((record) => [
-    record.key,
-    record.override,
-  ]),
-) as Record<string, InspirationMetaOverride>;
 
 type InspirationOverridesApi = {
   overrides: Record<string, InspirationMetaOverride>;
@@ -32,14 +24,9 @@ export function InspirationOverridesProvider({
     Record<string, InspirationMetaOverride>
   >("inspiration-overrides", {}, parseInspirationOverrides);
 
-  const mergedOverrides = useMemo(
-    () => ({ ...RECORD_OVERRIDES, ...overrides }),
-    [overrides],
-  );
-
   const getOverride = useCallback(
-    (key: string) => mergedOverrides[key],
-    [mergedOverrides],
+    (key: string) => overrides[key],
+    [overrides],
   );
 
   const patchOverride = useCallback(
@@ -53,12 +40,8 @@ export function InspirationOverridesProvider({
   );
 
   const value = useMemo(
-    () => ({
-      overrides: mergedOverrides,
-      getOverride,
-      patchOverride,
-    }),
-    [getOverride, mergedOverrides, patchOverride],
+    () => ({ overrides, getOverride, patchOverride }),
+    [getOverride, overrides, patchOverride],
   );
 
   return createElement(InspirationOverridesContext.Provider, { value }, children);

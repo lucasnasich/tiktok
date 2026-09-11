@@ -7,17 +7,14 @@ import {
 import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
 import { resolveInspirationPlatform } from "@/content/inspiration-browse-filters";
 import type { InspirationFeedItem } from "@/content/inspiration-feed";
-import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 
 export function AllInspirationsPanel({
   columns,
   items,
-  overrides = {},
   onOpenReference,
 }: {
   columns: ColumnCount;
   items: InspirationFeedItem[];
-  overrides?: Record<string, InspirationMetaOverride>;
   onOpenReference?: (key: string) => void;
 }) {
   if (items.length === 0) {
@@ -36,8 +33,6 @@ export function AllInspirationsPanel({
           ? () => onOpenReference(item.key)
           : undefined;
 
-        const classificationOverride = overrides[item.key];
-
         if (item.kind === "organico-comment") {
           return (
             <InspirationCommentCard
@@ -49,7 +44,6 @@ export function AllInspirationsPanel({
                 postUrl: item.url ?? "",
               }}
               onOpen={open}
-              classificationOverride={classificationOverride}
             />
           );
         }
@@ -62,7 +56,6 @@ export function AllInspirationsPanel({
               text={item.quote ?? item.title}
               subtitle={item.note}
               onOpen={open}
-              classificationOverride={classificationOverride}
             />
           );
         }
@@ -81,7 +74,6 @@ export function AllInspirationsPanel({
               note: item.note,
             }}
             onOpen={open}
-            classificationOverride={classificationOverride}
           />
         );
       })}

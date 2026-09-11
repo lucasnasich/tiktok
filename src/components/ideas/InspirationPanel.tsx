@@ -6,13 +6,11 @@ import type {
   InspirationPlatformFilterId,
 } from "@/content/inspiration-browse-filters";
 import { filterInspirationFeed } from "@/content/inspiration-browse-filters";
-import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 
 type InspirationPanelProps = {
   platformFilter: InspirationPlatformFilterId;
   mediaTypeFilter: InspirationMediaTypeFilterId;
   columns: ColumnCount;
-  overrides?: Record<string, InspirationMetaOverride>;
   onOpenReference?: (key: string) => void;
 };
 
@@ -20,7 +18,6 @@ export function InspirationPanel({
   platformFilter,
   mediaTypeFilter,
   columns,
-  overrides,
   onOpenReference,
 }: InspirationPanelProps) {
   const feedItems = filterInspirationFeed(
@@ -33,7 +30,6 @@ export function InspirationPanel({
     <AllInspirationsPanel
       columns={columns}
       items={feedItems}
-      overrides={overrides}
       onOpenReference={onOpenReference}
     />
   );

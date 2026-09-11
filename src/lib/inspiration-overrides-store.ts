@@ -15,9 +15,6 @@ export type InspirationMetaOverride = {
   creativeMechanism?: string;
   sourceAccount?: string;
   notes?: string[];
-  signalTagIds?: string[];
-  creativeMechanismIds?: string[];
-  classifiedAt?: string;
 };
 
 const ORIGINS: InspirationOrigin[] = [
@@ -77,10 +74,6 @@ export function parseInspirationOverride(
     sourceAccount:
       typeof value.sourceAccount === "string" ? value.sourceAccount : undefined,
     notes: stringArray(value.notes),
-    signalTagIds: stringArray(value.signalTagIds),
-    creativeMechanismIds: stringArray(value.creativeMechanismIds),
-    classifiedAt:
-      typeof value.classifiedAt === "string" ? value.classifiedAt : undefined,
   };
 
   return Object.values(override).some((item) => item !== undefined)

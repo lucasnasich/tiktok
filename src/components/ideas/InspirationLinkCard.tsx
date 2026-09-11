@@ -6,32 +6,12 @@ import {
   TextPostPreview,
 } from "@/components/ideas/InspirationLinkPreview";
 import { InspirationMediaBadges } from "@/components/ideas/InspirationMediaBadges";
-import { InspirationClassificationLed } from "@/components/inspiration/InspirationClassificationLed";
 import { Card } from "@/components/ui/card";
 import type {
   InspirationCommentItem,
   InspirationLinkItem,
 } from "@/content/inspiration-links";
-import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 import { cn } from "@/lib/utils";
-
-function InspirationCardBadgeRow({
-  platform,
-  classificationOverride,
-}: {
-  platform?: string;
-  classificationOverride?: InspirationMetaOverride;
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {platform ? <InspirationMediaBadges platform={platform} /> : null}
-      <InspirationClassificationLed
-        override={classificationOverride}
-        className="ml-auto shrink-0"
-      />
-    </div>
-  );
-}
 
 const inspirationCardClass = (interactive: boolean) =>
   cn(
@@ -62,7 +42,6 @@ export function InspirationTextCard({
   subtitle,
   footer,
   onOpen,
-  classificationOverride,
 }: {
   platform: string;
   text: string;
@@ -70,7 +49,6 @@ export function InspirationTextCard({
   subtitle?: string;
   footer?: ReactNode;
   onOpen?: () => void;
-  classificationOverride?: InspirationMetaOverride;
 }) {
   return (
     <Card size="sm" className={inspirationCardClass(Boolean(onOpen))} {...inspirationCardHandlers(onOpen)}>
@@ -78,10 +56,7 @@ export function InspirationTextCard({
         <TextPostPreview postText={text} author={author} platform={platform} />
       </div>
       <div className="px-3 py-2.5">
-        <InspirationCardBadgeRow
-          platform={platform || undefined}
-          classificationOverride={classificationOverride}
-        />
+        {platform ? <InspirationMediaBadges platform={platform} /> : null}
         {subtitle ? (
           <p className="line-clamp-2 pt-1.5 text-[14px] font-medium leading-snug tracking-tight text-foreground">
             {subtitle}
@@ -96,11 +71,9 @@ export function InspirationTextCard({
 export function InspirationLinkCard({
   item,
   onOpen,
-  classificationOverride,
 }: {
   item: InspirationLinkItem;
   onOpen?: () => void;
-  classificationOverride?: InspirationMetaOverride;
 }) {
   return (
     <Card
@@ -120,10 +93,7 @@ export function InspirationLinkCard({
         />
       </div>
       <div className="px-3 py-2.5">
-        <InspirationCardBadgeRow
-          platform={item.platform}
-          classificationOverride={classificationOverride}
-        />
+        <InspirationMediaBadges platform={item.platform} />
         <p className="line-clamp-2 pt-1.5 text-[14px] font-medium leading-snug tracking-tight text-foreground">
           {item.title}
         </p>
@@ -135,18 +105,15 @@ export function InspirationLinkCard({
 export function InspirationCommentCard({
   item,
   onOpen,
-  classificationOverride,
 }: {
   item: InspirationCommentItem;
   onOpen?: () => void;
-  classificationOverride?: InspirationMetaOverride;
 }) {
   return (
     <InspirationTextCard
       platform={item.platform}
       text={item.text}
       onOpen={onOpen}
-      classificationOverride={classificationOverride}
       footer={
         <a
           href={item.postUrl}

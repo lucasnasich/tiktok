@@ -1,17 +1,12 @@
-import { useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { TagIcon } from "@phosphor-icons/react";
 
 import { Playground } from "@/components/AppShell";
 import { ColumnSelector } from "@/components/ColumnSelector";
 import { InspirationBrowseFilters } from "@/components/ideas/InspirationBrowseFilters";
 import { InspirationPanel } from "@/components/ideas/InspirationPanel";
-import { InspirationClassificationSheet } from "@/components/inspiration/InspirationClassificationSheet";
 import { InspirationDetailSheet } from "@/components/inspiration/InspirationDetailSheet";
-import { PlanningToolbarButton } from "@/components/planning/PlanningToolbarButton";
-import { buildInspirationFeed, getInspirationByKey } from "@/content/inspiration-feed";
+import { getInspirationByKey } from "@/content/inspiration-feed";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
-import { countUnclassifiedInspirations } from "@/lib/inspiration-classification";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
 import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
@@ -31,13 +26,7 @@ export function InspirationScreen() {
   const { allCalendarSlots: horizonSlotsFromGenerations } = usePlanningConfig();
   const { getRecord, upsertRecord } = useSlotSpecs();
   const { overrides } = useInspirationOverrides();
-  const [classifyOpen, setClassifyOpen] = useState(false);
   const [referenceKey, setReferenceKey] = useSheetSearchParam("reference");
-  const allFeedItems = useMemo(() => buildInspirationFeed(), []);
-  const unclassifiedCount = useMemo(
-    () => countUnclassifiedInspirations(allFeedItems, overrides),
-    [allFeedItems, overrides],
-  );
   const [platformFilter, setPlatformFilter] = usePersistedState(
     STUDIO_PREFERENCE_KEYS.inspirationPlatform,
     STUDIO_PREFERENCE_DEFAULTS.inspirationPlatform,
@@ -79,12 +68,6 @@ export function InspirationScreen() {
       fullWidth
       actions={
         <div className="flex items-center gap-2">
-          {unclassifiedCount > 0 ? (
-            <PlanningToolbarButton onClick={() => setClassifyOpen(true)}>
-              <TagIcon />
-              Clasificar con Cursor ({unclassifiedCount})
-            </PlanningToolbarButton>
-          ) : null}
           <ColumnSelector value={columns} onChange={setColumns} />
           <InspirationBrowseFilters
             platform={platformFilter}
@@ -105,14 +88,7 @@ export function InspirationScreen() {
         platformFilter={platformFilter}
         mediaTypeFilter={mediaTypeFilter}
         columns={columns}
-        overrides={overrides}
         onOpenReference={setReferenceKey}
-      />
-      <InspirationClassificationSheet
-        open={classifyOpen}
-        onOpenChange={setClassifyOpen}
-        items={allFeedItems}
-        overrides={overrides}
       />
       <InspirationDetailSheet
         referenceKey={referenceKey}
