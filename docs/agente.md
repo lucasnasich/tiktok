@@ -22,13 +22,14 @@ Cuando el usuario dice “desarrollá este slot” o “desarrollá propuestas p
 
 1. Leer el SlotSpec (lo copia del sheet o te lo pega).
 2. Consultar el Mercantis Brain citado en `brainRefs`.
-3. Abrir la inspiración si hay `inspirationRef`.
+3. Abrir las referencias si hay `structuralInspirationRef`, `visualInspirationRef` o el legacy `inspirationRef`.
 4. Escribir 2–3 `Proposal` en `src/content/proposals.ts` con:
    - `planSlotId`
    - `status: "candidate"`
    - `angleId`, `concept`, `hook`
    - `narrative`, `contentBlocks` (copy por slide/escena), `cta`, `caption`, `visualDirection`
-   - `sourceRef` y `brainRefs` del spec
+   - `structuralSourceRef` y `visualSourceRef` del spec (y `sourceRef` legacy)
+   - `brainRefs` del spec
 5. No cambiar rol, pilar, formato, cuenta ni plataformas.
 6. No inventar claims.
 

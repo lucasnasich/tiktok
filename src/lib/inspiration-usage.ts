@@ -50,7 +50,13 @@ export function usageForInspiration(
   const timestamps: string[] = [];
 
   for (const spec of specs) {
-    if (spec.inspirationRef !== inspirationKey) continue;
+    if (
+      spec.inspirationRef !== inspirationKey &&
+      spec.structuralInspirationRef !== inspirationKey &&
+      spec.visualInspirationRef !== inspirationKey
+    ) {
+      continue;
+    }
     slotIds.add(spec.slotId);
     const slot = slotById.get(spec.slotId);
     if (slot) accountIds.add(slot.accountId);
@@ -58,7 +64,13 @@ export function usageForInspiration(
   }
 
   for (const proposal of proposals) {
-    if (proposal.sourceRef !== inspirationKey) continue;
+    if (
+      proposal.sourceRef !== inspirationKey &&
+      proposal.structuralSourceRef !== inspirationKey &&
+      proposal.visualSourceRef !== inspirationKey
+    ) {
+      continue;
+    }
     proposalIds.push(proposal.id);
     slotIds.add(proposal.planSlotId);
     if (proposal.angleId) angleIds.add(proposal.angleId);

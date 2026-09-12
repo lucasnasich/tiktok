@@ -62,6 +62,10 @@ function fetchInstagram(url, outDir, force) {
   return JSON.parse(result.stdout.trim());
 }
 
+function escapeTsString(value) {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
 function appendInspirationEntry({ id, url, title, isReel }) {
   const source = fs.readFileSync(inspirationsPath, "utf8");
   if (source.includes(`id: "${id}"`)) {
@@ -78,7 +82,7 @@ function appendInspirationEntry({ id, url, title, isReel }) {
     id: "${id}",
     platform: "Instagram",
     url: "${url}",
-    title: "${title || `${label} — referencia creativa`}",
+    title: "${escapeTsString(title || `${label} — referencia creativa`)}",
     media: inspirationMedia["${id}"],
     note: "${note}",
   },`;
@@ -123,8 +127,12 @@ spawnSync("node", [path.join(root, "scripts/regenerate-inspiration-media.mjs")],
 appendInspirationEntry({
   id: fetched.id,
   url: fetched.url,
-  title,
+  title: title || fetched.title || "",
   isReel,
+});
+
+spawnSync("node", [path.join(root, "scripts/analyze-inspiration.mjs"), "--id", fetched.id], {
+  stdio: "inherit",
 });
 
 console.log("\nListo. Abrí Inspiración → Creativo para ver el preview.");

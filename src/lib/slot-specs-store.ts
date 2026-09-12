@@ -40,6 +40,22 @@ export function parseSlotSpecRecord(raw: unknown): SlotSpecRecord | undefined {
       typeof value.inspirationSearchBrief === "string"
         ? value.inspirationSearchBrief
         : undefined,
+    structuralSearchBrief:
+      typeof value.structuralSearchBrief === "string"
+        ? value.structuralSearchBrief
+        : undefined,
+    visualSearchBrief:
+      typeof value.visualSearchBrief === "string"
+        ? value.visualSearchBrief
+        : undefined,
+    structuralInspirationRef:
+      typeof value.structuralInspirationRef === "string"
+        ? value.structuralInspirationRef
+        : undefined,
+    visualInspirationRef:
+      typeof value.visualInspirationRef === "string"
+        ? value.visualInspirationRef
+        : undefined,
     status,
     preparedAt: typeof value.preparedAt === "string" ? value.preparedAt : undefined,
   };

@@ -40,18 +40,43 @@ export function listLocalManifest(dir) {
     .filter((name) => !name.startsWith(".") && name !== "_tmp")
     .sort((a, b) => a.localeCompare(b, "en"));
 
+  const coverPath = names.includes("cover.jpg")
+    ? path.join(dir, "cover.jpg")
+    : null;
+
   if (names.includes("video.mp4")) {
     const files = [{ kind: "video", file: path.join(dir, "video.mp4") }];
     if (names.includes("poster.jpg")) {
       files[0].poster = path.join(dir, "poster.jpg");
+    } else if (coverPath) {
+      files[0].poster = coverPath;
     }
     return files;
   }
 
   return names
-    .filter((name) => imagePattern.test(name) || /\.(mp4|webm|mov)$/i.test(name))
-    .map((name) => ({
-      kind: /\.(mp4|webm|mov)$/i.test(name) ? "video" : "image",
-      file: path.join(dir, name),
-    }));
+    .filter(
+      (name) =>
+        (imagePattern.test(name) || /\.(mp4|webm|mov)$/i.test(name)) &&
+        name !== "cover.jpg" &&
+        !/-poster\.(jpg|jpeg|png|webp)$/i.test(name),
+    )
+    .sort((a, b) => a.localeCompare(b, "en"))
+    .map((name) => {
+      const isVideo = /\.(mp4|webm|mov)$/i.test(name);
+      const entry = {
+        kind: isVideo ? "video" : "image",
+        file: path.join(dir, name),
+      };
+      if (isVideo) {
+        const stem = path.basename(name, path.extname(name));
+        const posterName = `${stem}-poster.jpg`;
+        if (names.includes(posterName)) {
+          entry.poster = path.join(dir, posterName);
+        } else if (coverPath) {
+          entry.poster = coverPath;
+        }
+      }
+      return entry;
+    });
 }

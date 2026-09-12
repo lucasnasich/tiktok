@@ -10,6 +10,9 @@ dist/
 assets/inspiracion/media/**
 !assets/inspiracion/media/.gitkeep
 
+# Índice local de matching (embeddings). No va al repo.
+assets/inspiracion/inspiration-index.json
+
 # Assets de competidores (local / pendrive)
 assets/competidores/logos/**
 !assets/competidores/logos/.gitkeep

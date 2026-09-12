@@ -14,6 +14,7 @@ export type OrganicPostInspiration = {
   postText?: string;
   author?: string;
   note?: string;
+  formatIds?: string[];
 };
 
 export type OrganicCommentInspiration = {

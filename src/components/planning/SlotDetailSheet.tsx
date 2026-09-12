@@ -5,6 +5,7 @@ import { InspirationDetailBody } from "@/components/inspiration/InspirationDetai
 import { SlotBriefCards } from "@/components/planning/SlotBriefCards";
 import { SlotEditorialDescription } from "@/components/planning/SlotEditorialDescription";
 import { SlotInspirationBrowse } from "@/components/planning/SlotInspirationBrowse";
+import { SlotInspirationRecommendations } from "@/components/planning/SlotInspirationRecommendations";
 import { StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { PROPOSAL_STATUS_LABELS } from "@/content/proposals";
 import { SLOT_SPEC_STATUS_LABELS } from "@/content/slot-specs";
 import { signalPresetsForPillar } from "@/content/slot-signals";
 import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
+import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
@@ -36,7 +38,9 @@ import {
   selectedProposalForSlot,
 } from "@/lib/proposals-store";
 import {
+  applyInspirationSelection,
   assembleSlotSpec,
+  canPrepareSlotSpec,
   cursorPromptForSpec,
   formatSlotSpecMarkdown,
 } from "@/lib/slot-spec";
@@ -70,12 +74,14 @@ export function SlotDetailSheet({
   const [pane, setPane] = useState<"slot" | "inspiration">("slot");
   const [inspectingKey, setInspectingKey] = useState<string | null>(null);
   const [showManual, setShowManual] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [copied, setCopied] = useState<"spec" | "prompt" | null>(null);
 
   useEffect(() => {
     setPane("slot");
     setInspectingKey(null);
     setShowManual(false);
+    setShowLibrary(false);
     setCopied(null);
   }, [slot?.id]);
 
@@ -92,26 +98,25 @@ export function SlotDetailSheet({
   const spec = slot
     ? assembleSlotSpec(slot, record, proposals, specRecords, slots, overrides)
     : undefined;
-  const selectedInspiration = record?.inspirationRef
-    ? getInspirationByKey(record.inspirationRef, overrides)
-    : undefined;
+  const selectedStructural = record?.structuralInspirationRef
+    ? getInspirationByKey(record.structuralInspirationRef, overrides)
+    : !record?.visualInspirationRef && record?.inspirationRef
+      ? getInspirationByKey(record.inspirationRef, overrides)
+      : undefined;
+  const selectedVisual = record?.visualInspirationRef
+    ? getInspirationByKey(record.visualInspirationRef, overrides)
+    : !record?.structuralInspirationRef && record?.inspirationRef
+      ? getInspirationByKey(record.inspirationRef, overrides)
+      : undefined;
+  const selectedInspiration = selectedStructural || selectedVisual;
   const inspecting = inspectingKey
     ? getInspirationByKey(inspectingKey, overrides)
     : undefined;
 
-  function useInspiration(key: string) {
+  function useInspiration(key: string, role: InspirationUseRole = "both") {
     if (!slot) return;
     const item = getInspirationByKey(key, overrides);
-    upsertRecord({
-      slotId: slot.id,
-      directionKind: "inspiration",
-      inspirationRef: key,
-      signal: item?.signal,
-      creativeMechanism: item?.creativeMechanism,
-      editorialDescription: record?.editorialDescription,
-      inspirationSearchBrief: record?.inspirationSearchBrief,
-      status: record?.status ?? "draft",
-    });
+    upsertRecord(applyInspirationSelection(record, slot.id, key, role, item));
     setPane("slot");
     setInspectingKey(null);
     setShowManual(false);
@@ -125,6 +130,8 @@ export function SlotDetailSheet({
       signal,
       editorialDescription: record?.editorialDescription,
       inspirationSearchBrief: record?.inspirationSearchBrief,
+      structuralSearchBrief: record?.structuralSearchBrief,
+      visualSearchBrief: record?.visualSearchBrief,
       status: record?.status ?? "draft",
     });
     setShowManual(false);
@@ -151,11 +158,7 @@ export function SlotDetailSheet({
     });
   }
 
-  const canPrepare =
-    Boolean(record) &&
-    (record?.directionKind === "inspiration"
-      ? Boolean(record.inspirationRef)
-      : Boolean(record?.signal?.trim()));
+  const canPrepare = canPrepareSlotSpec(record);
 
   return (
     <StudioSheet
@@ -205,7 +208,7 @@ export function SlotDetailSheet({
               )}
               slots={slots}
               proposals={proposals}
-              onUse={() => useInspiration(inspecting.key)}
+              onUseRole={(role) => useInspiration(inspecting.key, role)}
             />
           </div>
         ) : (
@@ -228,20 +231,50 @@ export function SlotDetailSheet({
               spec={spec}
               editorialDescription={record?.editorialDescription}
               inspirationSearchBrief={record?.inspirationSearchBrief}
+              structuralSearchBrief={record?.structuralSearchBrief}
+              visualSearchBrief={record?.visualSearchBrief}
             />
 
             <StudioSection
               title="Inspiración"
-              description="Toda la biblioteca. Elegí la referencia que mejor encaje con lo que buscás."
+              description="Recomendaciones automáticas según estructura y visual. La biblioteca completa sigue disponible."
             >
-              <SlotInspirationBrowse
-                slotId={slot.id}
+              <SlotInspirationRecommendations
+                slot={slot}
+                record={record}
+                proposals={proposals}
+                specs={specRecords}
+                slots={slots}
+                overrides={overrides}
                 onOpenReference={(key) => {
                   setInspectingKey(key);
                   setPane("inspiration");
                 }}
+                onSelect={(key, role) => useInspiration(key, role)}
               />
               <div className="pt-3">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-0 text-xs"
+                  onClick={() => setShowLibrary((value) => !value)}
+                >
+                  {showLibrary ? "Ocultar biblioteca completa" : "Explorar biblioteca completa"}
+                </Button>
+                {showLibrary ? (
+                  <div className="mt-3">
+                    <SlotInspirationBrowse
+                      slotId={slot.id}
+                      onOpenReference={(key) => {
+                        setInspectingKey(key);
+                        setPane("inspiration");
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </div>
+              <div className="pt-2">
                 <Button
                   type="button"
                   size="sm"
@@ -276,16 +309,43 @@ export function SlotDetailSheet({
 
             <StudioSection title="Dirección seleccionada">
               {selectedInspiration || record?.directionKind === "manual" ? (
-                <div className="rounded-lg border border-border px-3 py-3">
-                  <p className="text-[13px] font-medium">
-                    {selectedInspiration?.title ?? "Dirección personalizada"}
-                  </p>
-                  <p className="mt-1 text-[12px] text-muted-foreground">
-                    {spec.signal ?? "Sin señal todavía"}
-                  </p>
-                  {spec.creativeMechanism ? (
-                    <p className="mt-1 text-[12px] text-muted-foreground">
-                      Mecanismo: {spec.creativeMechanism}
+                <div className="space-y-2">
+                  {record?.directionKind === "manual" ? (
+                    <div className="rounded-lg border border-border px-3 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Dirección personalizada
+                      </p>
+                      <p className="mt-1 text-[13px] font-medium">
+                        {spec.signal ?? "Sin señal todavía"}
+                      </p>
+                    </div>
+                  ) : null}
+                  {selectedStructural ? (
+                    <div className="rounded-lg border border-border px-3 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Estructura
+                      </p>
+                      <p className="mt-1 text-[13px] font-medium">
+                        {selectedStructural.title}
+                      </p>
+                      {spec.structuralInspiration?.creativeMechanism || spec.creativeMechanism ? (
+                        <p className="mt-1 text-[12px] text-muted-foreground">
+                          Mecanismo:{" "}
+                          {spec.structuralInspiration?.creativeMechanism ?? spec.creativeMechanism}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {selectedVisual && selectedVisual.key !== selectedStructural?.key ? (
+                    <div className="rounded-lg border border-border px-3 py-3">
+                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Visual
+                      </p>
+                      <p className="mt-1 text-[13px] font-medium">{selectedVisual.title}</p>
+                    </div>
+                  ) : selectedVisual && selectedVisual.key === selectedStructural?.key ? (
+                    <p className="text-[12px] text-muted-foreground">
+                      La misma referencia cubre estructura y visual.
                     </p>
                   ) : null}
                 </div>

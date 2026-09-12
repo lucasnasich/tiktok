@@ -90,6 +90,12 @@ function normalizeProposal(value: unknown): Proposal | undefined {
     planSlotId: String(raw.planSlotId),
     signalSourceType,
     sourceRef: typeof raw.sourceRef === "string" ? raw.sourceRef : undefined,
+    structuralSourceRef:
+      typeof raw.structuralSourceRef === "string"
+        ? raw.structuralSourceRef
+        : undefined,
+    visualSourceRef:
+      typeof raw.visualSourceRef === "string" ? raw.visualSourceRef : undefined,
     signal: typeof raw.signal === "string" ? raw.signal : undefined,
     angleId,
     concept: String(raw.concept),

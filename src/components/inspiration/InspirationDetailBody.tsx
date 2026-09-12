@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getAngleLabel } from "@/content/angles";
 import { resolveInspirationPlatform } from "@/content/inspiration-browse-filters";
 import type { InspirationFeedItem } from "@/content/inspiration-feed";
+import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
@@ -22,12 +23,14 @@ export function InspirationDetailBody({
   slots,
   proposals,
   onUse,
+  onUseRole,
 }: {
   item: InspirationFeedItem;
   usage: InspirationUsage;
   slots: PlanningSlot[];
   proposals: Proposal[];
   onUse?: () => void;
+  onUseRole?: (role: InspirationUseRole) => void;
 }) {
   const slide = item.media?.[0];
   const platform = resolveInspirationPlatform(item);
@@ -122,7 +125,19 @@ export function InspirationDetailBody({
         ) : null}
       </div>
 
-      {onUse ? (
+      {onUseRole ? (
+        <div className="flex flex-wrap gap-1.5">
+          <Button type="button" variant="outline" onClick={() => onUseRole("structure")}>
+            Usar estructura
+          </Button>
+          <Button type="button" variant="outline" onClick={() => onUseRole("visual")}>
+            Usar visual
+          </Button>
+          <Button type="button" onClick={() => onUseRole("both")}>
+            Usar en ambas
+          </Button>
+        </div>
+      ) : onUse ? (
         <Button type="button" onClick={onUse}>
           Usar esta
         </Button>

@@ -23,14 +23,19 @@ export const SLOT_DIRECTION_KIND_LABELS: Record<SlotDirectionKind, string> = {
 export type SlotSpecRecord = {
   slotId: string;
   directionKind: SlotDirectionKind;
+  /** Legacy: referencia general. Fallback si no hay estructural/visual. */
   inspirationRef?: string;
+  structuralInspirationRef?: string;
+  visualInspirationRef?: string;
   signal?: string;
   creativeMechanism?: string;
   notes?: string[];
   /** Prosa amigable de qué busca la pieza — la redacta Cursor. */
   editorialDescription?: string;
-  /** Guía de qué tipo de referencia buscar en la biblioteca — la redacta Cursor. */
+  /** Legacy: guía única de búsqueda. Fallback de structural/visual briefs. */
   inspirationSearchBrief?: string;
+  structuralSearchBrief?: string;
+  visualSearchBrief?: string;
   status: SlotSpecStatus;
   preparedAt?: string;
 };
@@ -44,6 +49,16 @@ export type SlotSpecUsageContext = {
   accountIds?: string[];
 };
 
+export type SlotSpecInspirationSlice = {
+  ref: string;
+  title?: string;
+  type?: InspirationMaterialType;
+  origin?: string;
+  signal?: string;
+  creativeMechanism?: string;
+  usageContext?: SlotSpecUsageContext;
+};
+
 /** Misión autocontenida que Cursor consume. El Studio la arma; no genera copy. */
 export type SlotSpec = {
   slotId: string;
@@ -55,14 +70,19 @@ export type SlotSpec = {
   pillarId: string;
   formatId: string;
   inspirationRef?: string;
+  structuralInspirationRef?: string;
+  visualInspirationRef?: string;
   inspirationType?: InspirationMaterialType;
   origin?: string;
   signal?: string;
   creativeMechanism?: string;
+  structuralInspiration?: SlotSpecInspirationSlice;
+  visualInspiration?: SlotSpecInspirationSlice;
   usageContext?: SlotSpecUsageContext;
   brainRefs: string[];
   editorialConstraints: string[];
   cameraPresence?: CameraPresenceMode;
   notes?: string[];
+  editorialDescription?: string;
   status: SlotSpecStatus;
 };

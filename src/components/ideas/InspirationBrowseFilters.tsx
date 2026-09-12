@@ -1,4 +1,4 @@
-import { ImageIcon, TextAaIcon } from "@phosphor-icons/react";
+import { GlobeHemisphereWestIcon, ImageIcon, TextAaIcon } from "@phosphor-icons/react";
 
 import { PlatformIcon } from "@/components/icons/platform-icon";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   INSPIRATION_ALL_MEDIA_TYPES_ID,
-  INSPIRATION_ALL_PLATFORMS_ID,
   INSPIRATION_MEDIA_TYPE_FILTERS,
   INSPIRATION_PLATFORM_FILTERS,
   type InspirationMediaTypeFilterId,
   type InspirationPlatformFilterId,
 } from "@/content/inspiration-browse-filters";
+
+const PLATFORM_FILTER_ICON: Partial<
+  Record<InspirationPlatformFilterId, string>
+> = {
+  instagram: "Instagram",
+  tiktok: "TikTok",
+  x: "X",
+  cosmos: "Cosmos",
+};
+
+function PlatformFilterIcon({
+  filterId,
+}: {
+  filterId: InspirationPlatformFilterId;
+}) {
+  const platform = PLATFORM_FILTER_ICON[filterId];
+  if (platform) {
+    return <PlatformIcon platform={platform} size={14} className="opacity-70" />;
+  }
+
+  return <GlobeHemisphereWestIcon className="size-3.5 opacity-70" />;
+}
 
 export function InspirationBrowseFilters({
   platform,
@@ -46,8 +67,8 @@ export function InspirationBrowseFilters({
             className="h-8 gap-1.5 text-xs"
             aria-label={`Red: ${platformLabel}`}
           >
-            <PlatformIcon platform="Instagram" size={14} className="opacity-70" />
-            {platform === INSPIRATION_ALL_PLATFORMS_ID ? "Red" : platformLabel}
+            <PlatformFilterIcon filterId={platform} />
+            {platformLabel}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="min-w-40">
@@ -59,7 +80,10 @@ export function InspirationBrowseFilters({
           >
             {INSPIRATION_PLATFORM_FILTERS.map((entry) => (
               <DropdownMenuRadioItem key={entry.id} value={entry.id}>
-                {entry.label}
+                <span className="flex items-center gap-2">
+                  <PlatformFilterIcon filterId={entry.id} />
+                  {entry.label}
+                </span>
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

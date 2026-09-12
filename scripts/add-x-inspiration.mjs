@@ -152,4 +152,8 @@ spawnSync("node", [path.join(root, "scripts/regenerate-inspiration-media.mjs")],
 
 appendInspirationEntry(fetched, title);
 
+spawnSync("node", [path.join(root, "scripts/analyze-inspiration.mjs"), "--id", fetched.id], {
+  stdio: "inherit",
+});
+
 console.log("\nListo. Abrí Inspiración → Creativo para ver el preview.");

@@ -69,6 +69,7 @@ export function AllInspirationsPanel({
               url: item.url ?? "",
               title: item.title,
               media: item.media,
+              previewImage: item.previewImage,
               postText: item.postText,
               author: item.author,
               note: item.note,

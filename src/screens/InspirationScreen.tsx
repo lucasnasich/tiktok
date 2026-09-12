@@ -6,11 +6,17 @@ import { InspirationBrowseFilters } from "@/components/ideas/InspirationBrowseFi
 import { InspirationPanel } from "@/components/ideas/InspirationPanel";
 import { InspirationDetailSheet } from "@/components/inspiration/InspirationDetailSheet";
 import { getInspirationByKey } from "@/content/inspiration-feed";
+import type {
+  InspirationMediaTypeFilterId,
+  InspirationPlatformFilterId,
+} from "@/content/inspiration-browse-filters";
+import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { usePersistedState } from "@/hooks/use-persisted-state";
 import { usePlanningConfig } from "@/hooks/use-planning-config";
 import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
+import { applyInspirationSelection } from "@/lib/slot-spec";
 import {
   STUDIO_PREFERENCE_DEFAULTS,
   STUDIO_PREFERENCE_KEYS,
@@ -27,14 +33,14 @@ export function InspirationScreen() {
   const { getRecord, upsertRecord } = useSlotSpecs();
   const { overrides } = useInspirationOverrides();
   const [referenceKey, setReferenceKey] = useSheetSearchParam("reference");
-  const [platformFilter, setPlatformFilter] = usePersistedState(
+  const [platformFilter, setPlatformFilter] = usePersistedState<InspirationPlatformFilterId>(
     STUDIO_PREFERENCE_KEYS.inspirationPlatform,
-    STUDIO_PREFERENCE_DEFAULTS.inspirationPlatform,
+    STUDIO_PREFERENCE_DEFAULTS.inspirationPlatform as InspirationPlatformFilterId,
     parseInspirationPlatform,
   );
-  const [mediaTypeFilter, setMediaTypeFilter] = usePersistedState(
+  const [mediaTypeFilter, setMediaTypeFilter] = usePersistedState<InspirationMediaTypeFilterId>(
     STUDIO_PREFERENCE_KEYS.inspirationMediaType,
-    STUDIO_PREFERENCE_DEFAULTS.inspirationMediaType,
+    STUDIO_PREFERENCE_DEFAULTS.inspirationMediaType as InspirationMediaTypeFilterId,
     parseInspirationMediaType,
   );
   const [columns, setColumns] = usePersistedState(
@@ -44,20 +50,11 @@ export function InspirationScreen() {
   );
   const slots = horizonSlotsFromGenerations;
 
-  function pickReferenceForSlot(key: string) {
+  function pickReferenceForSlot(key: string, role: InspirationUseRole = "both") {
     if (!slotPickId) return;
     const item = getInspirationByKey(key, overrides);
     const record = getRecord(slotPickId);
-    upsertRecord({
-      slotId: slotPickId,
-      directionKind: "inspiration",
-      inspirationRef: key,
-      signal: item?.signal,
-      creativeMechanism: item?.creativeMechanism,
-      editorialDescription: record?.editorialDescription,
-      inspirationSearchBrief: record?.inspirationSearchBrief,
-      status: record?.status ?? "draft",
-    });
+    upsertRecord(applyInspirationSelection(record, slotPickId, key, role, item));
     navigate(`/planificacion?slot=${encodeURIComponent(slotPickId)}`);
   }
 
@@ -81,7 +78,7 @@ export function InspirationScreen() {
       {slotPickId ? (
         <div className="border-b border-border bg-muted/30 px-5 py-3 text-[13px] leading-relaxed text-muted-foreground">
           Estás eligiendo inspiración para un slot de planificación. Abrí una
-          referencia y tocá <span className="font-medium text-foreground">Usar esta</span>.
+          referencia y elegí si usarla como estructura, visual o ambas.
         </div>
       ) : null}
       <InspirationPanel

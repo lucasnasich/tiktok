@@ -136,4 +136,10 @@ upsertOrganicPost({
   isCarousel,
 });
 
+spawnSync(
+  "node",
+  [path.join(root, "scripts/analyze-inspiration.mjs"), "--id", fetched.id],
+  { stdio: "inherit" },
+);
+
 console.log("\nListo. Abrí Inspiración → Orgánico para ver el preview.");

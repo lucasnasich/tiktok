@@ -22,6 +22,7 @@ type MediaOnlyPreviewProps = {
   slides: InspirationMediaSlide[];
   className?: string;
   postUrl?: string;
+  coverImage?: string;
 };
 
 function slideSourceUrl(
@@ -33,16 +34,18 @@ function slideSourceUrl(
 
 function MediaSlide({
   slide,
+  coverImage,
   onOpen,
 }: {
   slide: InspirationMediaSlide;
+  coverImage?: string;
   onOpen?: (playback?: VideoPlaybackHandoff) => void;
 }) {
   if (slide.kind === "video") {
     return (
       <InspirationVideoPlayer
         src={slide.url}
-        poster={slide.poster}
+        poster={slide.poster ?? coverImage}
         onExpand={(playback) => onOpen?.(playback)}
       />
     );
@@ -65,6 +68,7 @@ export function MediaOnlyPreview({
   slides,
   className,
   postUrl,
+  coverImage,
 }: MediaOnlyPreviewProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -136,6 +140,7 @@ export function MediaOnlyPreview({
           ) : null}
           <MediaSlide
             slide={slide}
+            coverImage={coverImage}
             onOpen={(playback) => openLightboxAt(0, playback)}
           />
         </div>
@@ -187,6 +192,7 @@ export function MediaOnlyPreview({
               >
                 <MediaSlide
                   slide={slide}
+                  coverImage={coverImage}
                   onOpen={(playback) => openLightboxAt(index, playback)}
                 />
               </div>

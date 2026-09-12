@@ -94,7 +94,13 @@ export function InspirationLinkPreview({
   const lightbox = useImageLightbox();
 
   if (media?.length) {
-    return <MediaOnlyPreview slides={media} postUrl={url} />;
+    return (
+      <MediaOnlyPreview
+        slides={media}
+        postUrl={url}
+        coverImage={previewImage}
+      />
+    );
   }
 
   if (previewImage) {

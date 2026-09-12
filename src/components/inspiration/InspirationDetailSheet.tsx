@@ -1,6 +1,7 @@
 import { StudioSheet } from "@/components/studio/StudioSheet";
 import { InspirationDetailBody } from "@/components/inspiration/InspirationDetailBody";
 import { getInspirationByKey } from "@/content/inspiration-feed";
+import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { useProposals } from "@/hooks/use-proposals";
@@ -20,7 +21,7 @@ export function InspirationDetailSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   slotPickId?: string | null;
-  onPickForSlot?: (referenceKey: string) => void;
+  onPickForSlot?: (referenceKey: string, role?: InspirationUseRole) => void;
 }) {
   const { overrides } = useInspirationOverrides();
   const { proposals } = useProposals();
@@ -55,9 +56,9 @@ export function InspirationDetailSheet({
           usage={usage}
           slots={slots}
           proposals={proposals}
-          onUse={
+          onUseRole={
             slotPickId && onPickForSlot
-              ? () => onPickForSlot(item.key)
+              ? (role) => onPickForSlot(item.key, role)
               : undefined
           }
         />

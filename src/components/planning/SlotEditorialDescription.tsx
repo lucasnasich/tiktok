@@ -11,10 +11,14 @@ export function SlotEditorialDescription({
   spec,
   editorialDescription,
   inspirationSearchBrief,
+  structuralSearchBrief,
+  visualSearchBrief,
 }: {
   spec: SlotSpec;
   editorialDescription?: string;
   inspirationSearchBrief?: string;
+  structuralSearchBrief?: string;
+  visualSearchBrief?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -34,7 +38,27 @@ export function SlotEditorialDescription({
           <p className="text-[13px] leading-relaxed text-foreground">
             {editorialDescription}
           </p>
-          {inspirationSearchBrief ? (
+          {structuralSearchBrief ? (
+            <div className="rounded-lg border border-border bg-muted/25 px-3 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Brief estructural
+              </p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-foreground">
+                {structuralSearchBrief}
+              </p>
+            </div>
+          ) : null}
+          {visualSearchBrief ? (
+            <div className="rounded-lg border border-border bg-muted/25 px-3 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                Brief visual
+              </p>
+              <p className="mt-1.5 text-[13px] leading-relaxed text-foreground">
+                {visualSearchBrief}
+              </p>
+            </div>
+          ) : null}
+          {!structuralSearchBrief && !visualSearchBrief && inspirationSearchBrief ? (
             <div className="rounded-lg border border-border bg-muted/25 px-3 py-3">
               <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
                 Qué buscar en inspiración

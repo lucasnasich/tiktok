@@ -31,9 +31,15 @@ export function ProposalDetailSheet({
 }) {
   const { selectProposal } = useProposals();
   const { overrides } = useInspirationOverrides();
+  const structural = proposal?.structuralSourceRef
+    ? getInspirationByKey(proposal.structuralSourceRef, overrides)
+    : undefined;
+  const visual = proposal?.visualSourceRef
+    ? getInspirationByKey(proposal.visualSourceRef, overrides)
+    : undefined;
   const inspiration = proposal?.sourceRef
     ? getInspirationByKey(proposal.sourceRef, overrides)
-    : undefined;
+    : structural || visual;
   const selected = proposal?.status === "selected";
   const blocks = [...(proposal?.contentBlocks ?? [])].sort(
     (a, b) => a.order - b.order,
@@ -93,9 +99,21 @@ export function ProposalDetailSheet({
           <StudioSection title="Inspiración">
             <p className="text-[13px] leading-relaxed text-muted-foreground">
               {SIGNAL_SOURCE_TYPE_LABELS[proposal.signalSourceType]}
-              {inspiration ? ` · ${inspiration.title}` : ""}
               {proposal.signal ? ` · ${proposal.signal}` : ""}
             </p>
+            {structural ? (
+              <p className="mt-2 text-[13px]">
+                Estructura: {structural.title}
+              </p>
+            ) : null}
+            {visual ? (
+              <p className="mt-1 text-[13px]">
+                Visual: {visual.title}
+              </p>
+            ) : null}
+            {!structural && !visual && inspiration ? (
+              <p className="mt-2 text-[13px]">{inspiration.title}</p>
+            ) : null}
           </StudioSection>
 
           <StudioSection title="Concepto y hook">

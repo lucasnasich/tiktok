@@ -16,7 +16,10 @@ import { GalleryModeFilter } from "@/components/gallery/GalleryModeFilter";
 import { Button } from "@/components/ui/button";
 import { useImageLightbox } from "@/hooks/use-image-lightbox";
 import { usePersistedState } from "@/hooks/use-persisted-state";
-import { inspirationGridClass } from "@/components/ideas/inspiration-layout";
+import {
+  galleryCollageClass,
+  galleryCollageItemClass,
+} from "@/components/ideas/inspiration-layout";
 import {
   buildGalleryLightboxCatalog,
   galleryGroupCountForItems,
@@ -245,13 +248,14 @@ function GallerySinglesGrid({
 }) {
   return (
     <section className="bg-background">
-      <div className={cn(inspirationGridClass(columns), "bg-border")}>
+      <div className={galleryCollageClass(columns)}>
         {items.map((item) => (
-          <GalleryTile
-            key={item.id}
-            asset={item.asset}
-            onOpen={() => onOpenImage(item.id, 0)}
-          />
+          <div key={item.id} className={galleryCollageItemClass}>
+            <GalleryTile
+              asset={item.asset}
+              onOpen={() => onOpenImage(item.id, 0)}
+            />
+          </div>
         ))}
       </div>
     </section>

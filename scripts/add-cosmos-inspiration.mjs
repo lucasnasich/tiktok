@@ -127,6 +127,18 @@ async function main() {
     stdio: "inherit",
   });
 
+  for (const url of urls) {
+    spawnSync(
+      "node",
+      [
+        path.join(root, "scripts/analyze-inspiration.mjs"),
+        "--id",
+        `cosmos-${elementIdFromUrl(url)}`,
+      ],
+      { stdio: "inherit" },
+    );
+  }
+
   console.log(`\nListo. ${added} entrada(s) nueva(s). Abrí Inspiración → Creativo.`);
   if (failures.length > 0) {
     console.error(`\n${failures.length} URL(s) fallaron:`);

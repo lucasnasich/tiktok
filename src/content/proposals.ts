@@ -14,6 +14,8 @@ export type Proposal = {
   planSlotId: string;
   signalSourceType: SignalSourceType;
   sourceRef?: string;
+  structuralSourceRef?: string;
+  visualSourceRef?: string;
   signal?: string;
   angleId?: string;
   concept: string;

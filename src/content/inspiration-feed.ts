@@ -4,6 +4,7 @@ import {
   clientInspirations,
 } from "@/content/client-inspirations";
 import { creativeInspirations } from "@/content/creative-inspirations";
+import { inspirationCovers } from "@/content/inspiration-media";
 import {
   getSourceLabel,
   IDEA_SOURCES,
@@ -35,6 +36,7 @@ export type InspirationFeedItem = {
   note?: string;
   url?: string;
   media?: InspirationMediaSlide[];
+  previewImage?: string;
   platform?: string;
   quote?: string;
   postText?: string;
@@ -51,6 +53,8 @@ export type InspirationFeedItem = {
   creativeMechanism?: string;
   sourceAccount?: string;
   notes?: string[];
+  /** Id de carpeta local `assets/inspiracion/media/<assetId>`. */
+  assetId?: string;
 };
 
 const SWIPEABLE_SOURCE_IDS = ["cliente", "organico", "creativo"] as const;
@@ -173,6 +177,7 @@ function buildOrganicFeed(): InspirationFeedItem[] {
       postText: item.postText,
       author: item.author,
       formatIds: item.formatIds,
+      assetId: item.media?.length ? item.id : undefined,
     });
   });
 }
@@ -191,10 +196,12 @@ function buildCreativeFeed(): InspirationFeedItem[] {
       note: item.note,
       url: item.url,
       media: item.media,
+      previewImage: inspirationCovers[item.id],
       platform: item.platform,
       postText: item.postText,
       author: item.author,
       formatIds: item.formatIds,
+      assetId: item.media?.length ? item.id : undefined,
     }),
   );
 }
@@ -229,4 +236,16 @@ export function getInspirationByKey(
   );
   if (!item) return undefined;
   return applyInspirationOverride(item, overrides[key]);
+}
+
+export function getInspirationsByAssetId(
+  assetId: string,
+  overrides: Record<string, InspirationMetaOverride> = {},
+): InspirationFeedItem[] {
+  return hydrateInspirationFeed(
+    buildInspirationFeed(INSPIRATION_ALL_SOURCE_ID).filter(
+      (entry) => entry.assetId === assetId,
+    ),
+    overrides,
+  );
 }

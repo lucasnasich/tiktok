@@ -143,28 +143,25 @@ export type GalleryRow =
   | { kind: "group"; item: Extract<GalleryItem, { kind: "group" }> }
   | { kind: "singles"; items: Extract<GalleryItem, { kind: "single" }>[] };
 
-/** Agrupa singles consecutivos para mostrarlos en grilla entre carruseles. */
+/** Grupos primero; todas las imágenes sueltas al final en un collage. */
 export function galleryRowsForItems(items: GalleryItem[]): GalleryRow[] {
-  const rows: GalleryRow[] = [];
-  let pendingSingles: Extract<GalleryItem, { kind: "single" }>[] = [];
-
-  function flushSingles() {
-    if (pendingSingles.length === 0) return;
-    rows.push({ kind: "singles", items: pendingSingles });
-    pendingSingles = [];
-  }
+  const groups: Extract<GalleryItem, { kind: "group" }>[] = [];
+  const singles: Extract<GalleryItem, { kind: "single" }>[] = [];
 
   for (const item of items) {
     if (item.kind === "single") {
-      pendingSingles.push(item);
+      singles.push(item);
       continue;
     }
 
-    flushSingles();
-    rows.push({ kind: "group", item });
+    groups.push(item);
   }
 
-  flushSingles();
+  const rows: GalleryRow[] = groups.map((item) => ({ kind: "group", item }));
+  if (singles.length > 0) {
+    rows.push({ kind: "singles", items: singles });
+  }
+
   return rows;
 }
 

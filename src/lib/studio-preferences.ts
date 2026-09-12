@@ -5,6 +5,8 @@ import {
   INSPIRATION_ALL_PLATFORMS_ID,
   INSPIRATION_MEDIA_TYPE_FILTERS,
   INSPIRATION_PLATFORM_FILTERS,
+  type InspirationMediaTypeFilterId,
+  type InspirationPlatformFilterId,
 } from "@/content/inspiration-browse-filters";
 import {
   PLANNING_MODE,
@@ -50,14 +52,22 @@ export function parseCompetitorCountry(raw: unknown): string | undefined {
   return typeof raw === "string" && raw.length > 0 ? raw : undefined;
 }
 
-export function parseInspirationPlatform(raw: unknown): string | undefined {
+export function parseInspirationPlatform(
+  raw: unknown,
+): InspirationPlatformFilterId | undefined {
   const ids = INSPIRATION_PLATFORM_FILTERS.map((entry) => entry.id);
-  return typeof raw === "string" && ids.includes(raw) ? raw : undefined;
+  return typeof raw === "string" && ids.includes(raw as InspirationPlatformFilterId)
+    ? (raw as InspirationPlatformFilterId)
+    : undefined;
 }
 
-export function parseInspirationMediaType(raw: unknown): string | undefined {
+export function parseInspirationMediaType(
+  raw: unknown,
+): InspirationMediaTypeFilterId | undefined {
   const ids = INSPIRATION_MEDIA_TYPE_FILTERS.map((entry) => entry.id);
-  return typeof raw === "string" && ids.includes(raw) ? raw : undefined;
+  return typeof raw === "string" && ids.includes(raw as InspirationMediaTypeFilterId)
+    ? (raw as InspirationMediaTypeFilterId)
+    : undefined;
 }
 
 export function parseIdeasTab(raw: unknown): string | undefined {

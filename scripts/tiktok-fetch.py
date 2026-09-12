@@ -107,6 +107,32 @@ def has_local_media(out_dir: Path) -> bool:
     )
 
 
+def ensure_cover_from_poster(out_dir: Path) -> Path | None:
+    cover_path = out_dir / "cover.jpg"
+    if cover_path.is_file():
+        return cover_path
+
+    poster = out_dir / "poster.jpg"
+    if poster.is_file():
+        shutil.copy2(poster, cover_path)
+        return cover_path
+
+    images = sorted(
+        [
+            path
+            for path in out_dir.iterdir()
+            if path.is_file()
+            and re.match(r"^\d+\.(jpg|jpeg|png|webp)$", path.name, re.I)
+        ],
+        key=lambda path: path.name,
+    )
+    if images:
+        shutil.copy2(images[0], cover_path)
+        return cover_path
+
+    return None
+
+
 def normalize_files(raw_files: list[Path], out_dir: Path) -> list[dict[str, str]]:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -132,6 +158,8 @@ def normalize_files(raw_files: list[Path], out_dir: Path) -> list[dict[str, str]
             poster_dest = out_dir / "poster.jpg"
             shutil.move(str(images[0]), poster_dest)
             manifest[-1]["poster"] = str(poster_dest)
+
+        ensure_cover_from_poster(out_dir)
         return manifest
 
     if not images:
@@ -143,6 +171,7 @@ def normalize_files(raw_files: list[Path], out_dir: Path) -> list[dict[str, str]
         shutil.move(str(image), dest)
         manifest.append({"kind": "image", "file": str(dest)})
 
+    ensure_cover_from_poster(out_dir)
     return manifest
 
 
@@ -181,9 +210,12 @@ def fetch_post(url: str, out_dir: Path, root: Path, force: bool = False) -> dict
         ):
             force = True
         else:
+            ensure_cover_from_poster(out_dir)
+            cover_path = out_dir / "cover.jpg"
             return {
                 "id": f"tt-{post_id}",
                 "url": url,
+                "cover": str(cover_path) if cover_path.is_file() else None,
                 "files": existing_manifest(out_dir),
                 "skipped": True,
             }

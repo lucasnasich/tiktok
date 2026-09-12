@@ -21,11 +21,11 @@ export const INSPIRATION_PLATFORM_FILTERS: {
   id: InspirationPlatformFilterId;
   label: string;
 }[] = [
-  { id: INSPIRATION_ALL_PLATFORMS_ID, label: "Todas las redes" },
+  { id: INSPIRATION_ALL_PLATFORMS_ID, label: "Todas" },
   { id: "instagram", label: "Instagram" },
   { id: "tiktok", label: "TikTok" },
-  { id: "x", label: "X" },
   { id: "cosmos", label: "Cosmos" },
+  { id: "x", label: "X" },
 ];
 
 export const INSPIRATION_MEDIA_TYPE_FILTERS: {
@@ -43,13 +43,11 @@ function normalizePlatform(platform: string | undefined): string {
   return (platform ?? "").trim().toLowerCase();
 }
 
-/** Red visible en la biblioteca. Referencias visuales de Cosmos quedan agrupadas ahí. */
+/** Red visible en la biblioteca (filtros y badges). */
 export function resolveInspirationPlatform(
-  item: Pick<InspirationFeedItem, "kind" | "platform" | "url" | "sourceId">,
+  item: Pick<InspirationFeedItem, "platform" | "url">,
 ): string {
   if (
-    item.kind === "creativo" ||
-    item.sourceId === "creativo" ||
     normalizePlatform(item.platform) === "cosmos" ||
     (item.url ?? "").includes("cosmos.so")
   ) {

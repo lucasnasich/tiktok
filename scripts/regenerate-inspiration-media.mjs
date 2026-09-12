@@ -29,9 +29,12 @@ function listMediaFiles(dir) {
       ext: path.extname(name).toLowerCase(),
     }));
 
+  const cover = entries.find((entry) => entry.name === "cover.jpg");
+
   const video = entries.find((entry) => entry.name === "video.mp4");
   if (video) {
-    const poster = entries.find((entry) => entry.name === "poster.jpg");
+    const poster =
+      entries.find((entry) => entry.name === "poster.jpg") ?? cover;
     return [
       {
         kind: "video",
@@ -43,20 +46,43 @@ function listMediaFiles(dir) {
     ];
   }
 
-  return entries
-    .filter((entry) => imageExt.has(entry.ext) || videoExt.has(entry.ext))
+  const slides = entries
+    .filter(
+      (entry) =>
+        (imageExt.has(entry.ext) || videoExt.has(entry.ext)) &&
+        entry.name !== "cover.jpg" &&
+        !/-poster\.(jpg|jpeg|png|webp)$/i.test(entry.name),
+    )
     .sort((a, b) => a.name.localeCompare(b.name, "en"))
-    .map((entry) => ({
-      kind: videoExt.has(entry.ext) ? "video" : "image",
-      file: path.relative(root, entry.abs).replaceAll("\\", "/"),
-    }));
+    .map((entry) => {
+      const slide = {
+        kind: videoExt.has(entry.ext) ? "video" : "image",
+        file: path.relative(root, entry.abs).replaceAll("\\", "/"),
+      };
+      if (videoExt.has(entry.ext)) {
+        const stem = path.basename(entry.name, entry.ext);
+        const poster = entries.find(
+          (candidate) => candidate.name === `${stem}-poster.jpg`,
+        );
+        if (poster) {
+          slide.poster = path
+            .relative(root, poster.abs)
+            .replaceAll("\\", "/");
+        } else if (cover) {
+          slide.poster = path.relative(root, cover.abs).replaceAll("\\", "/");
+        }
+      }
+      return slide;
+    });
+
+  return slides;
 }
 
 function escapeTsString(value) {
   return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
-function buildMediaTs(mediaById) {
+function buildMediaTs(mediaById, coversById) {
   const importLines = [];
   const importMap = new Map();
   let importIndex = 0;
@@ -68,6 +94,11 @@ function buildMediaTs(mediaById) {
     importMap.set(file, name);
     return name;
   }
+
+  const coverEntries = Object.entries(coversById).map(([id, file]) => {
+    const ref = addImport(file);
+    return `  "${id}": ${ref}`;
+  });
 
   const entries = Object.entries(mediaById).map(([id, slides]) => {
     const mappedSlides = slides.map((slide) => {
@@ -95,13 +126,18 @@ function buildMediaTs(mediaById) {
   const importsBlock =
     importLines.length > 0 ? `${importLines.join("\n")}\n\n` : "";
 
+  const coversBlock =
+    coverEntries.length > 0
+      ? `\nexport const inspirationCovers: Record<string, string> = {\n${coverEntries.join(",\n")}\n};\n`
+      : "\nexport const inspirationCovers: Record<string, string> = {};\n";
+
   return `import type { InspirationMediaSlide } from "@/content/inspiration-links";
 
 ${importsBlock}/** Generado localmente desde assets/inspiracion/media/ (no commitear). */
 export const inspirationMedia: Record<string, InspirationMediaSlide[]> = {
 ${entries.join(",\n")}
 };
-`;
+${coversBlock}`;
 }
 
 if (!fs.existsSync(assetsRoot)) {
@@ -110,6 +146,7 @@ if (!fs.existsSync(assetsRoot)) {
 
 const inspirationUrls = loadInspirationUrlsFromContent(root);
 const mediaById = {};
+const coversById = {};
 
 for (const id of fs.readdirSync(assetsRoot)) {
   if (id.startsWith(".")) continue;
@@ -129,9 +166,14 @@ for (const id of fs.readdirSync(assetsRoot)) {
   }));
 
   if (slides.length > 0) mediaById[id] = slides;
+
+  const coverPath = path.join(dir, "cover.jpg");
+  if (fs.existsSync(coverPath)) {
+    coversById[id] = path.relative(root, coverPath).replaceAll("\\", "/");
+  }
 }
 
-fs.writeFileSync(mediaTsPath, buildMediaTs(mediaById));
+fs.writeFileSync(mediaTsPath, buildMediaTs(mediaById, coversById));
 console.log(
   "Actualizado",
   path.relative(root, mediaTsPath),

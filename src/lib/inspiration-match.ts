@@ -2,12 +2,14 @@ import type { ContentRoleId } from "@/content/content-roles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { INSPIRATION_ALL_SOURCE_ID } from "@/content/idea-sources";
+import type { InspirationMatchCandidate, InspirationMatchMode } from "@/content/inspiration-analysis";
 import {
   buildInspirationFeed,
+  getInspirationsByAssetId,
   hydrateInspirationFeed,
   type InspirationFeedItem,
 } from "@/content/inspiration-feed";
-import { INSPIRATION_MATCH_WEIGHTS } from "@/content/inspiration-match-config";
+import { INSPIRATION_HYBRID_WEIGHTS, INSPIRATION_MATCH_WEIGHTS } from "@/content/inspiration-match-config";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
@@ -53,6 +55,9 @@ export type RankedInspiration = {
   compatibility: number;
   usage: InspirationUsage;
   reasons: string[];
+  similarity?: number;
+  confidence?: number;
+  mode?: InspirationMatchMode;
 };
 
 export type InspirationMatchContext = {
@@ -196,6 +201,135 @@ function scoreItem(
   }
 
   return { score, reasons: reasons.slice(0, 4) };
+}
+
+function affinityAndUsage(item: InspirationFeedItem, slot: PlanningSlot, usage: InspirationUsage, now: number) {
+  const w = INSPIRATION_MATCH_WEIGHTS;
+  const { score, reasons } = scoreItem(item, slot, usage, now);
+  let usageDelta = 0;
+  if (usage.count === 0) usageDelta += w.unusedBonus;
+  else {
+    usageDelta -= Math.min(w.perUsePenaltyCap, usage.count * w.perUsePenalty);
+    const recentMs = w.recentUseDays * 24 * 60 * 60 * 1000;
+    if (usage.lastUsedAt && now - Date.parse(usage.lastUsedAt) < recentMs) {
+      usageDelta -= w.recentUsePenalty;
+    }
+    if (usage.angleIds.length > 0) {
+      usageDelta -= Math.min(w.repeatedAnglePenalty * 2, usage.angleIds.length * 3);
+    }
+  }
+  return {
+    affinity: score - w.base - usageDelta,
+    usageDelta,
+    total: score,
+    reasons,
+  };
+}
+
+function clamp01(value: number) {
+  return Math.min(1, Math.max(0, value));
+}
+
+function normalizeAffinity(raw: number) {
+  return clamp01((raw + 12) / 92);
+}
+
+function normalizeUsage(usage: InspirationUsage, now: number) {
+  if (usage.count === 0) return 1;
+  let value = 1 - Math.min(0.6, usage.count * 0.12);
+  const recentMs = INSPIRATION_MATCH_WEIGHTS.recentUseDays * 24 * 60 * 60 * 1000;
+  if (usage.lastUsedAt && now - Date.parse(usage.lastUsedAt) < recentMs) {
+    value -= 0.25;
+  }
+  return clamp01(value);
+}
+
+function cameraVisualAffinity(
+  slotCamera: PlanningSlot["cameraPresence"],
+  productionCamera?: string,
+) {
+  if (!slotCamera || !productionCamera) return 0.5;
+  if (slotCamera === "off-camera" && productionCamera === "required") return 0;
+  if (slotCamera === "off-camera" && productionCamera === "none") return 1;
+  if (slotCamera === "off-camera" && productionCamera === "optional") return 0.7;
+  if (
+    (slotCamera === "on-camera" || slotCamera === "needs-guest") &&
+    productionCamera === "required"
+  ) {
+    return 1;
+  }
+  if (
+    (slotCamera === "on-camera" || slotCamera === "needs-guest") &&
+    productionCamera === "none"
+  ) {
+    return 0.4;
+  }
+  return 0.65;
+}
+
+export function rankHybridCandidates(
+  context: InspirationMatchContext,
+  candidates: InspirationMatchCandidate[],
+  mode: InspirationMatchMode,
+): RankedInspiration[] {
+  const now = context.now ?? Date.now();
+  const specs = context.specs ?? [];
+  const slots = context.slots ?? [context.slot];
+  const weights = INSPIRATION_HYBRID_WEIGHTS[mode];
+  const cap = context.limit ?? INSPIRATION_HYBRID_WEIGHTS.displayLimit;
+  const ranked: RankedInspiration[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of candidates) {
+      const items = getInspirationsByAssetId(
+        candidate.assetId,
+        context.overrides ?? {},
+      );
+    for (const item of items) {
+      if (seen.has(item.key)) continue;
+      seen.add(item.key);
+      const usage = usageForInspiration(item.key, context.proposals, specs, slots);
+      const parts = affinityAndUsage(item, context.slot, usage, now);
+      const formatRoleAffinity = normalizeAffinity(parts.affinity);
+      const camera = cameraVisualAffinity(
+        context.slot.cameraPresence,
+        candidate.production?.cameraPresence,
+      );
+      const affinity01 =
+        mode === "visual"
+          ? formatRoleAffinity * 0.7 + camera * 0.3
+          : formatRoleAffinity;
+      const usage01 = normalizeUsage(usage, now);
+      const similarity = clamp01(candidate.similarity);
+      const confidence = clamp01(candidate.confidence ?? 1);
+      let score01 =
+        weights.semantic * similarity +
+        weights.affinity * affinity01 +
+        weights.usage * usage01;
+      score01 *= 1 - INSPIRATION_HYBRID_WEIGHTS.lowConfidencePenalty * (1 - confidence);
+
+      const reasons = [...parts.reasons];
+      if (confidence < 0.45) reasons.unshift("Certeza baja del análisis");
+      else if (similarity >= 0.72) {
+        reasons.unshift(mode === "visual" ? "Lenguaje visual similar" : "Mecanismo similar");
+      }
+
+      ranked.push({
+        item,
+        score: score01 * 100,
+        compatibility: Math.round(clamp01(score01) * 100),
+        usage,
+        reasons: reasons.slice(0, 2),
+        similarity,
+        confidence,
+        mode,
+      });
+    }
+  }
+
+  return ranked
+    .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
+    .slice(0, cap);
 }
 
 export function rankInspirationsForSlot(

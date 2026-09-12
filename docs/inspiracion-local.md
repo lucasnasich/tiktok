@@ -39,6 +39,19 @@ En X se guardan las imágenes del post y el texto en `post.json` dentro de la ca
 
 Si la carpeta ya existe, el script omite la descarga. Para forzar: `--force`.
 
+Después de guardar, el Studio intenta analizar la pieza con Gemini (una sola vez) y escribe en la misma carpeta:
+
+- `analysis.json` — schema versionado + embeddings (lo usa el matching)
+
+Si falta `GOOGLE_GENERATIVE_AI_API_KEY`, la referencia se guarda igual. Después:
+
+```bash
+npm run inspiration:analyze -- --id tt-123
+npm run inspiration:analyze -- --all
+```
+
+El índice local `assets/inspiracion/inspiration-index.json` se regenera sin llamar a Gemini (`npm run inspiration:index` o `predev` / `prebuild`).
+
 ## Logos de competidores
 
 ```bash

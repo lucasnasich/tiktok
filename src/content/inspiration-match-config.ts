@@ -23,3 +23,11 @@ export const INSPIRATION_MATCH_WEIGHTS = {
 } as const;
 
 export type InspirationMatchWeights = typeof INSPIRATION_MATCH_WEIGHTS;
+
+export const INSPIRATION_HYBRID_WEIGHTS = {
+  structure: { semantic: 0.7, affinity: 0.2, usage: 0.1 },
+  visual: { semantic: 0.8, affinity: 0.1, usage: 0.1 },
+  lowConfidencePenalty: 0.12,
+  candidateLimit: 24,
+  displayLimit: 6,
+} as const;
