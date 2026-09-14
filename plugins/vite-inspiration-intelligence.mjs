@@ -8,13 +8,22 @@ import {
 import {
   createGeminiClient,
   embedQuery,
+  generateStructuredAnalysis,
 } from "../scripts/inspiration-gemini.mjs";
+import { loadBrainDocuments } from "../scripts/mercantis-brain-loader.mjs";
+import { buildFormatProductionPromptSection } from "../scripts/format-production-examples.mjs";
+import {
+  buildSlotDescriptionSchema,
+  buildSlotDescriptionUserPrompt,
+  normalizeSlotDescriptionPayload,
+} from "../scripts/slot-description-schema.mjs";
 import {
   resolveGeminiApiKey,
 } from "../scripts/load-studio-env.mjs";
 
 const STATUS_PATH = "/__studio/inspiration-intelligence/status";
 const MATCH_PATH = "/__studio/inspiration-match";
+const SLOT_DESCRIPTION_PATH = "/__studio/slot-description";
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -38,7 +47,7 @@ function readRequestBody(req) {
   });
 }
 
-/** API de dev: matching semántico local. La API key nunca sale de Node. */
+/** API de dev: matching semántico y preparación de SlotSpec. La API key nunca sale de Node. */
 export function inspirationIntelligencePlugin(env = process.env) {
   const queryCache = new Map();
   let indexCache = { mtime: 0, index: null };
@@ -85,7 +94,13 @@ export function inspirationIntelligencePlugin(env = process.env) {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         const url = req.url?.split("?")[0];
-        if (url !== STATUS_PATH && url !== MATCH_PATH) return next();
+        if (
+          url !== STATUS_PATH &&
+          url !== MATCH_PATH &&
+          url !== SLOT_DESCRIPTION_PATH
+        ) {
+          return next();
+        }
 
         if (url === STATUS_PATH) {
           if (req.method !== "GET") {
@@ -93,6 +108,104 @@ export function inspirationIntelligencePlugin(env = process.env) {
             return;
           }
           sendJson(res, 200, collectIntelligenceStatus({ configured: Boolean(apiKey()) }));
+          return;
+        }
+
+        if (url === SLOT_DESCRIPTION_PATH) {
+          if (req.method !== "POST") {
+            sendJson(res, 405, { error: "Method not allowed" });
+            return;
+          }
+          try {
+            const body = await readRequestBody(req);
+            const configured = Boolean(apiKey());
+            if (!configured) {
+              sendJson(res, 200, {
+                configured: false,
+                error: "Falta GOOGLE_GENERATIVE_AI_API_KEY.",
+              });
+              return;
+            }
+            if (!body || typeof body !== "object") {
+              sendJson(res, 400, { error: "Body JSON inválido" });
+              return;
+            }
+            if (!String(body.slotId ?? "").trim()) {
+              sendJson(res, 400, { error: "slotId is required" });
+              return;
+            }
+
+            const brainRefs = Array.isArray(body.brainRefs) ? body.brainRefs : [];
+            const { documents, missing } = loadBrainDocuments(brainRefs);
+            const ai = await getClient();
+            if (!ai) {
+              sendJson(res, 200, {
+                configured: false,
+                error: "Falta GOOGLE_GENERATIVE_AI_API_KEY.",
+              });
+              return;
+            }
+
+            const parsed = await generateStructuredAnalysis(ai, {
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    {
+                      text: buildSlotDescriptionUserPrompt({
+                        slotId: body.slotId,
+                        accountLabel: body.accountLabel,
+                        accountId: body.accountId,
+                        roleLabel: body.roleLabel,
+                        roleId: body.roleId,
+                        roleSummary: body.roleSummary,
+                        pillarLabel: body.pillarLabel,
+                        pillarId: body.pillarId,
+                        pillarSummary: body.pillarSummary,
+                        formatLabel: body.formatLabel,
+                        formatId: body.formatId,
+                        formatSummary: body.formatSummary,
+                        formatProductionSection: buildFormatProductionPromptSection({
+                          formatId: body.formatId,
+                          formatLabel: body.formatLabel,
+                          formatSummary: body.formatSummary,
+                          cameraPresence: body.cameraPresence,
+                          cameraPresenceLabel: body.cameraPresenceLabel,
+                        }),
+                        cameraPresenceLabel: body.cameraPresenceLabel,
+                        cameraPresenceConstraint: body.cameraPresenceConstraint,
+                        platforms: body.platforms,
+                        date: body.date,
+                        time: body.time,
+                        editorialConstraints: Array.isArray(body.editorialConstraints)
+                          ? body.editorialConstraints
+                          : [],
+                        brainDocuments: documents,
+                        missingBrainRefs: missing,
+                      }),
+                    },
+                  ],
+                },
+              ],
+              schema: buildSlotDescriptionSchema(),
+              temperature: 0.35,
+            });
+            const payload = normalizeSlotDescriptionPayload(parsed);
+            sendJson(res, 200, {
+              configured: true,
+              ...payload,
+              brainFiles: documents.map((doc) => doc.file),
+              missingBrainRefs: missing,
+            });
+          } catch (error) {
+            console.error("[slot-description]", error);
+            sendJson(res, 500, {
+              configured: Boolean(apiKey()),
+              error:
+                error?.message?.trim() ||
+                "Gemini no pudo generar la descripción del slot.",
+            });
+          }
           return;
         }
 

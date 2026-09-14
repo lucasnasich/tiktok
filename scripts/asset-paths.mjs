@@ -9,4 +9,5 @@ export const ASSET_PATHS = {
   competitorLogos: path.join(root, "assets/competidores/logos"),
   competitorDocuments: path.join(root, "assets/competidores/documentos"),
   mercantisCreatives: path.join(root, "assets/creativos/mercantis"),
+  mercantisBrain: path.join(root, "knowledge/mercantis"),
 };

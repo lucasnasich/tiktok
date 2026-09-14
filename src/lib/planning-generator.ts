@@ -1,3 +1,4 @@
+import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { ContentRoleId } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
@@ -6,6 +7,13 @@ import {
 } from "@/content/planning-defaults";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { normalizePillarId } from "@/content/planning-pillars";
+import {
+  compatibleFormatTargets,
+  compatiblePillarTargets,
+  hasPositiveTargets,
+  ROLE_FORMAT_FALLBACKS,
+  ROLE_PILLAR_FALLBACKS,
+} from "@/content/slot-compatibility";
 import {
   addDays,
   getWeekDates,
@@ -19,6 +27,7 @@ export type GenerateSlotsInput = {
   dateFrom: string;
   dateTo: string;
   existingSlots: PlanningSlot[];
+  cameraPresence?: CameraPresenceMode;
 };
 
 type CountMap = Record<string, number>;
@@ -253,6 +262,38 @@ function pickFromTargets(
   return scored[0]?.id ?? entries[0][0];
 }
 
+function resolveCompatiblePillarTargets(
+  targets: Record<string, number>,
+  roleId: ContentRoleId,
+): Record<string, number> {
+  const filtered = compatiblePillarTargets(targets, roleId);
+  if (hasPositiveTargets(filtered)) return filtered;
+
+  const fromDefaults = compatiblePillarTargets(
+    DEFAULT_PILLAR_TARGETS_OFFICIAL,
+    roleId,
+  );
+  if (hasPositiveTargets(fromDefaults)) return fromDefaults;
+
+  return { [ROLE_PILLAR_FALLBACKS[roleId]]: 1 };
+}
+
+function resolveCompatibleFormatTargets(
+  targets: Record<string, number>,
+  roleId: ContentRoleId,
+  pillarId: string,
+  cameraPresence?: CameraPresenceMode,
+): Record<string, number> {
+  const query = { roleId, pillarId, cameraPresence };
+  const filtered = compatibleFormatTargets(targets, query);
+  if (hasPositiveTargets(filtered)) return filtered;
+
+  const fromDefaults = compatibleFormatTargets(DEFAULT_FORMAT_TARGETS, query);
+  if (hasPositiveTargets(fromDefaults)) return fromDefaults;
+
+  return { [ROLE_FORMAT_FALLBACKS[roleId]]: 1 };
+}
+
 function timeSlotRotationOffset(date: string, slotCount: number): number {
   if (slotCount <= 0) return 0;
   const dayNumber = Math.floor(parseIsoDate(date).getTime() / 86_400_000);
@@ -295,6 +336,7 @@ export function generateMissingSlots({
   dateFrom,
   dateTo,
   existingSlots,
+  cameraPresence,
 }: GenerateSlotsInput): PlanningSlot[] {
   const existingKeys = new Set(existingSlots.map(slotKey));
   const generated: PlanningSlot[] = [];
@@ -325,7 +367,7 @@ export function generateMissingSlots({
         if (!roleId) break;
 
         const pillarId = pickFromTargets(
-          account.pillarTargets,
+          resolveCompatiblePillarTargets(account.pillarTargets, roleId),
           context.pillarCounts,
           context,
           "pillar",
@@ -333,7 +375,12 @@ export function generateMissingSlots({
           account.repetitionLimits,
         );
         const formatId = pickFromTargets(
-          account.formatTargets,
+          resolveCompatibleFormatTargets(
+            account.formatTargets,
+            roleId,
+            pillarId,
+            cameraPresence,
+          ),
           context.formatCounts,
           context,
           "format",

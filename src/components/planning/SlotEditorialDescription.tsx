@@ -1,39 +1,73 @@
-import { useEffect, useState } from "react";
-import { CopyIcon, TextAlignLeftIcon } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { SparkleIcon, TextAlignLeftIcon } from "@phosphor-icons/react";
 
 import { StudioSection } from "@/components/studio/StudioSheet";
 import { Button } from "@/components/ui/button";
 import type { SlotSpec } from "@/content/slot-specs";
-import { copyText } from "@/lib/clipboard";
-import { cursorPromptForSlotDescription } from "@/lib/slot-spec";
+import { fetchSlotDescription } from "@/lib/inspiration-intelligence";
 
 export function SlotEditorialDescription({
   spec,
+  accountLabel,
   editorialDescription,
   inspirationSearchBrief,
   structuralSearchBrief,
   visualSearchBrief,
+  onGenerated,
 }: {
   spec: SlotSpec;
+  accountLabel?: string;
   editorialDescription?: string;
   inspirationSearchBrief?: string;
   structuralSearchBrief?: string;
   visualSearchBrief?: string;
+  onGenerated: (payload: {
+    editorialDescription: string;
+    structuralSearchBrief: string;
+    visualSearchBrief: string;
+  }) => void;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const hasDescription = Boolean(editorialDescription?.trim());
+  const slotIdRef = useRef(spec.slotId);
+  slotIdRef.current = spec.slotId;
 
   useEffect(() => {
-    setCopied(false);
+    setError(null);
+    setGenerating(false);
   }, [spec.slotId]);
 
-  async function copyPrompt() {
-    const ok = await copyText(cursorPromptForSlotDescription(spec));
-    if (ok) setCopied(true);
+  async function generate() {
+    if (generating) return;
+    const requestedId = spec.slotId;
+    setGenerating(true);
+    setError(null);
+    try {
+      const payload = await fetchSlotDescription({ spec, accountLabel });
+      if (requestedId !== slotIdRef.current) return;
+      onGenerated(payload);
+    } catch (caught) {
+      if (requestedId !== slotIdRef.current) return;
+      const message =
+        caught instanceof Error && caught.message.trim()
+          ? caught.message.trim()
+          : "No se pudo generar la descripción.";
+      setError(message);
+    } finally {
+      if (requestedId === slotIdRef.current) setGenerating(false);
+    }
   }
+
+  const actionLabel = generating
+    ? "Generando…"
+    : hasDescription
+      ? "Regenerar"
+      : "Generar con Gemini";
 
   return (
     <StudioSection title="Descripción">
-      {editorialDescription ? (
+      {hasDescription ? (
         <div className="space-y-4">
           <p className="text-[13px] leading-relaxed text-foreground">
             {editorialDescription}
@@ -68,6 +102,21 @@ export function SlotEditorialDescription({
               </p>
             </div>
           ) : null}
+          <div className="space-y-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={generating}
+              onClick={generate}
+            >
+              <SparkleIcon className="size-3.5" />
+              {actionLabel}
+            </Button>
+            {error ? (
+              <p className="text-[12px] text-destructive">{error}</p>
+            ) : null}
+          </div>
         </div>
       ) : (
         <div
@@ -85,12 +134,15 @@ export function SlotEditorialDescription({
           <Button
             type="button"
             size="sm"
-            variant="outline"
-            onClick={copyPrompt}
+            disabled={generating}
+            onClick={generate}
           >
-            <CopyIcon className="size-3.5" />
-            {copied ? "Pedido copiado" : "Copiar pedido a Cursor"}
+            <SparkleIcon className="size-3.5" />
+            {actionLabel}
           </Button>
+          {error ? (
+            <p className="text-[12px] text-destructive">{error}</p>
+          ) : null}
         </div>
       )}
     </StudioSection>

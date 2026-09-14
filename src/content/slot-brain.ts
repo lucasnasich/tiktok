@@ -33,6 +33,12 @@ const ROLE_BRAIN_REFS: Partial<Record<ContentRoleId, string[]>> = {
   comunidad: ["usuarios-clientes.md", "contenido-comunicacion.md"],
 };
 
+const FORMAT_BRAIN_REFS: Record<string, string[]> = {
+  "testimonio-cliente": ["clientes-casos.md"],
+  resenas: ["clientes-casos.md"],
+  "cero-estrellas": ["clientes-casos.md"],
+};
+
 function unique(files: string[]): string[] {
   return [...new Set(files.filter(Boolean))];
 }
@@ -45,6 +51,7 @@ export function brainRefsForSlot(slot: PlanningSlot): string[] {
       "posicionamiento.md",
     ]),
     ...(ROLE_BRAIN_REFS[slot.roleId] ?? []),
+    ...(FORMAT_BRAIN_REFS[slot.formatId] ?? []),
   ]);
 }
 
@@ -58,7 +65,7 @@ export function editorialConstraintsForSlot(
   const constraints = [
     `Prioridad ${role}: no cambiar el rol del slot.`,
     `Hablar de ${pillar} sin cambiar de pilar.`,
-    `Respetar el formato ${format}.`,
+    `Respetar el formato ${format}: ese mecanismo manda sobre el pilar. No reemplazarlo por un demo de producto.`,
     "No inventar features, pricing, clientes, métricas, historia ni roadmap.",
     "Consultar el Mercantis Brain. Si algo no está: marcarlo como desconocido.",
   ];
@@ -80,6 +87,15 @@ export function editorialConstraintsForSlot(
   }
   if (slot.roleId === "comunidad") {
     constraints.push("Invitar a opinar; no cerrar en venta.");
+  }
+  if (
+    slot.formatId === "testimonio-cliente" ||
+    slot.formatId === "resenas" ||
+    slot.formatId === "cero-estrellas"
+  ) {
+    constraints.push(
+      "Prueba social: voz, quote, rating o evidencia de cliente. No un tour de la interfaz ni de la IA.",
+    );
   }
   if (accountType === "official") {
     constraints.push("Cuenta oficial: seria, pulida, no memes.");

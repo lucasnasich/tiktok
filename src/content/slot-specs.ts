@@ -6,6 +6,12 @@ import type { InspirationMaterialType } from "@/content/inspiration-taxonomy";
 export type SlotSpecStatus = "draft" | "ready-for-cursor";
 export type SlotDirectionKind = "inspiration" | "manual";
 
+export type SlotDescriptionPayload = {
+  editorialDescription: string;
+  structuralSearchBrief: string;
+  visualSearchBrief: string;
+};
+
 export const SLOT_SPEC_STATUS_LABELS: Record<SlotSpecStatus, string> = {
   draft: "Borrador",
   "ready-for-cursor": "Listo para Cursor",
@@ -30,7 +36,7 @@ export type SlotSpecRecord = {
   signal?: string;
   creativeMechanism?: string;
   notes?: string[];
-  /** Prosa amigable de qué busca la pieza — la redacta Cursor. */
+  /** Prosa amigable de qué busca la pieza — la genera Gemini. */
   editorialDescription?: string;
   /** Legacy: guía única de búsqueda. Fallback de structural/visual briefs. */
   inspirationSearchBrief?: string;

@@ -45,7 +45,9 @@ Ejemplos útiles:
 ## Qué NO hacer
 
 - No volver a decidir cuenta, rol, pilar, formato ni plataformas: eso ya lo fijó Planificación.
-- No generar Proposal A/B/C desde la app. El Studio no llama IA ni Cursor.
+- No generar Proposal A/B/C desde la app.
+- El Studio llama Gemini solo para preparar descripción editorial y briefs de búsqueda del SlotSpec.
+- El desarrollo creativo sigue en Cursor.
 - No tratar el Brain como fuente alternativa mutuamente excluyente de Inspiración.
 - No comunicar roadmap / features no live como disponibles.
 - No mezclar imágenes con texto quemado en `assets/` — ahí van solo visuales limpios.

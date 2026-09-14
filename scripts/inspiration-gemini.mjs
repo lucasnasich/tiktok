@@ -140,16 +140,21 @@ export function inlineImagePart(filePath) {
   };
 }
 
-export async function generateStructuredAnalysis(ai, { contents, schema }) {
+export async function generateStructuredAnalysis(ai, {
+  contents,
+  schema,
+  temperature = 0.2,
+  model = ANALYSIS_MODEL,
+}) {
   const response = await withRetry(
     () =>
       ai.models.generateContent({
-        model: ANALYSIS_MODEL,
+        model,
         contents,
         config: {
           responseMimeType: "application/json",
           responseSchema: schema,
-          temperature: 0.2,
+          temperature,
         },
       }),
     { label: "generateContent" },

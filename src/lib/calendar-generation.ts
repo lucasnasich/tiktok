@@ -74,6 +74,7 @@ function generateUnifiedSlots(
     dateFrom,
     dateTo,
     existingSlots: [],
+    cameraPresence,
   }).map((slot) => ({
     ...slot,
     accountId: leadAccount.id,
@@ -147,6 +148,7 @@ export function createCalendarGeneration(
         dateFrom,
         dateTo,
         existingSlots: [],
+        cameraPresence,
       });
 
   const slots = stampGenerationSlots(rawSlots, generationId, cameraPresence);

@@ -38,6 +38,7 @@ import {
   selectedProposalForSlot,
 } from "@/lib/proposals-store";
 import {
+  applyGeneratedSlotDescription,
   applyInspirationSelection,
   assembleSlotSpec,
   canPrepareSlotSpec,
@@ -229,10 +230,16 @@ export function SlotDetailSheet({
 
             <SlotEditorialDescription
               spec={spec}
+              accountLabel={getSlotAccountLabel(slot, studioAccounts)}
               editorialDescription={record?.editorialDescription}
               inspirationSearchBrief={record?.inspirationSearchBrief}
               structuralSearchBrief={record?.structuralSearchBrief}
               visualSearchBrief={record?.visualSearchBrief}
+              onGenerated={(payload) => {
+                upsertRecord(
+                  applyGeneratedSlotDescription(record, slot.id, payload),
+                );
+              }}
             />
 
             <StudioSection

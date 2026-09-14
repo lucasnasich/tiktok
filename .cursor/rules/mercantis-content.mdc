@@ -23,7 +23,7 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 
 El Studio no genera ideas, hooks, storytelling, copy ni captions. Eso lo hace Cursor cuando el usuario se lo pide.
 
-El Studio no llama IA ni ejecuta Cursor desde la app.
+El Studio llama Gemini solo para preparar el SlotSpec (descripción editorial + briefs de búsqueda). No escribe Proposals ni ejecuta Cursor desde la app.
 
 ## Mercantis Brain (`knowledge/mercantis/`)
 

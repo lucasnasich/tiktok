@@ -15,6 +15,7 @@ import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
 import { brainRefsForSlot, editorialConstraintsForSlot } from "@/content/slot-brain";
 import type {
+  SlotDescriptionPayload,
   SlotSpec,
   SlotSpecInspirationSlice,
   SlotSpecRecord,
@@ -213,6 +214,29 @@ export function applyInspirationSelection(
     next.inspirationRef = key;
   }
   return next;
+}
+
+export function applyGeneratedSlotDescription(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  payload: SlotDescriptionPayload,
+): SlotSpecRecord {
+  return {
+    slotId,
+    directionKind: record?.directionKind ?? "inspiration",
+    inspirationRef: record?.inspirationRef,
+    structuralInspirationRef: record?.structuralInspirationRef,
+    visualInspirationRef: record?.visualInspirationRef,
+    signal: record?.signal,
+    creativeMechanism: record?.creativeMechanism,
+    notes: record?.notes,
+    editorialDescription: payload.editorialDescription,
+    inspirationSearchBrief: record?.inspirationSearchBrief,
+    structuralSearchBrief: payload.structuralSearchBrief,
+    visualSearchBrief: payload.visualSearchBrief,
+    status: record?.status ?? "draft",
+    preparedAt: record?.preparedAt,
+  };
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
