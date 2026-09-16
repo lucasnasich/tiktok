@@ -2,6 +2,7 @@ import {
   presenceFromCameraMode,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
+import { normalizePublicationTypeTargets } from "@/content/publication-types";
 import {
   formatCalendarGenerationLabel,
   type CalendarGeneration,
@@ -97,7 +98,8 @@ export function createCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode,
-    cameraPresence: requestedCameraPresence,
+    cameraMode,
+    publicationTypeTargets,
     rhythm,
   } = input;
   const profile = resolveProfile(profileId, store.profiles);
@@ -108,22 +110,24 @@ export function createCalendarGeneration(
   );
   if (accounts.length === 0) return undefined;
 
+  const production = {
+    cameraMode,
+    publicationTypeTargets: normalizePublicationTypeTargets(
+      publicationTypeTargets,
+    ),
+  };
+
   const planningAccounts = buildPlanningAccountsForGeneration(
     store,
     profileId,
     accountIds,
     rhythm,
+    production,
   );
   if (planningAccounts.length === 0) return undefined;
   if (dateFrom > dateTo) return undefined;
 
-  const cameraPresence = presenceFromCameraMode(
-    planningAccounts[0]?.cameraMode ??
-      (requestedCameraPresence === "on-camera" ||
-      requestedCameraPresence === "needs-guest"
-        ? "camera_allowed"
-        : "faceless"),
-  );
+  const cameraPresence = presenceFromCameraMode(cameraMode);
 
   const generationId = `generation:${Date.now()}`;
   const useMirrored =
@@ -161,6 +165,8 @@ export function createCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode: useMirrored ? "mirrored" : "independent",
+    cameraMode,
+    publicationTypeTargets: production.publicationTypeTargets,
     cameraPresence,
     rhythm,
     slots,

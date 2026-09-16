@@ -2,7 +2,7 @@ import type { ContentRoleId } from "@/content/content-roles";
 import { formats, type Format } from "@/content/formats";
 import type { TopicPriority } from "@/content/role-topics";
 
-export type PlanningSetupStepId = "profile" | "roles" | "publication";
+export type PlanningSetupStepId = "profile" | "roles";
 
 export type PlanningSetupStep = {
   id: PlanningSetupStepId;
@@ -25,13 +25,6 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
     title: "Roles y temas",
     intro:
       "El rol es el mundo editorial. El tema es el área concreta de la que vamos a hablar dentro de ese rol. Un CTA puede aparecer en cualquiera; no define el rol.",
-  },
-  {
-    id: "publication",
-    label: "Producción",
-    title: "Tipos de publicación y restricciones",
-    intro:
-      "El tipo de publicación es la pieza nativa (imagen, carrusel, reel o story). El formato creativo se decide después, al desarrollar cada pieza. La restricción de cámara limita cómo se puede producir, no si hay video.",
   },
 ];
 

@@ -39,7 +39,7 @@ export function PlanningProfileWizardSheet({
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar perfil editorial" : "Crear perfil editorial"}
-      description="Ritmo, roles, temas por rol, tipos de publicación y restricciones de producción. Sin elegir cuentas acá."
+      description="Nombre, roles y temas por rol. La producción se elige al generar slots."
     >
       {open ? (
         <PlanningSetupWizard

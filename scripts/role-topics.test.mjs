@@ -40,7 +40,10 @@ assert.equal(
 
 const defaults = cloneDefaultRoleTopicPreferences();
 assert.ok(topicTargetsForRole(defaults, "educacion").inventario_stock > 0);
-assert.equal(topicTargetsForRole(defaults, "educacion").pagos_cobros, 5);
+assert.equal(topicTargetsForRole(defaults, "educacion").pagos_cobros, 15);
+assert.equal(defaults.marca.identidad_latam, "no");
+assert.equal(defaults.evidencia.uso_real, "no");
+assert.equal(defaults.build_in_public.producto_en_construccion, "alta");
 
 const fromPillars = normalizeRoleTopicPreferences(undefined, {
   "inventario-stock": 40,

@@ -1,4 +1,6 @@
-import type { CameraPresenceMode } from "@/content/camera-presence";
+import type { CameraMode, CameraPresenceMode } from "@/content/camera-presence";
+import { cameraModeFromPresence, presenceFromCameraMode } from "@/content/camera-presence";
+import type { PublicationTypeId } from "@/content/publication-types";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import type { PlanningProfile } from "@/content/planning-profiles";
@@ -26,7 +28,8 @@ export type CalendarGenerationRequest = {
   dateFrom: string;
   dateTo: string;
   publishingMode: CalendarPublishingMode;
-  cameraPresence: CameraPresenceMode;
+  cameraMode: CameraMode;
+  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
   rhythm: CalendarGenerationRhythm;
 };
 
@@ -39,6 +42,9 @@ export type CalendarGeneration = {
   dateFrom: string;
   dateTo: string;
   publishingMode: CalendarPublishingMode;
+  cameraMode: CameraMode;
+  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+  /** Derivado de `cameraMode`; se conserva en slots generados. */
   cameraPresence: CameraPresenceMode;
   rhythm: CalendarGenerationRhythm;
   /** Slots congelados al generar — no se recalculan solos. */
@@ -160,7 +166,16 @@ export function normalizeCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode: generation.publishingMode ?? "independent",
-    cameraPresence: generation.cameraPresence ?? "off-camera",
+    cameraMode:
+      generation.cameraMode ??
+      cameraModeFromPresence(generation.cameraPresence ?? "off-camera"),
+    publicationTypeTargets: generation.publicationTypeTargets ?? {},
+    cameraPresence:
+      generation.cameraPresence ??
+      presenceFromCameraMode(
+        generation.cameraMode ??
+          cameraModeFromPresence(generation.cameraPresence ?? "off-camera"),
+      ),
     rhythm: generation.rhythm ?? DEFAULT_PLANNING_RHYTHM,
     slots: generation.slots.map((slot) => ({
       ...slot,

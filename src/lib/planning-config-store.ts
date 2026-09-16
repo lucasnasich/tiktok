@@ -1,6 +1,5 @@
 import {
   cameraModeFromPresence,
-  DEFAULT_CAMERA_MODE,
   type CameraMode,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
@@ -133,17 +132,18 @@ function isUserProfile(profile: PlanningProfile): boolean {
 function migrateAccountOverride(
   settings: PlanningAccountOverride,
 ): PlanningAccountOverride {
+  const {
+    publicationTypeTargets: _publicationTypeTargets,
+    cameraMode: _cameraMode,
+    cameraPresence: _cameraPresence,
+    ...editorial
+  } = settings;
+
   return {
-    ...settings,
+    ...editorial,
     roleTargets: settings.roleTargets
       ? normalizeRoleTargets(settings.roleTargets)
       : settings.roleTargets,
-    publicationTypeTargets: settings.publicationTypeTargets
-      ? normalizePublicationTypeTargets(settings.publicationTypeTargets)
-      : settings.publicationTypeTargets,
-    cameraMode: cameraModeFromPresence(
-      settings.cameraMode ?? settings.cameraPresence ?? DEFAULT_CAMERA_MODE,
-    ),
     roleTopicPreferences: normalizeRoleTopicPreferences(
       settings.roleTopicPreferences,
       settings.pillarTargets,
@@ -273,11 +273,17 @@ function normalizeStudioAccounts(store: PlanningConfigStore): PlanningStudioAcco
   return Array.isArray(store.accounts) ? store.accounts : [];
 }
 
+export type GenerationProductionSettings = {
+  cameraMode: CameraMode;
+  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+};
+
 export function buildPlanningAccountsForGeneration(
   store: PlanningConfigStore,
   profileId: string,
   accountIds: string[],
   rhythm?: PlanningRhythm,
+  production?: GenerationProductionSettings,
 ): PlanningAccount[] {
   const profile = resolveProfile(profileId, store.profiles);
   if (!profile) return [];
@@ -289,7 +295,18 @@ export function buildPlanningAccountsForGeneration(
       const base = studioAccountToPlanningBase(studioAccount);
       const merged = mergePlanningAccount(base, profile.settings);
       const filled = fillOfficialEditorialGaps(merged);
-      return rhythm ? applyRhythmToPlanningAccount(filled, rhythm) : filled;
+      const withProduction = production
+        ? {
+            ...filled,
+            cameraMode: production.cameraMode,
+            publicationTypeTargets: normalizePublicationTypeTargets(
+              production.publicationTypeTargets,
+            ),
+          }
+        : filled;
+      return rhythm
+        ? applyRhythmToPlanningAccount(withProduction, rhythm)
+        : withProduction;
     });
 }
 
@@ -325,6 +342,12 @@ export function getAssignedPlanningAccounts(
       generation.profileId,
       generation.accountIds,
       generation.rhythm,
+      {
+        cameraMode:
+          generation.cameraMode ??
+          cameraModeFromPresence(generation.cameraPresence),
+        publicationTypeTargets: generation.publicationTypeTargets,
+      },
     )) {
       if (seen.has(account.id)) continue;
       seen.add(account.id);
@@ -678,7 +701,7 @@ function restoreOfficialProfileForAccount(
           settings: restoredSettings,
           pillarPriorities: session.pillarPriorities ?? {},
           selectedFormatIds: [...MERCANTIS_OFICIAL_CURATED_FORMAT_IDS],
-          stepIndex: Math.min(session.stepIndex, 2),
+          stepIndex: Math.min(session.stepIndex, 1),
         },
       }
     : store.wizardSessions;
@@ -874,12 +897,17 @@ export function accountToOverride(account: PlanningAccount): PlanningAccountOver
       account.pillarTargets,
     ),
     pillarTargets: { ...account.pillarTargets },
-    publicationTypeTargets: { ...account.publicationTypeTargets },
-    cameraMode: account.cameraMode,
     formatTargets: { ...account.formatTargets },
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,
     alternateRoles: account.alternateRoles,
     conversionExceptional: account.conversionExceptional,
   };
+}
+
+/** Solo campos editoriales — producción vive en generación o en cada slot. */
+export function accountToProfileOverride(
+  account: PlanningAccount,
+): PlanningAccountOverride {
+  return accountToOverride(account);
 }

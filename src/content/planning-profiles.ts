@@ -1,6 +1,5 @@
 import {
   cameraModeFromPresence,
-  DEFAULT_CAMERA_MODE,
   type CameraMode,
 } from "@/content/camera-presence";
 import {
@@ -21,10 +20,8 @@ import {
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
 import { normalizePublicationTypeTargets } from "@/content/publication-types";
-import {
-  cloneDefaultRoleTopicPreferences,
-  normalizeRoleTopicPreferences,
-} from "@/content/role-topics";
+import { buildOfficialBalancedEditorialDefaults } from "@/content/planning-presets";
+import { normalizeRoleTopicPreferences } from "@/content/role-topics";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import { isWizardDraftProfileId } from "@/lib/planning-wizard-session";
 
@@ -47,8 +44,6 @@ function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
     roleTargets: { ...account.roleTargets },
     roleTopicPreferences: account.roleTopicPreferences,
     pillarTargets: { ...account.pillarTargets },
-    publicationTypeTargets: { ...account.publicationTypeTargets },
-    cameraMode: account.cameraMode,
     formatTargets: { ...account.formatTargets },
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,
@@ -108,11 +103,12 @@ export function profileSettingsToAccount(
       ...baseAccount.formatTargets,
       ...settings.formatTargets,
     }),
-    publicationTypeTargets: normalizePublicationTypeTargets({
-      ...baseAccount.publicationTypeTargets,
-      ...settings.publicationTypeTargets,
-    }),
-    cameraMode: resolveProfileCameraMode(settings, baseAccount.cameraMode),
+    publicationTypeTargets: normalizePublicationTypeTargets(
+      settings.publicationTypeTargets ?? baseAccount.publicationTypeTargets,
+    ),
+    cameraMode: settings.cameraMode
+      ? resolveProfileCameraMode(settings, baseAccount.cameraMode)
+      : baseAccount.cameraMode,
     repetitionLimits: {
       ...baseAccount.repetitionLimits,
       ...settings.repetitionLimits,
@@ -136,13 +132,14 @@ export function accountToProfileSettings(
   return accountToSettings(account);
 }
 
-/** Plantilla vacía para un perfil nuevo — solo estructura de cuenta, sin mix editorial impuesto. */
+/** Plantilla para un perfil nuevo — arranca con el mix oficial equilibrado. */
 export function createProfileDraft(
   label: string,
   accountType: PlanningAccountType,
   settings?: PlanningAccountOverride,
 ): PlanningProfile {
   const templateAccount = createPlanningAccountTemplate(accountType);
+  const officialEditorial = buildOfficialBalancedEditorialDefaults();
   return {
     id: `profile:${Date.now()}`,
     label,
@@ -152,11 +149,8 @@ export function createProfileDraft(
       settings ??
       accountToSettings({
         ...templateAccount,
-        roleTargets: {} as Partial<Record<ContentRoleId, number>>,
-        roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
+        ...officialEditorial,
         pillarTargets: {},
-        publicationTypeTargets: {},
-        cameraMode: DEFAULT_CAMERA_MODE,
         formatTargets: {},
         repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
         defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

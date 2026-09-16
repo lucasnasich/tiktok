@@ -18,22 +18,16 @@ import {
   profileSettingsToAccount,
   type PlanningProfile,
 } from "@/content/planning-profiles";
-import { OFFICIAL_ROLE_MIX_PRESETS } from "@/content/planning-presets";
+import {
+  buildOfficialBalancedEditorialDefaults,
+  OFFICIAL_ROLE_MIX_PRESETS,
+} from "@/content/planning-presets";
 import {
   PLANNING_SETUP_STEPS,
   ROLE_GUIDES,
   TOPIC_PRIORITY_OPTIONS,
   type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
-import { CAMERA_MODE_OPTIONS } from "@/content/camera-presence";
-import {
-  DEFAULT_CAMERA_MODE,
-  DEFAULT_PUBLICATION_TYPE_TARGETS,
-} from "@/content/planning-defaults";
-import {
-  publicationTypes,
-  type PublicationTypeId,
-} from "@/content/publication-types";
 import {
   activeRolesHaveTopics,
   cloneDefaultRoleTopicPreferences,
@@ -47,7 +41,6 @@ import { accountToOverride } from "@/lib/planning-config-store";
 import { sumPercentTargets } from "@/lib/planning-percent";
 import { settingsRichness } from "@/lib/planning-settings-richness";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { PublicationTypeIcon } from "@/components/planning/publication-type-icons";
 import {
   buildWizardSessionSnapshot,
   isWizardDraftProfileId,
@@ -132,7 +125,6 @@ type PlanningSetupWizardProps = {
 type StepValidationContext = {
   draft: PlanningAccount;
   roleSum: number;
-  publicationSum: number;
   profileLabel: string;
 };
 
@@ -151,8 +143,6 @@ function isStepComplete(
           ctx.draft.roleTopicPreferences,
         )
       );
-    case "publication":
-      return Math.abs(ctx.publicationSum - 100) <= 2;
     default:
       return true;
   }
@@ -240,19 +230,6 @@ function resolveWizardInitialState({
     }
   }
 
-  if (
-    !Object.values(draft.publicationTypeTargets ?? {}).some(
-      (value) => (value ?? 0) > 0,
-    )
-  ) {
-    draft = {
-      ...draft,
-      publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
-    };
-  }
-  if (!draft.cameraMode) {
-    draft = { ...draft, cameraMode: DEFAULT_CAMERA_MODE };
-  }
   draft = {
     ...draft,
     roleTopicPreferences: normalizeRoleTopicPreferences(
@@ -260,6 +237,21 @@ function resolveWizardInitialState({
       draft.pillarTargets,
     ),
   };
+
+  const hasRoleMix = Object.values(draft.roleTargets ?? {}).some(
+    (value) => (value ?? 0) > 0,
+  );
+  if (!existingProfile && !hasRoleMix) {
+    const official = buildOfficialBalancedEditorialDefaults();
+    draft = {
+      ...draft,
+      roleTargets: { ...official.roleTargets },
+      roleTopicPreferences: normalizeRoleTopicPreferences(
+        official.roleTopicPreferences,
+        draft.pillarTargets,
+      ),
+    };
+  }
 
   return {
     stepIndex: session
@@ -343,19 +335,6 @@ export function PlanningSetupWizard({
     [],
   );
 
-  const updatePublicationTypeTarget = useCallback(
-    (typeId: PublicationTypeId, value: number) => {
-      setDraft((prev) => ({
-        ...prev,
-        publicationTypeTargets: {
-          ...prev.publicationTypeTargets,
-          [typeId]: value,
-        },
-      }));
-    },
-    [],
-  );
-
   const goToStep = useCallback(
     (nextIndex: number) => {
       const clampedIndex = Math.min(
@@ -391,13 +370,9 @@ export function PlanningSetupWizard({
   const roleSum = sumPercentTargets(
     draft.roleTargets as Record<string, number>,
   );
-  const publicationSum = sumPercentTargets(
-    draft.publicationTypeTargets as Record<string, number>,
-  );
   const stepValidation: StepValidationContext = {
     draft,
     roleSum,
-    publicationSum,
     profileLabel,
   };
   const canAdvance = isStepComplete(step.id, stepValidation);
@@ -449,7 +424,14 @@ export function PlanningSetupWizard({
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => updateDraft({ roleTargets: preset.roleTargets })}
+                onClick={() =>
+                  updateDraft({
+                    roleTargets: preset.roleTargets,
+                    ...(preset.roleTopicPreferences && {
+                      roleTopicPreferences: preset.roleTopicPreferences,
+                    }),
+                  })
+                }
               >
                 {preset.label}
               </Button>
@@ -597,96 +579,6 @@ export function PlanningSetupWizard({
             Suma actual: <strong>{roleSum}%</strong> — idealmente ~100%. Un rol
             en 0% no se programa; una pieza manual igual puede usarlo.
           </p>
-        </div>
-      )}
-
-      {step.id === "publication" && (
-        <div className="space-y-5">
-          <GuideCallout>
-            Tipo de publicación = qué pieza vamos a producir. Formato creativo
-            = cómo la ejecutamos, y se elige al desarrollar cada slot. Sin
-            cámara no significa sin video.
-          </GuideCallout>
-
-          <div className="space-y-2">
-            <p className="text-[13px] font-medium">Restricción de producción</p>
-            <div className="grid gap-2">
-              {CAMERA_MODE_OPTIONS.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => updateDraft({ cameraMode: option.id })}
-                  className={cn(
-                    "rounded-lg border px-3 py-2.5 text-left transition-colors",
-                    draft.cameraMode === option.id
-                      ? "border-foreground bg-muted/60"
-                      : "border-border hover:bg-muted/40",
-                  )}
-                >
-                  <p className="text-[13px] font-medium">{option.label}</p>
-                  <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-                    {option.description}
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-[13px] font-medium">Tipos de publicación</p>
-            {publicationTypes.map((type) => {
-              const value = draft.publicationTypeTargets[type.id] ?? 0;
-              return (
-                <Card key={type.id} size="sm" className="ring-border/80">
-                  <CardHeader className="gap-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-                          <PublicationTypeIcon
-                            typeId={type.id}
-                            className="size-4"
-                          />
-                        </div>
-                        <div className="min-w-0 space-y-1">
-                          <CardTitle className="text-[15px]">
-                            {type.label}
-                          </CardTitle>
-                          <p className="text-[13px] text-muted-foreground">
-                            {type.summary}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <Input
-                          type="number"
-                          min={0}
-                          max={100}
-                          value={value}
-                          onChange={(event) =>
-                            updatePublicationTypeTarget(
-                              type.id,
-                              Number(event.target.value) || 0,
-                            )
-                          }
-                          className="h-7 w-16 text-center text-[13px]"
-                        />
-                        <span className="text-[13px] text-muted-foreground">
-                          %
-                        </span>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0 text-[13px] text-muted-foreground">
-                    Ejemplo: {type.example}
-                  </CardContent>
-                </Card>
-              );
-            })}
-            <p className="text-[13px] text-muted-foreground">
-              Suma actual: <strong>{publicationSum}%</strong> — idealmente
-              ~100%. Un tipo en 0% no se programa.
-            </p>
-          </div>
         </div>
       )}
 

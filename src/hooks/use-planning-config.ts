@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 
 import type { CalendarGenerationRequest } from "@/content/calendar-generations";
+import { cameraModeFromPresence } from "@/content/camera-presence";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   createProfileDraft,
@@ -92,6 +93,12 @@ export function usePlanningConfig() {
       store,
       active.profileId,
       active.accountIds,
+      active.rhythm,
+      {
+        cameraMode:
+          active.cameraMode ?? cameraModeFromPresence(active.cameraPresence),
+        publicationTypeTargets: active.publicationTypeTargets,
+      },
     );
   }, [store]);
 

@@ -2,7 +2,7 @@ import type { PlanningAccount } from "@/content/planning-accounts";
 import { profileSettingsToAccount } from "@/content/planning-profiles";
 import { normalizeRoleTopicPreferences } from "@/content/role-topics";
 import {
-  accountToOverride,
+  accountToProfileOverride,
   type PlanningAccountOverride,
 } from "@/lib/planning-config-store";
 
@@ -65,7 +65,7 @@ export function buildWizardSessionSnapshot({
     profileId: profileId ?? getWizardDraftProfileId(accountId),
     profileLabel,
     stepIndex,
-    settings: accountToOverride(draft),
+    settings: accountToProfileOverride(draft),
     pillarPriorities: {},
     selectedFormatIds: [],
     updatedAt: Date.now(),

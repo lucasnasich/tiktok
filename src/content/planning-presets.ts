@@ -4,12 +4,10 @@ import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import type { RepetitionLimits } from "@/content/planning-accounts";
 import {
   DEFAULT_ACTIVE_DAYS,
-  DEFAULT_CAMERA_MODE,
   DEFAULT_DISTRIBUTION_TYPE,
   DEFAULT_FORMAT_TARGETS,
   DEFAULT_OFFICIAL_PLATFORMS,
   DEFAULT_PILLAR_TARGETS_OFFICIAL,
-  DEFAULT_PUBLICATION_TYPE_TARGETS,
   DEFAULT_REPETITION_LIMITS,
   DEFAULT_ROLE_TARGETS_OFFICIAL,
   DEFAULT_TIME_SLOTS,
@@ -17,6 +15,7 @@ import {
 import {
   cloneDefaultRoleTopicPreferences,
   normalizeRoleTopicPreferences,
+  type RoleTopicPreferences,
 } from "@/content/role-topics";
 import { normalizePercentTargets } from "@/lib/planning-percent";
 
@@ -25,7 +24,10 @@ export type RoleMixPreset = {
   label: string;
   hint: string;
   roleTargets: Partial<Record<ContentRoleId, number>>;
+  roleTopicPreferences?: RoleTopicPreferences;
 };
+
+const OFFICIAL_BALANCED_TOPIC_PREFERENCES = cloneDefaultRoleTopicPreferences();
 
 export const OFFICIAL_ROLE_MIX_PRESETS: RoleMixPreset[] = [
   {
@@ -33,6 +35,7 @@ export const OFFICIAL_ROLE_MIX_PRESETS: RoleMixPreset[] = [
     label: "Oficial equilibrado",
     hint: "El mix oficial: proceso primero, después educación y producto.",
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
+    roleTopicPreferences: OFFICIAL_BALANCED_TOPIC_PREFERENCES,
   },
   {
     id: "oficial-autoridad",
@@ -61,6 +64,22 @@ export const OFFICIAL_ROLE_MIX_PRESETS: RoleMixPreset[] = [
     },
   },
 ];
+
+export function getOfficialBalancedPreset(): RoleMixPreset {
+  return OFFICIAL_ROLE_MIX_PRESETS.find((preset) => preset.id === "oficial-equilibrado")!;
+}
+
+/** Roles + temas del preset oficial equilibrado (perfil Institucional). */
+export function buildOfficialBalancedEditorialDefaults(): Pick<
+  PlanningAccountOverride,
+  "roleTargets" | "roleTopicPreferences"
+> {
+  const preset = getOfficialBalancedPreset();
+  return {
+    roleTargets: { ...preset.roleTargets },
+    roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
+  };
+}
 
 export type VarietyPreset = {
   id: string;
@@ -182,12 +201,6 @@ export function fillOfficialEditorialGaps(
     pillarTargets: hasPositiveTargets(account.pillarTargets)
       ? account.pillarTargets
       : { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
-    publicationTypeTargets: hasPositiveTargets(
-      account.publicationTypeTargets as Record<string, number>,
-    )
-      ? account.publicationTypeTargets
-      : { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
-    cameraMode: account.cameraMode ?? DEFAULT_CAMERA_MODE,
     formatTargets: account.formatTargets,
   };
 }
@@ -239,8 +252,6 @@ export function buildMercantisOfficialCuratedSettings(): PlanningAccountOverride
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
-    publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
-    cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: normalizePercentTargets(formatWeights),
     repetitionLimits: repetitionLimitsWithFormatRotation(3),
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
@@ -256,8 +267,6 @@ export function buildOfficialRecommendedSettings(): PlanningAccountOverride {
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
-    publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
-    cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: { ...DEFAULT_FORMAT_TARGETS },
     repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

@@ -17,10 +17,15 @@ import {
   PlanningRhythmFields,
 } from "@/components/planning/PlanningRhythmFields";
 import {
-  CAMERA_MODE_LABELS,
-  cameraModeFromPresence,
-  presenceFromCameraMode,
+  DEFAULT_CAMERA_MODE,
 } from "@/content/camera-presence";
+import type { CameraMode } from "@/content/camera-presence";
+import { DEFAULT_PUBLICATION_TYPE_TARGETS } from "@/content/planning-defaults";
+import {
+  type PublicationTypeId,
+} from "@/content/publication-types";
+import { PlanningProductionFields } from "@/components/planning/PlanningProductionFields";
+import { sumPercentTargets } from "@/lib/planning-percent";
 import {
   CALENDAR_GENERATION_RANGE_PRESETS,
   formatCalendarGenerationDateRange,
@@ -167,6 +172,10 @@ export function PlanningCalendarSetup({
     useState<CalendarPublishingMode>("mirrored");
   const [rhythm, setRhythm] = useState<PlanningRhythm>(DEFAULT_PLANNING_RHYTHM);
   const [selectedProfileId, setSelectedProfileId] = useState<string>();
+  const [cameraMode, setCameraMode] = useState<CameraMode>(DEFAULT_CAMERA_MODE);
+  const [publicationTypeTargets, setPublicationTypeTargets] = useState<
+    Partial<Record<PublicationTypeId, number>>
+  >({ ...DEFAULT_PUBLICATION_TYPE_TARGETS });
 
   const resolvedRange = useMemo(
     () =>
@@ -184,18 +193,21 @@ export function PlanningCalendarSetup({
   const selectedProfile = compatibleProfiles.find(
     (profile) => profile.id === selectedProfileId,
   );
-  const profileCameraMode = selectedProfile
-    ? cameraModeFromPresence(
-        selectedProfile.settings.cameraMode ??
-          selectedProfile.settings.cameraPresence,
-      )
-    : undefined;
+
+  const selectedPlatforms = studioAccounts
+    .filter((account) => selectedAccountIds.includes(account.id))
+    .map((account) => account.platform);
+
+  const publicationSum = sumPercentTargets(
+    publicationTypeTargets as Record<string, number>,
+  );
 
   const canGenerate =
     resolvedRange !== undefined &&
     selectedAccountIds.length > 0 &&
     selectedProfile !== undefined &&
     isPlanningRhythmComplete(rhythm) &&
+    Math.abs(publicationSum - 100) <= 2 &&
     hasEditorialMix({
       roleTargets: selectedProfile.settings.roleTargets ?? {},
     });
@@ -244,9 +256,8 @@ export function PlanningCalendarSetup({
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-[13px] leading-relaxed text-muted-foreground">
-            El perfil define roles, temas por rol, tipos de publicación y restricciones
-            de producción. Después lo asociás a las cuentas al generar el
-            calendario.
+            El perfil define roles y temas por rol. La producción (cámara y tipos
+            de publicación) la elegís al generar slots o en cada slot.
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
               <Link to="/planificacion/configuracion">Ir a configuración</Link>
@@ -303,18 +314,13 @@ export function PlanningCalendarSetup({
 
       <PlanningRhythmFields value={rhythm} onChange={setRhythm} />
 
-      {profileCameraMode ? (
-        <div className="space-y-1.5 rounded-lg border border-border px-3 py-2.5">
-          <p className="text-[13px] font-medium">Restricción de producción</p>
-          <p className="text-[13px] text-foreground">
-            {CAMERA_MODE_LABELS[profileCameraMode]}
-          </p>
-          <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Viene del perfil editorial. Sin cámara no significa sin video: un
-            reel puede ser motion, screen recording o IA.
-          </p>
-        </div>
-      ) : null}
+      <PlanningProductionFields
+        cameraMode={cameraMode}
+        onCameraModeChange={setCameraMode}
+        publicationTypeTargets={publicationTypeTargets}
+        onPublicationTypeTargetsChange={setPublicationTypeTargets}
+        platforms={selectedPlatforms}
+      />
 
       <div className="space-y-2">
         <p className="text-[13px] font-medium">Cuentas</p>
@@ -418,9 +424,8 @@ export function PlanningCalendarSetup({
             dateTo: resolvedRange.dateTo,
             publishingMode:
               selectedAccountIds.length > 1 ? publishingMode : "independent",
-            cameraPresence: presenceFromCameraMode(
-              profileCameraMode ?? "faceless",
-            ),
+            cameraMode,
+            publicationTypeTargets,
             rhythm,
           });
         }}
@@ -444,8 +449,8 @@ export function PlanningCalendarSetup({
           </div>
           <CardTitle className="text-base">Generar calendario</CardTitle>
           <p className="text-[13px] leading-relaxed text-muted-foreground">
-            Definí el período, el ritmo, las cuentas y el perfil editorial. Los
-            slots se congelan al confirmar.
+            Definí el período, el ritmo, la producción, las cuentas y el perfil
+            editorial. Los slots se congelan al confirmar.
           </p>
         </CardHeader>
         <CardContent>{form}</CardContent>
