@@ -1,38 +1,38 @@
 export const SLOT_DESCRIPTION_PROMPT = `Prepará este slot de contenido Mercantis. No escribas copy final, hooks literales para publicar, captions ni propuestas.
 
-Regla madre: EL FORMATO MANDA SOBRE EL PILAR.
+Regla madre: EL TIPO DE PUBLICACIÓN DEFINE LA PIEZA. EL FORMATO CREATIVO SE ELIGE DESPUÉS.
 - El pilar dice de qué habla la pieza.
-- El formato dice CÓMO está armada (mecanismo narrativo y lenguaje visual).
-- La cámara dice con qué producción (sin cara, presentador, o invitado).
-- El Mercantis Brain da hechos. No convierte el formato en un demo de producto.
-- Los tres campos tienen que ser coherentes entre sí. Si la descripción es un testimonio, los briefs no pueden pedir un tour de la interfaz.
+- El tipo de publicación dice qué asset nativo hay que producir (imagen, carrusel, reel o story).
+- El formato creativo NO está asignado en el calendario. Hay una lista recomendada ya filtrada por producción.
+- La cámara es una restricción dura: sin cámara ≠ sin video. No pedir talking head, vlog, entrevista ni grabación física si la producción es faceless.
+- El Mercantis Brain da hechos. No convierte un reel faceless en un demo a cámara.
+- Los tres campos tienen que ser coherentes entre sí y con los formatos creativos permitidos.
 
 Tenés que devolver JSON con exactamente tres campos:
 
 1. editorialDescription — 2 a 4 oraciones en español argentino, prosa continua y amigable.
    - Explicá qué pieza hay que crear y qué intención editorial tiene.
-   - Encajá rol, pilar, formato, cuenta y producción.
+   - Encajá rol, pilar, tipo de publicación, cuenta y producción.
    - Sin listas, viñetas, guiones largos (—) ni prefijos del tipo "Rol:", "Pilar:" o "Formato:".
    - No inventes features, pricing, clientes, métricas, historia, roadmap ni claims.
    - Si un dato no está en el Mercantis Brain citado: no lo completes.
 
-2. structuralSearchBrief — 1 a 3 oraciones EXCLUSIVAMENTE sobre el mecanismo del FORMATO.
-   - Hook, beats, ritmo, progresión, payoff y CTA si el formato lo pide.
-   - Tiene que sonar a ese formato (testimonio = arco de prueba social; tier list = ranking; chat = diálogo; etc.).
+2. structuralSearchBrief — 1 a 3 oraciones EXCLUSIVAMENTE sobre el mecanismo de una ejecución compatible.
+   - Hook, beats, ritmo, progresión, payoff y CTA si el tipo de pieza lo pide.
+   - Tiene que sonar a un formato creativo de la lista recomendada (screen recording, motion, lista, chat, etc.).
    - PROHIBIDO describir paleta, composición, estética o un walkthrough de producto.
-   - PROHIBIDO reemplazar el formato por “mostrar la IA / el backoffice / el catálogo” salvo que el formato sea precisamente una captura o un garabato sobre UNA imagen.
+   - PROHIBIDO pedir una persona a cámara si la producción es sin cámara.
 
-3. visualSearchBrief — 1 a 3 oraciones EXCLUSIVAMENTE sobre el lenguaje visual de ESTE formato × ESTA cámara.
-   - Derivá el sujeto visual del formato, no del pilar.
-   - Sin cámara: placas, motion (incluida animación tipo Remotion), layouts, quotes, ratings, UI del formato (chat, notas, reseñas, Google), B-roll. Nadie a cuadro.
-   - En cámara: presentador + overlays del formato.
-   - Con invitado: el invitado es el sujeto si el formato es testimonial/prueba social.
-   - “Pantalla” no significa capturas de Mercantis. Significa el dispositivo visual del formato.
+3. visualSearchBrief — 1 a 3 oraciones EXCLUSIVAMENTE sobre el lenguaje visual de ESTE tipo de publicación × ESTA producción.
+   - Derivá el sujeto visual del tipo de pieza y de un formato creativo permitido, no del pilar.
+   - Sin cámara: placas, motion (incluida animación tipo Remotion), screen recording, layouts, quotes, ratings, UI (chat, notas, reseñas, Google), B-roll generado. Nadie a cuadro.
+   - Cámara permitida: se puede un presentador, pero no es obligatorio.
+   - “Pantalla” no significa capturas de Mercantis salvo que el formato sea screen recording.
    - PROHIBIDO hablar del tema comercial salvo que sea visualmente imprescindible.
 
-Usá el menú de ejemplos de producción como familia de caminos. Elegí uno y adaptalo. No copies literal.
-No cambies cuenta, rol, pilar, formato ni restricciones de cámara.
-No desaconsejes el formato asignado.
+Usá el menú de ejemplos de producción y la lista de formatos recomendados como familia de caminos. Elegí uno compatible y adaptalo. No copies literal.
+No cambies cuenta, rol, pilar, tipo de publicación ni restricciones de cámara.
+No sugieras talking head, vlog, entrevista o selfie si la producción es sin cámara.
 No generes propuestas, ángulos ni copy publicable.
 `;
 
@@ -86,6 +86,8 @@ export function buildSlotDescriptionUserPrompt({
   formatLabel,
   formatId,
   formatSummary,
+  publicationTypeLabel,
+  recommendedCreativeFormats = [],
   formatProductionSection,
   cameraPresenceLabel,
   cameraPresenceConstraint,
@@ -132,9 +134,15 @@ export function buildSlotDescriptionUserPrompt({
     `- Pilar: ${pillarLabel || pillarId || "—"}${
       pillarSummary ? ` — ${pillarSummary}` : ""
     }`,
-    `- Formato: ${formatLabel || formatId || "—"}${
-      formatSummary ? ` — ${formatSummary}` : ""
-    }`,
+    `- Tipo de publicación: ${publicationTypeLabel || "—"}`,
+    `- Formatos creativos recomendados: ${
+      Array.isArray(recommendedCreativeFormats) &&
+      recommendedCreativeFormats.length > 0
+        ? recommendedCreativeFormats
+            .map((item) => item.label || item.id)
+            .join(" · ")
+        : formatLabel || formatId || "a definir al desarrollar"
+    }${formatSummary ? ` — ${formatSummary}` : ""}`,
     `- Producción / cámara: ${cameraPresenceLabel || "Sin restricción declarada."}`,
     cameraPresenceConstraint ? `- ${cameraPresenceConstraint}` : "",
     "",

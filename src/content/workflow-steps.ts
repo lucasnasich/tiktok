@@ -9,16 +9,16 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "planificacion",
     title: "Planificación",
-    summary: "El perfil se convierte en slots: cuenta, hora, rol, pilar y formato.",
+    summary: "El perfil se convierte en slots: cuenta, hora, rol, pilar y tipo de publicación.",
     details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-**Perfil** (empezando por Mercantis oficial): plataformas, días, cantidad, horarios, mix de roles/pilares/formatos y variedad. Se configura con presets, no todos los días.
+**Perfil** (empezando por Mercantis oficial): plataformas, días, cantidad, horarios, mix de roles/pilares/tipos de publicación y restricciones de producción. Se configura con presets, no todos los días.
 
 **Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 
-Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Formato**.
+Planificación decide: **Cuenta → Plataforma → Hora → Rol → Pilar → Tipo de publicación**.
 
-El usuario **no** vuelve a elegir esas variables al trabajar el slot.
+El usuario **no** vuelve a elegir esas variables al trabajar el slot. El **formato creativo** se propone después, al desarrollar.
 
 Los \`roleTargets\` del perfil gobiernan el mix **semanal**.
 
@@ -27,8 +27,10 @@ Esta planificación es **orgánica**. Ads es una iteración futura distinta.
 **Capas del contenido** (no mezclar):
 - **Rol** = mundo editorial (\`content-roles.ts\`) — proceso, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Pilar** = de qué hablamos (\`planning-pillars.ts\`)
+- **Tipo de publicación** = qué pieza nativa (\`publication-types.ts\`) — imagen, carrusel, reel, story
+- **Restricción de producción** = qué se puede filmar (\`camera-presence.ts\`) — sin cámara ≠ sin video
 - **Ángulo** = cómo lo contamos (\`angles.ts\`) — lo propone Cursor en las Proposals
-- **Formato** = cómo lo mostramos (\`formats.ts\`)
+- **Formato creativo** = cómo ejecutamos la pieza (\`formats.ts\`) — biblioteca al desarrollar, no rotación del calendario
 
 **Output:** slots listos para abrir en el SlotDetailSheet.`,
   },

@@ -1,5 +1,9 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import { DEFAULT_ROLE_TARGETS_OFFICIAL as ROLE_TARGETS_OFFICIAL } from "@/content/content-roles";
+import type { CameraMode } from "@/content/camera-presence";
+import { DEFAULT_CAMERA_MODE as CAMERA_MODE_DEFAULT } from "@/content/camera-presence";
+import { DEFAULT_PUBLICATION_TYPE_TARGETS as PUBLICATION_TYPE_TARGETS } from "@/content/publication-types";
+import type { PublicationTypeId } from "@/content/publication-types";
 import type { DistributionType } from "@/content/planned-slots";
 
 /** Horarios disponibles por defecto para asignar piezas. */
@@ -12,7 +16,15 @@ export const DEFAULT_REPETITION_LIMITS = {
   maxConsecutiveSamePillar: 2,
   maxSameFormatInPeriod: 3,
   maxSameRoleInRow: 2,
+  maxSamePublicationTypeInPeriod: 3,
 };
+
+export const DEFAULT_CAMERA_MODE: CameraMode = CAMERA_MODE_DEFAULT;
+
+export const DEFAULT_PUBLICATION_TYPE_TARGETS: Record<PublicationTypeId, number> =
+  {
+    ...PUBLICATION_TYPE_TARGETS,
+  };
 
 export const DEFAULT_DISTRIBUTION_TYPE: DistributionType = "organic";
 

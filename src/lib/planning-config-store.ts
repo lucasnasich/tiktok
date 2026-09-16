@@ -1,4 +1,10 @@
 import {
+  cameraModeFromPresence,
+  DEFAULT_CAMERA_MODE,
+  type CameraMode,
+  type CameraPresenceMode,
+} from "@/content/camera-presence";
+import {
   normalizeRoleId,
   normalizeRoleTargets,
   type ContentRoleId,
@@ -17,6 +23,10 @@ import {
 } from "@/content/planning-studio-accounts";
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
+import {
+  normalizePublicationTypeTargets,
+  type PublicationTypeId,
+} from "@/content/publication-types";
 import {
   createProfileDraft,
   PROFILE_ACCOUNT_TYPES,
@@ -66,6 +76,10 @@ export type PlanningAccountOverride = {
   roleTargets?: Partial<Record<ContentRoleId, number>>;
   pillarTargets?: Record<string, number>;
   formatTargets?: Record<string, number>;
+  publicationTypeTargets?: Partial<Record<PublicationTypeId, number>>;
+  cameraMode?: CameraMode;
+  /** Legacy: presencia de cámara de generaciones anteriores. */
+  cameraPresence?: CameraPresenceMode;
   repetitionLimits?: RepetitionLimits;
   defaultDistributionType?: DistributionType;
   alternateRoles?: [ContentRoleId, ContentRoleId];
@@ -122,6 +136,12 @@ function migrateAccountOverride(
     roleTargets: settings.roleTargets
       ? normalizeRoleTargets(settings.roleTargets)
       : settings.roleTargets,
+    publicationTypeTargets: settings.publicationTypeTargets
+      ? normalizePublicationTypeTargets(settings.publicationTypeTargets)
+      : settings.publicationTypeTargets,
+    cameraMode: cameraModeFromPresence(
+      settings.cameraMode ?? settings.cameraPresence ?? DEFAULT_CAMERA_MODE,
+    ),
     alternateRoles: settings.alternateRoles
       ? [
           normalizeRoleId(settings.alternateRoles[0]),
@@ -843,6 +863,8 @@ export function accountToOverride(account: PlanningAccount): PlanningAccountOver
   return {
     roleTargets: normalizeRoleTargets(account.roleTargets),
     pillarTargets: { ...account.pillarTargets },
+    publicationTypeTargets: { ...account.publicationTypeTargets },
+    cameraMode: account.cameraMode,
     formatTargets: { ...account.formatTargets },
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,

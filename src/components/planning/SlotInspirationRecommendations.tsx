@@ -139,6 +139,7 @@ export function SlotInspirationRecommendations({
   const structureQuery = useMemo(
     () => buildStructureQuery(slot, record),
     [
+      slot.publicationTypeId,
       slot.formatId,
       slot.roleId,
       slot.pillarId,
@@ -151,6 +152,7 @@ export function SlotInspirationRecommendations({
   const visualQuery = useMemo(
     () => buildVisualQuery(slot, record),
     [
+      slot.publicationTypeId,
       slot.formatId,
       slot.cameraPresence,
       record?.visualSearchBrief,
@@ -256,6 +258,7 @@ export function SlotInspirationRecommendations({
     structureQuery,
     visualQuery,
     slot.id,
+    slot.publicationTypeId,
     slot.formatId,
     slot.roleId,
     slot.pillarId,

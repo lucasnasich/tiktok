@@ -4,10 +4,12 @@ import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import type { RepetitionLimits } from "@/content/planning-accounts";
 import {
   DEFAULT_ACTIVE_DAYS,
+  DEFAULT_CAMERA_MODE,
   DEFAULT_DISTRIBUTION_TYPE,
   DEFAULT_FORMAT_TARGETS,
   DEFAULT_OFFICIAL_PLATFORMS,
   DEFAULT_PILLAR_TARGETS_OFFICIAL,
+  DEFAULT_PUBLICATION_TYPE_TARGETS,
   DEFAULT_REPETITION_LIMITS,
   DEFAULT_ROLE_TARGETS_OFFICIAL,
   DEFAULT_TIME_SLOTS,
@@ -74,7 +76,7 @@ export const VARIETY_PRESETS: VarietyPreset[] = [
   {
     id: "strict",
     label: "Más variedad",
-    hint: "Cambia de rol, pilar y formato más seguido.",
+    hint: "Cambia de rol y pilar más seguido.",
     limits: {
       maxConsecutiveSamePillar: 1,
       maxSameFormatInPeriod: 2,
@@ -171,9 +173,13 @@ export function fillOfficialEditorialGaps(
     pillarTargets: hasPositiveTargets(account.pillarTargets)
       ? account.pillarTargets
       : { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
-    formatTargets: hasPositiveTargets(account.formatTargets)
-      ? account.formatTargets
-      : { ...DEFAULT_FORMAT_TARGETS },
+    publicationTypeTargets: hasPositiveTargets(
+      account.publicationTypeTargets as Record<string, number>,
+    )
+      ? account.publicationTypeTargets
+      : { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
+    cameraMode: account.cameraMode ?? DEFAULT_CAMERA_MODE,
+    formatTargets: account.formatTargets,
   };
 }
 
@@ -234,6 +240,8 @@ export function buildMercantisOfficialCuratedSettings(): PlanningAccountOverride
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
+    publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
+    cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: normalizePercentTargets(formatWeights),
     repetitionLimits: repetitionLimitsWithFormatRotation(3),
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
@@ -248,6 +256,8 @@ export function buildOfficialRecommendedSettings(): PlanningAccountOverride {
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
+    publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
+    cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: { ...DEFAULT_FORMAT_TARGETS },
     repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

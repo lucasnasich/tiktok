@@ -3,7 +3,6 @@ import type { KeyboardEvent } from "react";
 import { PlatformIcon } from "@/components/icons/platform-icon";
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
@@ -12,6 +11,7 @@ import {
   PLANNING_SLOT_STATUS_LABELS,
   getSlotDisplayPlatforms,
   getSlotDistributionType,
+  getSlotPublicationTypeShortLabel,
   sortSlotPlatforms,
   type PlanningSlot,
 } from "@/content/planned-slots";
@@ -122,7 +122,7 @@ export function PlanningSlotCard({
         </div>
         <p className="mt-0.5 truncate text-[11px] leading-snug text-muted-foreground">
           {slot.time} · {getContentRoleLabel(slot.roleId)} ·{" "}
-          {getFormatLabel(slot.formatId)}
+          {getSlotPublicationTypeShortLabel(slot)}
         </p>
       </div>
     );
@@ -174,7 +174,7 @@ export function PlanningSlotCard({
           {slot.generated ? " · auto" : ""}
         </p>
         <p className="text-[13px] leading-relaxed text-foreground">
-          {getFormatLabel(slot.formatId)}
+          {getSlotPublicationTypeShortLabel(slot)}
           {slot.angleId ? ` · ${getAngleLabel(slot.angleId)}` : ""}
         </p>
         {selected ? (

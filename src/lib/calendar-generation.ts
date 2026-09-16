@@ -1,5 +1,5 @@
 import {
-  filterFormatTargetsForCameraPresence,
+  presenceFromCameraMode,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
 import {
@@ -36,19 +36,6 @@ function stampGenerationSlots(
   });
 }
 
-function applyCameraPresenceToAccounts(
-  accounts: PlanningAccount[],
-  cameraPresence: CameraPresenceMode,
-): PlanningAccount[] {
-  return accounts.map((account) => ({
-    ...account,
-    formatTargets: filterFormatTargetsForCameraPresence(
-      account.formatTargets,
-      cameraPresence,
-    ),
-  }));
-}
-
 function generateUnifiedSlots(
   planningAccounts: PlanningAccount[],
   studioAccountIds: string[],
@@ -56,13 +43,9 @@ function generateUnifiedSlots(
   dateTo: string,
   cameraPresence: CameraPresenceMode,
 ): PlanningSlot[] {
-  const adjustedAccounts = applyCameraPresenceToAccounts(
-    planningAccounts,
-    cameraPresence,
-  );
-  const leadAccount = adjustedAccounts[0];
+  const leadAccount = planningAccounts[0];
   const platforms = [
-    ...new Set(adjustedAccounts.flatMap((account) => account.platforms)),
+    ...new Set(planningAccounts.flatMap((account) => account.platforms)),
   ];
   const unifiedAccount: PlanningAccount = {
     ...leadAccount,
@@ -114,7 +97,7 @@ export function createCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode,
-    cameraPresence,
+    cameraPresence: requestedCameraPresence,
     rhythm,
   } = input;
   const profile = resolveProfile(profileId, store.profiles);
@@ -134,14 +117,17 @@ export function createCalendarGeneration(
   if (planningAccounts.length === 0) return undefined;
   if (dateFrom > dateTo) return undefined;
 
+  const cameraPresence = presenceFromCameraMode(
+    planningAccounts[0]?.cameraMode ??
+      (requestedCameraPresence === "on-camera" ||
+      requestedCameraPresence === "needs-guest"
+        ? "camera_allowed"
+        : "faceless"),
+  );
+
   const generationId = `generation:${Date.now()}`;
   const useMirrored =
     publishingMode === "mirrored" && planningAccounts.length > 1;
-
-  const adjustedAccounts = applyCameraPresenceToAccounts(
-    planningAccounts,
-    cameraPresence,
-  );
 
   const rawSlots = useMirrored
     ? generateUnifiedSlots(
@@ -152,7 +138,7 @@ export function createCalendarGeneration(
         cameraPresence,
       )
     : generateMissingSlots({
-        accounts: adjustedAccounts,
+        accounts: planningAccounts,
         dateFrom,
         dateTo,
         existingSlots: [],

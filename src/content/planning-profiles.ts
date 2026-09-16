@@ -1,4 +1,9 @@
 import {
+  cameraModeFromPresence,
+  DEFAULT_CAMERA_MODE,
+  type CameraMode,
+} from "@/content/camera-presence";
+import {
   getContentRoleLabel,
   normalizeRoleId,
   normalizeRoleTargets,
@@ -15,6 +20,7 @@ import {
 } from "@/content/planning-defaults";
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
+import { normalizePublicationTypeTargets } from "@/content/publication-types";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import { isWizardDraftProfileId } from "@/lib/planning-wizard-session";
 
@@ -36,6 +42,8 @@ function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
   return {
     roleTargets: { ...account.roleTargets },
     pillarTargets: { ...account.pillarTargets },
+    publicationTypeTargets: { ...account.publicationTypeTargets },
+    cameraMode: account.cameraMode,
     formatTargets: { ...account.formatTargets },
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,
@@ -62,6 +70,17 @@ export function resolveProfile(
   return profiles.find((profile) => profile.id === profileId);
 }
 
+function resolveProfileCameraMode(
+  settings: PlanningAccountOverride,
+  fallback: CameraMode,
+): CameraMode {
+  if (settings.cameraMode) return cameraModeFromPresence(settings.cameraMode);
+  if (settings.cameraPresence) {
+    return cameraModeFromPresence(settings.cameraPresence);
+  }
+  return fallback;
+}
+
 export function profileSettingsToAccount(
   baseAccount: PlanningAccount,
   settings: PlanningAccountOverride,
@@ -80,6 +99,11 @@ export function profileSettingsToAccount(
       ...baseAccount.formatTargets,
       ...settings.formatTargets,
     }),
+    publicationTypeTargets: normalizePublicationTypeTargets({
+      ...baseAccount.publicationTypeTargets,
+      ...settings.publicationTypeTargets,
+    }),
+    cameraMode: resolveProfileCameraMode(settings, baseAccount.cameraMode),
     repetitionLimits: {
       ...baseAccount.repetitionLimits,
       ...settings.repetitionLimits,
@@ -121,6 +145,8 @@ export function createProfileDraft(
         ...templateAccount,
         roleTargets: {} as Partial<Record<ContentRoleId, number>>,
         pillarTargets: {},
+        publicationTypeTargets: {},
+        cameraMode: DEFAULT_CAMERA_MODE,
         formatTargets: {},
         repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
         defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

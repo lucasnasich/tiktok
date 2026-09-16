@@ -17,6 +17,7 @@ export type PlanningWizardSession = {
   stepIndex: number;
   settings: PlanningAccountOverride;
   pillarPriorities: Record<string, PillarPriority>;
+  /** Legacy: el wizard ya no selecciona formatos creativos. */
   selectedFormatIds: string[];
   updatedAt: number;
 };
@@ -40,17 +41,11 @@ export function buildMergedWizardAccount(
   draft: PlanningAccount,
   pillarPriorities: Record<string, PillarPriority>,
   relevantPillarIds: string[],
-  selectedFormatIds: Iterable<string>,
 ): PlanningAccount {
   const pillarWeights: Record<string, number> = {};
   for (const pillarId of relevantPillarIds) {
     const priority = pillarPriorities[pillarId] ?? "media";
     pillarWeights[pillarId] = PILLAR_PRIORITY_WEIGHT[priority];
-  }
-
-  const formatWeights: Record<string, number> = {};
-  for (const id of selectedFormatIds) {
-    formatWeights[id] = 1;
   }
 
   return {
@@ -59,10 +54,6 @@ export function buildMergedWizardAccount(
       relevantPillarIds.length > 0
         ? normalizePercentTargets(pillarWeights)
         : draft.pillarTargets,
-    formatTargets:
-      formatWeights && Object.keys(formatWeights).length > 0
-        ? normalizePercentTargets(formatWeights)
-        : draft.formatTargets,
   };
 }
 
@@ -81,7 +72,6 @@ export function buildWizardSessionSnapshot({
   draft,
   pillarPriorities,
   relevantPillarIds,
-  selectedFormatIds,
 }: {
   accountId: string;
   profileId?: string;
@@ -90,13 +80,12 @@ export function buildWizardSessionSnapshot({
   draft: PlanningAccount;
   pillarPriorities: Record<string, PillarPriority>;
   relevantPillarIds: string[];
-  selectedFormatIds: string[];
+  selectedFormatIds?: string[];
 }): PlanningWizardSession {
   const merged = buildMergedWizardAccount(
     draft,
     pillarPriorities,
     relevantPillarIds,
-    selectedFormatIds,
   );
 
   return {
@@ -106,7 +95,7 @@ export function buildWizardSessionSnapshot({
     stepIndex,
     settings: accountToOverride(merged),
     pillarPriorities,
-    selectedFormatIds,
+    selectedFormatIds: [],
     updatedAt: Date.now(),
   };
 }

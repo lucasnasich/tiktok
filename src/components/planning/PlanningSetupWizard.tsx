@@ -21,20 +21,24 @@ import {
 } from "@/content/planning-profiles";
 import {
   OFFICIAL_ROLE_MIX_PRESETS,
-  FORMAT_ROTATION_PRESETS,
-  formatRotationPresetIdFor,
-  officialFormatIds,
-  repetitionLimitsWithFormatRotation,
 } from "@/content/planning-presets";
 import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
   PILLAR_PRIORITY_WEIGHT,
   PLANNING_SETUP_STEPS,
   ROLE_GUIDES,
-  getSetupFormats,
   type PillarPriority,
   type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
+import { CAMERA_MODE_OPTIONS } from "@/content/camera-presence";
+import {
+  DEFAULT_CAMERA_MODE,
+  DEFAULT_PUBLICATION_TYPE_TARGETS,
+} from "@/content/planning-defaults";
+import {
+  publicationTypes,
+  type PublicationTypeId,
+} from "@/content/publication-types";
 import { accountToOverride } from "@/lib/planning-config-store";
 import {
   normalizePercentTargets,
@@ -42,9 +46,8 @@ import {
 } from "@/lib/planning-percent";
 import { settingsRichness } from "@/lib/planning-settings-richness";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { FormatGuideSheet } from "@/components/planning/FormatGuideSheet";
-import { FormatSetupOption } from "@/components/planning/FormatSetupOption";
 import { PlanningPillarIcon } from "@/components/planning/planning-pillar-icons";
+import { PublicationTypeIcon } from "@/components/planning/publication-type-icons";
 import {
   buildMergedWizardAccount,
   buildPillarPrioritiesFromTargets,
@@ -131,7 +134,7 @@ type PlanningSetupWizardProps = {
 type StepValidationContext = {
   draft: PlanningAccount;
   roleSum: number;
-  selectedFormats: Set<string>;
+  publicationSum: number;
   pillarPriorities: Record<string, PillarPriority>;
   relevantPillarIds: string[];
   profileLabel: string;
@@ -150,8 +153,8 @@ function isStepComplete(
       return ctx.relevantPillarIds.some(
         (id) => (ctx.pillarPriorities[id] ?? "media") !== "no",
       );
-    case "formats":
-      return ctx.selectedFormats.size > 0;
+    case "publication":
+      return Math.abs(ctx.publicationSum - 100) <= 2;
     default:
       return true;
   }
@@ -239,14 +242,24 @@ function resolveWizardInitialState({
     }
   }
 
+  if (
+    !Object.values(draft.publicationTypeTargets ?? {}).some(
+      (value) => (value ?? 0) > 0,
+    )
+  ) {
+    draft = {
+      ...draft,
+      publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
+    };
+  }
+  if (!draft.cameraMode) {
+    draft = { ...draft, cameraMode: DEFAULT_CAMERA_MODE };
+  }
+
   const pillarPriorities =
     session && Object.keys(session.pillarPriorities).length > 0
       ? session.pillarPriorities
       : buildPillarPrioritiesFromTargets(draft);
-  const selectedFormats =
-    session && session.selectedFormatIds.length > 0
-      ? new Set(session.selectedFormatIds)
-      : new Set(Object.keys(draft.formatTargets));
 
   return {
     stepIndex: session
@@ -257,7 +270,6 @@ function resolveWizardInitialState({
       existingProfile?.label ?? session?.profileLabel ?? "Mi perfil editorial",
     draft,
     pillarPriorities,
-    selectedFormats,
   };
 }
 
@@ -283,10 +295,6 @@ export function PlanningSetupWizard({
   const [pillarPriorities, setPillarPriorities] = useState<
     Record<string, PillarPriority>
   >(initialState.pillarPriorities);
-  const [selectedFormats, setSelectedFormats] = useState<Set<string>>(
-    initialState.selectedFormats,
-  );
-  const [formatGuideId, setFormatGuideId] = useState<string | null>(null);
 
   const step = PLANNING_SETUP_STEPS[stepIndex];
   const relevantPillars = useMemo(
@@ -305,7 +313,6 @@ export function PlanningSetupWizard({
           draft,
           pillarPriorities,
           relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
-          selectedFormatIds: [...selectedFormats],
         }),
       );
     }, 500);
@@ -317,7 +324,6 @@ export function PlanningSetupWizard({
     pillarPriorities,
     profileLabel,
     relevantPillars,
-    selectedFormats,
     selectedProfileId,
     stepIndex,
   ]);
@@ -336,6 +342,19 @@ export function PlanningSetupWizard({
     }));
   }, []);
 
+  const updatePublicationTypeTarget = useCallback(
+    (typeId: PublicationTypeId, value: number) => {
+      setDraft((prev) => ({
+        ...prev,
+        publicationTypeTargets: {
+          ...prev.publicationTypeTargets,
+          [typeId]: value,
+        },
+      }));
+    },
+    [],
+  );
+
   const applyPillarPriorities = useCallback(() => {
     const weights: Record<string, number> = {};
     for (const pillar of relevantPillars) {
@@ -345,20 +364,11 @@ export function PlanningSetupWizard({
     updateDraft({ pillarTargets: normalizePercentTargets(weights) });
   }, [pillarPriorities, relevantPillars, updateDraft]);
 
-  const applyFormatSelection = useCallback(() => {
-    const weights: Record<string, number> = {};
-    for (const id of selectedFormats) {
-      weights[id] = 1;
-    }
-    updateDraft({ formatTargets: normalizePercentTargets(weights) });
-  }, [selectedFormats, updateDraft]);
-
   const applyStepSideEffects = useCallback(
     (fromStepId: PlanningSetupStepId) => {
       if (fromStepId === "pillars") applyPillarPriorities();
-      if (fromStepId === "formats") applyFormatSelection();
     },
-    [applyFormatSelection, applyPillarPriorities],
+    [applyPillarPriorities],
   );
 
   const goToStep = useCallback(
@@ -387,7 +397,6 @@ export function PlanningSetupWizard({
       draft,
       pillarPriorities,
       relevantPillars.map((pillar) => pillar.id),
-      selectedFormats,
     );
     onSave(mergedDraft, {
       profileLabel: profileLabel.trim() || `Perfil · ${mergedDraft.label}`,
@@ -405,7 +414,6 @@ export function PlanningSetupWizard({
     pillarPriorities,
     profileLabel,
     relevantPillars,
-    selectedFormats,
     selectedProfileId,
     step.id,
     stepIndex,
@@ -419,10 +427,13 @@ export function PlanningSetupWizard({
   const roleSum = sumPercentTargets(
     draft.roleTargets as Record<string, number>,
   );
+  const publicationSum = sumPercentTargets(
+    draft.publicationTypeTargets as Record<string, number>,
+  );
   const stepValidation: StepValidationContext = {
     draft,
     roleSum,
-    selectedFormats,
+    publicationSum,
     pillarPriorities,
     relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
     profileLabel,
@@ -602,90 +613,91 @@ export function PlanningSetupWizard({
         </div>
       )}
 
-      {step.id === "formats" && (
-        <div className="space-y-3">
+      {step.id === "publication" && (
+        <div className="space-y-5">
           <GuideCallout>
-            Elegí los formatos que querés rotar ({getSetupFormats().length}{" "}
-            disponibles). Mejor pocos bien distribuidos que marcar todos.
+            Tipo de publicación = qué pieza vamos a producir. Formato creativo
+            = cómo la ejecutamos, y se elige al desarrollar cada slot. Sin
+            cámara no significa sin video.
           </GuideCallout>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={() => setSelectedFormats(new Set(officialFormatIds()))}
-          >
-            Usar formatos recomendados
-          </Button>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {getSetupFormats().map((format) => {
-              const active = selectedFormats.has(format.id);
-              return (
-                <FormatSetupOption
-                  key={format.id}
-                  format={format}
-                  active={active}
-                  onToggle={() =>
-                    setSelectedFormats((prev) => {
-                      const next = new Set(prev);
-                      if (next.has(format.id)) next.delete(format.id);
-                      else next.add(format.id);
-                      return next;
-                    })
-                  }
-                  onOpenGuide={() => setFormatGuideId(format.id)}
-                />
-              );
-            })}
-          </div>
-          <FormatGuideSheet
-            formatId={formatGuideId}
-            open={formatGuideId !== null}
-            onOpenChange={(open) => {
-              if (!open) setFormatGuideId(null);
-            }}
-          />
-          <p className="text-[13px] text-muted-foreground">
-            {selectedFormats.size} formatos seleccionados
-          </p>
 
-          <div className="border-t border-border pt-4">
-            <p className="mb-2 text-[13px] font-medium">Rotación de formatos</p>
-            <GuideCallout>
-              Los roles ya vienen del mix del paso Roles. Los pilares, de las
-              prioridades del paso Pilares. Acá definís cuánto puede repetirse
-              el mismo formato en la semana — el motor baja prioridad, no bloquea.
-            </GuideCallout>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {FORMAT_ROTATION_PRESETS.map((preset) => (
-                <Button
-                  key={preset.id}
+          <div className="space-y-2">
+            <p className="text-[13px] font-medium">Restricción de producción</p>
+            <div className="grid gap-2">
+              {CAMERA_MODE_OPTIONS.map((option) => (
+                <button
+                  key={option.id}
                   type="button"
-                  size="sm"
-                  variant={
-                    formatRotationPresetIdFor(draft.repetitionLimits) ===
-                    preset.id
-                      ? "default"
-                      : "outline"
-                  }
-                  onClick={() =>
-                    updateDraft({
-                      repetitionLimits: repetitionLimitsWithFormatRotation(
-                        preset.maxSameFormatInPeriod,
-                      ),
-                    })
-                  }
+                  onClick={() => updateDraft({ cameraMode: option.id })}
+                  className={cn(
+                    "rounded-lg border px-3 py-2.5 text-left transition-colors",
+                    draft.cameraMode === option.id
+                      ? "border-foreground bg-muted/60"
+                      : "border-border hover:bg-muted/40",
+                  )}
                 >
-                  {preset.label}
-                </Button>
+                  <p className="text-[13px] font-medium">{option.label}</p>
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
+                    {option.description}
+                  </p>
+                </button>
               ))}
             </div>
-            <p className="mt-2 text-[12px] text-muted-foreground">
-              {
-                FORMAT_ROTATION_PRESETS.find(
-                  (preset) =>
-                    preset.id === formatRotationPresetIdFor(draft.repetitionLimits),
-                )?.hint
-              }
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-[13px] font-medium">Tipos de publicación</p>
+            {publicationTypes.map((type) => {
+              const value = draft.publicationTypeTargets[type.id] ?? 0;
+              return (
+                <Card key={type.id} size="sm" className="ring-border/80">
+                  <CardHeader className="gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+                          <PublicationTypeIcon
+                            typeId={type.id}
+                            className="size-4"
+                          />
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <CardTitle className="text-[15px]">
+                            {type.label}
+                          </CardTitle>
+                          <p className="text-[13px] text-muted-foreground">
+                            {type.summary}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={value}
+                          onChange={(event) =>
+                            updatePublicationTypeTarget(
+                              type.id,
+                              Number(event.target.value) || 0,
+                            )
+                          }
+                          className="h-7 w-16 text-center text-[13px]"
+                        />
+                        <span className="text-[13px] text-muted-foreground">
+                          %
+                        </span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0 text-[13px] text-muted-foreground">
+                    Ejemplo: {type.example}
+                  </CardContent>
+                </Card>
+              );
+            })}
+            <p className="text-[13px] text-muted-foreground">
+              Suma actual: <strong>{publicationSum}%</strong> — idealmente
+              ~100%. Un tipo en 0% no se programa.
             </p>
           </div>
         </div>

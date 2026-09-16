@@ -1213,8 +1213,8 @@ export function buildFormatProductionPromptSection({
   const visual = examples.visual.map((item) => `- ${item}`).join("\n");
 
   return [
-    "## Formato (manda sobre el pilar)",
-    `Formato asignado: ${formatLabel || formatId || "—"}${
+    "## Formato creativo (referencia de producción)",
+    `Referencia de producción: ${formatLabel || formatId || "—"}${
       formatSummary ? ` — ${formatSummary}` : ""
     }`,
     `Producción: ${cameraLabel}.`,

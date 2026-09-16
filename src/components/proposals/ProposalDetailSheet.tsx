@@ -5,11 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
 import { getInspirationByKey } from "@/content/inspiration-feed";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  getSlotPublicationTypeShortLabel,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import {
   PROPOSAL_STATUS_LABELS,
   SIGNAL_SOURCE_TYPE_LABELS,
@@ -83,8 +85,8 @@ export function ProposalDetailSheet({
                   value={getPlanningPillarLabel(slot.pillarId)}
                 />
                 <StudioBriefRow
-                  label="Formato"
-                  value={getFormatLabel(slot.formatId)}
+                  label="Tipo de publicación"
+                  value={getSlotPublicationTypeShortLabel(slot)}
                 />
               </div>
               <Link

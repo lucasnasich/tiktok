@@ -165,6 +165,12 @@ export function inspirationIntelligencePlugin(env = process.env) {
                         formatLabel: body.formatLabel,
                         formatId: body.formatId,
                         formatSummary: body.formatSummary,
+                        publicationTypeLabel: body.publicationTypeLabel,
+                        recommendedCreativeFormats: Array.isArray(
+                          body.recommendedCreativeFormats,
+                        )
+                          ? body.recommendedCreativeFormats
+                          : [],
                         formatProductionSection: buildFormatProductionPromptSection({
                           formatId: body.formatId,
                           formatLabel: body.formatLabel,

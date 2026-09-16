@@ -48,7 +48,7 @@ Estados: `live` / `in-development` / `planned` / `vision` / `historical` / `hypo
 
 Cuenta oficial: seria, pulida, no memes. Satélites: más libertad de alcance. Institucional: no política partidaria. Conservar voseo/identidad argentina.
 
-Cursor **no** decide arbitrariamente qué objetivo, pilar, formato, frecuencia o cuenta toca. Eso lo preparó el Studio.
+Cursor **no** decide arbitrariamente qué objetivo, pilar, tipo de publicación, frecuencia o cuenta toca. Eso lo preparó el Studio. El formato creativo (talking head, screen recording, motion, etc.) se propone al desarrollar cada pieza, filtrando primero las ejecuciones incompatibles con la producción (p. ej. sin cámara).
 
 ## Inspiración
 
@@ -73,9 +73,9 @@ Navegación del Studio (no reorganizar): `Inspiración → Planificación → Pr
 4. El usuario ensambla en Figma con copy de Cursor + visuales + sistema Mercantis.
 5. Buffer programa. Métricas cuando el post estuvo un tiempo live.
 
-Planificación → Cuenta · Plataforma · Hora · Rol · Pilar · Formato  
-SlotSpec → Inspiración + Brain + restricciones  
-Cursor → Proposal (concepto, hook, narrativa, copy, CTA, caption)  
+Planificación → Cuenta · Plataforma · Hora · Rol · Pilar · Tipo de publicación  
+SlotSpec → Inspiración + Brain + restricciones + formatos creativos recomendados  
+Cursor → Proposal (concepto, hook, narrativa, formato creativo, copy, CTA, caption)  
 Una pieza = un slot con `platforms[]` (no duplicar por red).
 
 El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `?slot=`, `?reference=`, `?proposal=`.
@@ -84,8 +84,10 @@ El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `
 
 - **Rol** (mundo editorial): `src/content/content-roles.ts` — build in public, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Pilar** (de qué): `src/content/planning-pillars.ts` — taxonomía global Mercantis + pilares extra por cuenta (`estudiantes` solo Study)
+- **Tipo de publicación** (qué pieza nativa): `src/content/publication-types.ts` — imagen, carrusel, reel, story. Lo programa el calendario.
+- **Restricción de producción**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video.
 - **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
-- **Formato** (cómo mostramos): `src/content/formats.ts`
+- **Formato creativo** (cómo ejecutamos la pieza): `src/content/formats.ts` — biblioteca consultable al desarrollar; no se rota en el perfil.
 
 Migración de pilares legacy: `PLANNING_PILLAR_MIGRATION` en `planning-pillars.ts` (ej. `whatsapp` → `ventas-atencion`).
 

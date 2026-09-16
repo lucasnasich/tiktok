@@ -1,7 +1,8 @@
 import {
-  ON_CAMERA_FORMAT_IDS,
+  isFacelessProduction,
   type CameraPresenceMode,
 } from "./camera-presence.ts";
+import { formatRequiresCamera } from "./format-capabilities.ts";
 import { normalizeRoleId, type ContentRoleId } from "./content-roles.ts";
 
 /**
@@ -174,10 +175,10 @@ export function isFormatCompatibleWithPillar(
 
 export function isFormatCompatibleWithCamera(
   formatId: string,
-  cameraPresence?: CameraPresenceMode,
+  cameraPresence?: CameraPresenceMode | string,
 ): boolean {
-  if (cameraPresence !== "off-camera") return true;
-  return !ON_CAMERA_FORMAT_IDS.has(formatId);
+  if (!isFacelessProduction(cameraPresence)) return true;
+  return !formatRequiresCamera(formatId);
 }
 
 export function isSlotComboCompatible(
@@ -212,8 +213,10 @@ export function compatibleFormatTargets(
   const roleId = normalizeRoleId(input.roleId);
   const blocked = new Set<string>(BLOCKED_FORMATS_BY_ROLE[roleId] ?? []);
 
-  if (input.cameraPresence === "off-camera") {
-    for (const formatId of ON_CAMERA_FORMAT_IDS) blocked.add(formatId);
+  if (isFacelessProduction(input.cameraPresence)) {
+    for (const format of Object.keys(targets)) {
+      if (formatRequiresCamera(format)) blocked.add(format);
+    }
   }
 
   if (input.pillarId) {

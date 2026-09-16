@@ -1,5 +1,6 @@
 import {
   DEFAULT_ACTIVE_DAYS,
+  DEFAULT_CAMERA_MODE,
   DEFAULT_DISTRIBUTION_TYPE,
   DEFAULT_REPETITION_LIMITS,
   DEFAULT_TIME_SLOTS,
@@ -167,6 +168,8 @@ export function studioAccountToPlanningBase(
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: {},
     pillarTargets: {},
+    publicationTypeTargets: {},
+    cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: {},
     repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

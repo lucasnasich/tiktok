@@ -5,7 +5,7 @@ export type PlanningSetupStepId =
   | "profile"
   | "roles"
   | "pillars"
-  | "formats";
+  | "publication";
 
 export type PlanningSetupStep = {
   id: PlanningSetupStepId;
@@ -37,11 +37,11 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
       "El pilar responde de qué hablamos — el tema editorial recurrente. Sirve para detectar saturación o huecos en la semana.",
   },
   {
-    id: "formats",
-    label: "Formatos",
-    title: "Formatos creativos",
+    id: "publication",
+    label: "Producción",
+    title: "Tipos de publicación y restricciones",
     intro:
-      "El formato es la envoltura visual del post (pizarra, captura de chat, tier list…). Elegí los que querés priorizar y, abajo, cuánto puede repetirse cada uno en la semana.",
+      "El tipo de publicación es la pieza nativa (imagen, carrusel, reel o story). El formato creativo se decide después, al desarrollar cada pieza. La restricción de cámara limita cómo se puede producir, no si hay video.",
   },
 ];
 
@@ -109,5 +109,3 @@ export const PILLAR_PRIORITY_WEIGHT: Record<PillarPriority, number> = {
 export function getSetupFormats(): Format[] {
   return formats;
 }
-
-/** Límites internos del motor — no se configuran en el wizard orgánico. */

@@ -1,18 +1,18 @@
 import { getAngleLabel } from "@/content/angles";
 import type { ContentRoleId } from "@/content/content-roles";
 import { getContentRoleLabel, normalizeRoleId, normalizeRoleTargets } from "@/content/content-roles";
-import { getFormatById } from "@/content/formats";
-import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   PLANNING_ALL_ACCOUNTS_ID,
   getPlanningAccountLabel,
+  type PlanningAccount,
 } from "@/content/planning-accounts";
+import { getPlanningPillarLabel, normalizePillarId, normalizePillarTargets } from "@/content/planning-pillars";
+import { getPublicationTypeLabel } from "@/content/publication-types";
 import {
-  getPlanningPillarLabel,
-  normalizePillarId,
-  normalizePillarTargets,
-} from "@/content/planning-pillars";
-import { slotMatchesAccount, type PlanningSlot } from "@/content/planned-slots";
+  resolveSlotPublicationType,
+  slotMatchesAccount,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import { isActiveDay } from "@/lib/planning-generator";
 import { filterSlotsByDates } from "@/lib/planning-slot-utils";
 
@@ -122,23 +122,21 @@ function detectTargetDrift(
     }
   }
 
-  const formatCounts = countBy(periodSlots, (slot) => slot.formatId);
-  const dominantFormat = [...formatCounts.entries()].sort(
+  const typeCounts = countBy(periodSlots, (slot) =>
+    resolveSlotPublicationType(slot),
+  );
+  const dominantType = [...typeCounts.entries()].sort(
     (a, b) => b[1] - a[1],
   )[0];
-  const dominantFormatDef = dominantFormat
-    ? getFormatById(dominantFormat[0])
-    : undefined;
-  if (
-    dominantFormat &&
-    dominantFormatDef &&
-    dominantFormat[1] >= account.repetitionLimits.maxSameFormatInPeriod
-  ) {
+  const maxSameType =
+    account.repetitionLimits.maxSamePublicationTypeInPeriod ??
+    account.repetitionLimits.maxSameFormatInPeriod;
+  if (dominantType && dominantType[1] >= maxSameType) {
     insights.push({
-      id: `${account.id}-format-${dominantFormat[0]}`,
+      id: `${account.id}-publication-${dominantType[0]}`,
       kind: "warning",
       accountId: account.id,
-      message: `Repetimos mucho el formato ${dominantFormatDef.label} (${account.label})`,
+      message: `Repetimos mucho el tipo ${getPublicationTypeLabel(dominantType[0])} (${account.label})`,
     });
   }
 

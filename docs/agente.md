@@ -14,7 +14,7 @@ El Brain no es una fuente de señal. Es contexto obligatorio, aunque la señal p
 - **Figma** = ensamblaje final.
 - **Buffer** = programación. Nunca publicar al instante salvo pedido explícito.
 
-Cursor **no** decide qué objetivo, pilar, formato, cuenta o frecuencia toca. Eso ya lo preparó el Studio.
+Cursor **no** decide qué objetivo, pilar, tipo de publicación, cuenta o frecuencia toca. Eso ya lo preparó el Studio. El formato creativo se elige al desarrollar, filtrado por la restricción de producción.
 
 ## Cómo pedirle cosas al agente
 
@@ -30,8 +30,9 @@ Cuando el usuario dice “desarrollá este slot” o “desarrollá propuestas p
    - `narrative`, `contentBlocks` (copy por slide/escena), `cta`, `caption`, `visualDirection`
    - `structuralSourceRef` y `visualSourceRef` del spec (y `sourceRef` legacy)
    - `brainRefs` del spec
-5. No cambiar rol, pilar, formato, cuenta ni plataformas.
-6. No inventar claims.
+5. No cambiar rol, pilar, tipo de publicación, cuenta ni plataformas.
+6. Elegir el formato creativo de la lista recomendada del spec. Si la producción es sin cámara, no sugerir talking head, vlog, entrevista ni grabación física.
+7. No inventar claims.
 
 Ejemplos útiles:
 
@@ -44,7 +45,7 @@ Ejemplos útiles:
 
 ## Qué NO hacer
 
-- No volver a decidir cuenta, rol, pilar, formato ni plataformas: eso ya lo fijó Planificación.
+- No volver a decidir cuenta, rol, pilar, tipo de publicación ni plataformas: eso ya lo fijó Planificación.
 - No generar Proposal A/B/C desde la app.
 - El Studio llama Gemini solo para preparar descripción editorial y briefs de búsqueda del SlotSpec.
 - El desarrollo creativo sigue en Cursor.

@@ -188,6 +188,41 @@ export const formats: Format[] = [
     label: "Advertencia",
     summary: "Placa WARNING o alerta visual. Urgencia y patrón interrupt.",
   },
+  {
+    id: "grabacion-pantalla",
+    label: "Grabación de pantalla",
+    summary: "Screen recording del producto con voz en off o texto. Faceless.",
+  },
+  {
+    id: "motion-graphics",
+    label: "Motion graphics",
+    summary: "Animación de UI, gráficos o mockups. No requiere cámara.",
+  },
+  {
+    id: "video-ia",
+    label: "Video generado con IA",
+    summary: "B-roll, escenas o clips armados con IA. Sin grabación física.",
+  },
+  {
+    id: "texto-cinetico",
+    label: "Texto cinético",
+    summary: "Tipografía animada sobre assets, capturas o color plano.",
+  },
+  {
+    id: "talking-head",
+    label: "Talking head",
+    summary: "Una persona habla a cámara. Requiere grabación física.",
+  },
+  {
+    id: "entrevista",
+    label: "Entrevista",
+    summary: "Conversación filmada con invitado o cliente. Requiere cámara.",
+  },
+  {
+    id: "vlog",
+    label: "Vlog",
+    summary: "Registro filmado del equipo o el fundador. Requiere cámara.",
+  },
 ];
 
 const formatById = new Map(formats.map((format) => [format.id, format]));
@@ -211,7 +246,8 @@ export function getFormatById(id: string): Format | undefined {
   return formatById.get(normalizeFormatId(id));
 }
 
-export function getFormatLabel(id: string): string {
+export function getFormatLabel(id?: string): string {
+  if (!id) return "A definir";
   return formatById.get(normalizeFormatId(id))?.label ?? id;
 }
 

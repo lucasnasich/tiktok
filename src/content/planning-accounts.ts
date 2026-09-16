@@ -1,4 +1,6 @@
 import type { ContentRoleId } from "@/content/content-roles";
+import type { CameraMode } from "@/content/camera-presence";
+import type { PublicationTypeId } from "@/content/publication-types";
 import {
   getSlotAccountIds,
   type DistributionType,
@@ -16,8 +18,10 @@ export type PlanningAccountType = "official" | "satellite";
 
 export type RepetitionLimits = {
   maxConsecutiveSamePillar: number;
+  /** Legacy: ya no se usa para programar formatos creativos. */
   maxSameFormatInPeriod: number;
   maxSameRoleInRow: number;
+  maxSamePublicationTypeInPeriod?: number;
 };
 
 export type PlanningAccount = {
@@ -33,6 +37,9 @@ export type PlanningAccount = {
   /** Porcentaje objetivo por rol (suma ~100). */
   roleTargets: Partial<Record<ContentRoleId, number>>;
   pillarTargets: Record<string, number>;
+  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+  cameraMode: CameraMode;
+  /** Legacy: mix rígido de formatos creativos. Ya no gobierna el calendario. */
   formatTargets: Record<string, number>;
   repetitionLimits: RepetitionLimits;
   /** Conservado en perfiles persistidos. El generador orgánico siempre emite `organic`. */

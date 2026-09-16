@@ -1,23 +1,34 @@
 import type { CameraPresenceMode } from "@/content/camera-presence";
 import {
+  cameraModeFromPresence,
+  presenceFromCameraMode,
+} from "@/content/camera-presence";
+import {
   normalizeRoleId,
   normalizeRoleTargets,
   type ContentRoleId,
 } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
-  DEFAULT_FORMAT_TARGETS,
   DEFAULT_PILLAR_TARGETS_OFFICIAL,
+  DEFAULT_PUBLICATION_TYPE_TARGETS,
 } from "@/content/planning-defaults";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  resolveSlotPublicationType,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import { normalizePillarId } from "@/content/planning-pillars";
 import {
-  compatibleFormatTargets,
   compatiblePillarTargets,
   hasPositiveTargets,
-  ROLE_FORMAT_FALLBACKS,
   ROLE_PILLAR_FALLBACKS,
 } from "@/content/slot-compatibility";
+import {
+  isPublicationTypeAllowedForProduction,
+  isPublicationTypeCompatibleWithPlatforms,
+  publicationTypeTargetsForPlatforms,
+  type PublicationTypeId,
+} from "@/content/publication-types";
 import {
   addDays,
   getWeekDates,
@@ -38,9 +49,9 @@ type CountMap = Record<string, number>;
 
 type GeneratorContext = {
   pillarCounts: CountMap;
-  formatCounts: CountMap;
+  publicationTypeCounts: CountMap;
   lastPillar: string | null;
-  lastFormat: string | null;
+  lastPublicationType: string | null;
   pillarStreak: number;
 };
 
@@ -144,9 +155,9 @@ function roleStreakForAccount(
 function initContext(slots: PlanningSlot[]): GeneratorContext {
   const context: GeneratorContext = {
     pillarCounts: {},
-    formatCounts: {},
+    publicationTypeCounts: {},
     lastPillar: null,
-    lastFormat: null,
+    lastPublicationType: null,
     pillarStreak: 0,
   };
 
@@ -159,7 +170,8 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
 
   for (const slot of ordered) {
     increment(context.pillarCounts, normalizePillarId(slot.pillarId));
-    increment(context.formatCounts, slot.formatId);
+    const publicationTypeId = resolveSlotPublicationType(slot);
+    increment(context.publicationTypeCounts, publicationTypeId);
 
     const pillarId = normalizePillarId(slot.pillarId);
     if (pillarId === context.lastPillar) {
@@ -169,7 +181,7 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
       context.pillarStreak = 1;
     }
 
-    context.lastFormat = slot.formatId;
+    context.lastPublicationType = publicationTypeId;
   }
 
   return context;
@@ -217,18 +229,18 @@ function pickFromTargets(
   targets: Record<string, number>,
   counts: CountMap,
   context: GeneratorContext,
-  kind: "pillar" | "format",
+  kind: "pillar" | "publicationType",
   seed: string,
   limits: PlanningAccount["repetitionLimits"],
 ): string {
   const entries = Object.entries(targets).filter(([, weight]) => weight > 0);
   if (entries.length === 0) {
     const fallback =
-      kind === "format"
-        ? DEFAULT_FORMAT_TARGETS
+      kind === "publicationType"
+        ? DEFAULT_PUBLICATION_TYPE_TARGETS
         : DEFAULT_PILLAR_TARGETS_OFFICIAL;
     if (targets === fallback) {
-      return kind === "format" ? "x-razones" : "producto-mercantis";
+      return kind === "publicationType" ? "short_video" : "producto-mercantis";
     }
     return pickFromTargets(
       fallback,
@@ -239,6 +251,8 @@ function pickFromTargets(
       limits,
     );
   }
+
+  const maxSameType = limits.maxSamePublicationTypeInPeriod ?? 3;
 
   const scored = entries
     .map(([id, target]) => {
@@ -251,9 +265,9 @@ function pickFromTargets(
         }
       }
 
-      if (kind === "format") {
-        if (id === context.lastFormat) score += 0.25;
-        if ((counts[id] ?? 0) >= limits.maxSameFormatInPeriod) score += 3;
+      if (kind === "publicationType") {
+        if (id === context.lastPublicationType) score += 0.25;
+        if ((counts[id] ?? 0) >= maxSameType) score += 3;
       }
 
       return { id, score };
@@ -282,20 +296,25 @@ function resolveCompatiblePillarTargets(
   return { [ROLE_PILLAR_FALLBACKS[roleId]]: 1 };
 }
 
-function resolveCompatibleFormatTargets(
-  targets: Record<string, number>,
-  roleId: ContentRoleId,
-  pillarId: string,
-  cameraPresence?: CameraPresenceMode,
-): Record<string, number> {
-  const query = { roleId, pillarId, cameraPresence };
-  const filtered = compatibleFormatTargets(targets, query);
-  if (hasPositiveTargets(filtered)) return filtered;
+function resolveCompatiblePublicationTypeTargets(
+  account: PlanningAccount,
+): Record<PublicationTypeId, number> {
+  const filtered = publicationTypeTargetsForPlatforms(
+    account.publicationTypeTargets,
+    account.platforms,
+  );
+  const compatible = Object.fromEntries(
+    Object.entries(filtered).filter(([id]) => {
+      const typeId = id as PublicationTypeId;
+      return (
+        isPublicationTypeCompatibleWithPlatforms(typeId, account.platforms) &&
+        isPublicationTypeAllowedForProduction(typeId, account.cameraMode)
+      );
+    }),
+  ) as Record<PublicationTypeId, number>;
 
-  const fromDefaults = compatibleFormatTargets(DEFAULT_FORMAT_TARGETS, query);
-  if (hasPositiveTargets(fromDefaults)) return fromDefaults;
-
-  return { [ROLE_FORMAT_FALLBACKS[roleId]]: 1 };
+  if (hasPositiveTargets(compatible)) return compatible;
+  return { short_video: 100 } as Record<PublicationTypeId, number>;
 }
 
 function timeSlotRotationOffset(date: string, slotCount: number): number {
@@ -378,19 +397,14 @@ export function generateMissingSlots({
           seed,
           account.repetitionLimits,
         );
-        const formatId = pickFromTargets(
-          resolveCompatibleFormatTargets(
-            account.formatTargets,
-            roleId,
-            pillarId,
-            cameraPresence,
-          ),
-          context.formatCounts,
+        const publicationTypeId = pickFromTargets(
+          resolveCompatiblePublicationTypeTargets(account),
+          context.publicationTypeCounts,
           context,
-          "format",
+          "publicationType",
           seed,
           account.repetitionLimits,
-        );
+        ) as PublicationTypeId;
 
         const slot: PlanningSlot = {
           id: `gen-${account.id}-${date}-${time.replace(":", "")}`,
@@ -400,10 +414,13 @@ export function generateMissingSlots({
           platforms: [...account.platforms],
           roleId,
           pillarId,
-          formatId,
+          publicationTypeId,
           status: "pendiente",
           distributionType: "organic",
           generated: true,
+          cameraPresence: presenceFromCameraMode(
+            account.cameraMode ?? cameraModeFromPresence(cameraPresence),
+          ),
         };
 
         const key = slotKey(slot);
@@ -414,7 +431,7 @@ export function generateMissingSlots({
         workingSlots.push(slot);
 
         increment(context.pillarCounts, pillarId);
-        increment(context.formatCounts, formatId);
+        increment(context.publicationTypeCounts, publicationTypeId);
 
         if (pillarId === context.lastPillar) {
           context.pillarStreak += 1;
@@ -423,7 +440,7 @@ export function generateMissingSlots({
           context.pillarStreak = 1;
         }
 
-        context.lastFormat = formatId;
+        context.lastPublicationType = publicationTypeId;
       }
     }
   }

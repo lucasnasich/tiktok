@@ -107,6 +107,8 @@ assert.equal(
 );
 
 assert.equal(isFormatCompatibleWithCamera("green-screen", "off-camera"), false);
+assert.equal(isFormatCompatibleWithCamera("talking-head", "off-camera"), false);
+assert.equal(isFormatCompatibleWithCamera("vlog", "off-camera"), false);
 assert.equal(isFormatCompatibleWithCamera("green-screen", "on-camera"), true);
 assert.equal(
   isFormatCompatibleWithCamera("testimonio-cliente", "off-camera"),

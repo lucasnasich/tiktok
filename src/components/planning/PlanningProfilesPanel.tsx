@@ -231,7 +231,7 @@ export function PlanningProfilesPanel({
     <AddEmptyState
       icon={MaskHappyIcon}
       title="Crear perfil editorial"
-      description="Mix de roles, pilares y formatos que podés reutilizar en varias cuentas."
+      description="Mix de roles, pilares, tipos de publicación y restricciones de producción que podés reutilizar en varias cuentas."
       buttonLabel="Crear nuevo perfil"
       onAction={onCreateProfile}
     />
@@ -249,7 +249,7 @@ export function PlanningProfilesPanel({
         {studioAccounts.length === 0 ? (
           accountEmptyState
         ) : (
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3">
             {studioAccounts.map((account) => (
               <StudioAccountCard
                 key={account.id}
@@ -271,7 +271,7 @@ export function PlanningProfilesPanel({
         {profiles.length === 0 ? (
           profileEmptyState
         ) : (
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3">
             {profiles.map((profile) => (
               <ProfileCard
                 key={profile.id}

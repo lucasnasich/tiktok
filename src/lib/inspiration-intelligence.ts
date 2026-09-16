@@ -1,6 +1,11 @@
 import { cameraPresenceConstraint, cameraPresenceShortLabel } from "@/content/camera-presence";
 import { getContentRoleLabel, getContentRoleSummary } from "@/content/content-roles";
 import { getFormatById, getFormatLabel } from "@/content/formats";
+import { getPublicationTypeLabel } from "@/content/publication-types";
+import {
+  resolveSlotPublicationType,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import type {
   InspirationIntelligenceStatus,
   InspirationMatchCandidate,
@@ -8,7 +13,6 @@ import type {
 } from "@/content/inspiration-analysis";
 import { INSPIRATION_HYBRID_WEIGHTS } from "@/content/inspiration-match-config";
 import { getPlanningPillarLabel, getPlanningPillarSummary } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
 import type {
   SlotDescriptionPayload,
   SlotSpec,
@@ -37,7 +41,12 @@ export function buildStructureQuery(slot: PlanningSlot, record?: SlotSpecRecord)
   if (record?.editorialDescription?.trim()) {
     parts.push(record.editorialDescription.trim());
   }
-  parts.push(`Formato: ${getFormatLabel(slot.formatId)}`);
+  parts.push(
+    `Tipo de publicación: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
+  );
+  if (slot.formatId) {
+    parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
+  }
   parts.push(`Rol: ${getContentRoleLabel(slot.roleId)}`);
   parts.push(`Pilar: ${getPlanningPillarLabel(slot.pillarId)}`);
   if (slot.cameraPresence) {
@@ -54,7 +63,12 @@ export function buildVisualQuery(slot: PlanningSlot, record?: SlotSpecRecord) {
   if (brief) {
     parts.push(brief, brief);
   }
-  parts.push(`Formato: ${getFormatLabel(slot.formatId)}`);
+  parts.push(
+    `Tipo de publicación: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
+  );
+  if (slot.formatId) {
+    parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
+  }
   if (slot.cameraPresence) {
     parts.push(`Cámara: ${cameraPresenceShortLabel(slot.cameraPresence)}`);
     parts.push(cameraPresenceConstraint(slot.cameraPresence));
@@ -147,9 +161,14 @@ export async function fetchSlotDescription(input: {
       pillarId: spec.pillarId,
       pillarLabel: getPlanningPillarLabel(spec.pillarId),
       pillarSummary: getPlanningPillarSummary(spec.pillarId),
+      publicationTypeId: spec.publicationTypeId,
+      publicationTypeLabel: getPublicationTypeLabel(spec.publicationTypeId),
       formatId: spec.formatId,
-      formatLabel: getFormatLabel(spec.formatId),
-      formatSummary: getFormatById(spec.formatId)?.summary ?? "",
+      formatLabel: spec.formatId ? getFormatLabel(spec.formatId) : "",
+      formatSummary: spec.formatId
+        ? getFormatById(spec.formatId)?.summary ?? ""
+        : "",
+      recommendedCreativeFormats: spec.recommendedCreativeFormats,
       cameraPresence: spec.cameraPresence,
       cameraPresenceLabel: spec.cameraPresence
         ? cameraPresenceShortLabel(spec.cameraPresence)

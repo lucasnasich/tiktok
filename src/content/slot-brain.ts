@@ -5,9 +5,10 @@ import {
   getContentRoleLabel,
   normalizeRoleId,
 } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import { cameraPresenceConstraint } from "@/content/camera-presence";
+import { getPublicationTypeLabel } from "@/content/publication-types";
+import { resolveSlotPublicationType } from "@/content/planned-slots";
+import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
 
 const ALWAYS_BRAIN_REFS = ["contenido-comunicacion.md"];
@@ -57,7 +58,7 @@ export function brainRefsForSlot(slot: PlanningSlot): string[] {
       "posicionamiento.md",
     ]),
     ...(ROLE_BRAIN_REFS[normalizeRoleId(slot.roleId)] ?? []),
-    ...(FORMAT_BRAIN_REFS[slot.formatId] ?? []),
+    ...(FORMAT_BRAIN_REFS[slot.formatId ?? ""] ?? []),
   ]);
 }
 
@@ -66,12 +67,14 @@ export function editorialConstraintsForSlot(
   accountType?: PlanningAccountType,
 ): string[] {
   const role = getContentRoleLabel(slot.roleId);
-  const format = getFormatLabel(slot.formatId);
   const pillar = getPlanningPillarLabel(slot.pillarId);
+  const publicationType = getPublicationTypeLabel(
+    resolveSlotPublicationType(slot),
+  );
   const constraints = [
     `Prioridad ${role}: no cambiar el rol del slot.`,
     `Hablar de ${pillar} sin cambiar de pilar.`,
-    `Respetar el formato ${format}: ese mecanismo manda sobre el pilar. No reemplazarlo por un demo de producto.`,
+    `Respetar el tipo de publicación ${publicationType}: esa es la pieza a producir. El formato creativo se elige al desarrollar, no está rígido en el calendario.`,
     "No inventar features, pricing, clientes, métricas, historia ni roadmap.",
     "Consultar el Mercantis Brain. Si algo no está: marcarlo como desconocido.",
     CONTENT_ROLE_CTA_GUIDELINE,

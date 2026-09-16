@@ -1,6 +1,13 @@
 import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { ContentRoleId } from "@/content/content-roles";
 import {
+  isPublicationTypeId,
+  getPublicationTypeLabel,
+  getPublicationTypeShortLabel,
+  type PublicationTypeId,
+} from "@/content/publication-types";
+import { getFormatCapabilities } from "@/content/format-capabilities";
+import {
   PLANNING_ALL_ACCOUNTS_ID,
   type PlanningPlatform,
 } from "@/content/planning-accounts";
@@ -26,8 +33,16 @@ export type PlanningSlot = {
   platforms: PlanningPlatform[];
   roleId: ContentRoleId;
   pillarId: string;
-  /** ID de `formats.ts` */
-  formatId: string;
+  /**
+   * Tipo de publicación nativo (imagen, carrusel, reel, story).
+   * En slots nuevos es la capa que decide el calendario.
+   */
+  publicationTypeId?: PublicationTypeId;
+  /**
+   * Legacy: formato creativo rígido del calendario anterior.
+   * Los slots nuevos no lo asignan; las propuestas lo recomiendan.
+   */
+  formatId?: string;
   /** ID de `angles.ts` — se asigna al pasar a Propuestas */
   angleId?: string;
   status: PlanningSlotStatus;
@@ -103,4 +118,28 @@ export function getSlotDistributionType(
   slot: PlanningSlot,
 ): DistributionType {
   return slot.distributionType ?? "organic";
+}
+
+export function resolveSlotPublicationType(
+  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
+): PublicationTypeId {
+  if (slot.publicationTypeId && isPublicationTypeId(slot.publicationTypeId)) {
+    return slot.publicationTypeId;
+  }
+  if (slot.formatId) {
+    return getFormatCapabilities(slot.formatId).publicationTypes[0] ?? "short_video";
+  }
+  return "short_video";
+}
+
+export function getSlotPublicationTypeLabel(
+  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
+): string {
+  return getPublicationTypeLabel(resolveSlotPublicationType(slot));
+}
+
+export function getSlotPublicationTypeShortLabel(
+  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
+): string {
+  return getPublicationTypeShortLabel(resolveSlotPublicationType(slot));
 }

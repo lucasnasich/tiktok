@@ -7,16 +7,19 @@ import type { ReactNode } from "react";
 
 import { PlatformIcon } from "@/components/icons/platform-icon";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { FormatIcon } from "@/components/planning/format-icons";
+import { PublicationTypeIcon } from "@/components/planning/publication-type-icons";
 import { PlanningPillarIcon } from "@/components/planning/planning-pillar-icons";
 import {
   cameraPresenceShortLabel,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
 import { getContentRoleLabel, normalizeRoleId, type ContentRoleId } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  getSlotPublicationTypeShortLabel,
+  resolveSlotPublicationType,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import { getSlotAccountLabel } from "@/content/planning-accounts";
 import { parseIsoDate } from "@/lib/planning-dates";
@@ -207,9 +210,14 @@ export function SlotBriefCards({
           iconShellClassName={PILLAR_ICON_SHELL_CLASS}
         />
         <BriefHighlightCard
-          label="Formato"
-          value={getFormatLabel(slot.formatId)}
-          icon={<FormatIcon formatId={slot.formatId} className="size-4" />}
+          label="Tipo de publicación"
+          value={getSlotPublicationTypeShortLabel(slot)}
+          icon={
+            <PublicationTypeIcon
+              typeId={resolveSlotPublicationType(slot)}
+              className="size-4"
+            />
+          }
           className={FORMAT_CARD_CLASS}
           iconShellClassName={FORMAT_ICON_SHELL_CLASS}
         />

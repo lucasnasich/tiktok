@@ -14,15 +14,17 @@ import {
 } from "@/components/ui/card";
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
+import { getPlanningAccountLabel } from "@/content/planning-accounts";
+import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import {
+  getSlotPublicationTypeShortLabel,
+  type PlanningSlot,
+} from "@/content/planned-slots";
 import {
   PROPOSAL_STATUS_LABELS,
   SIGNAL_SOURCE_TYPE_LABELS,
   type Proposal,
 } from "@/content/proposals";
-import { getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
 import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSheetSearchParam } from "@/hooks/use-sheet-search-param";
@@ -35,7 +37,7 @@ function slotBrief(slot: PlanningSlot): string {
     getPlanningAccountLabel(slot.accountId),
     getContentRoleLabel(slot.roleId),
     getPlanningPillarLabel(slot.pillarId),
-    getFormatLabel(slot.formatId),
+    getSlotPublicationTypeShortLabel(slot),
   ].join(" · ");
 }
 

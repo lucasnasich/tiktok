@@ -11,13 +11,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
-import { getFormatLabel } from "@/content/formats";
 import { getInspirationByKey } from "@/content/inspiration-feed";
 import {
   getPlanningAccount,
   getSlotAccountLabel,
 } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getPublicationTypeLabel } from "@/content/publication-types";
 import {
   getSlotAccountIds,
   type PlanningSlot,
@@ -373,8 +373,16 @@ export function SlotDetailSheet({
                 </p>
                 <p>
                   {getContentRoleLabel(spec.roleId)} · {getPlanningPillarLabel(spec.pillarId)} ·{" "}
-                  {getFormatLabel(spec.formatId)}
+                  {getPublicationTypeLabel(spec.publicationTypeId)}
                 </p>
+                {spec.recommendedCreativeFormats.length > 0 ? (
+                  <p className="text-muted-foreground">
+                    Formatos creativos:{" "}
+                    {spec.recommendedCreativeFormats
+                      .map((format) => format.label)
+                      .join(" · ")}
+                  </p>
+                ) : null}
                 <p className="text-muted-foreground">
                   Brain: {spec.brainRefs.join(", ")}
                 </p>

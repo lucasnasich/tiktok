@@ -124,7 +124,7 @@ function scoreItem(
     ...(item.formatAffinities ?? []),
   ]);
 
-  if (formatIds.has(slot.formatId)) {
+  if (slot.formatId && formatIds.has(slot.formatId)) {
     const fromAffinity = item.formatAffinities?.includes(slot.formatId);
     score += fromAffinity && !item.formatIds?.includes(slot.formatId)
       ? w.formatAffinity
@@ -162,6 +162,7 @@ function scoreItem(
 
   if (
     item.materialType === "example" &&
+    slot.formatId &&
     formatIds.has(slot.formatId)
   ) {
     score += w.exampleWithFormat;

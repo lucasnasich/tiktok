@@ -10,8 +10,10 @@ export function settingsRichness(settings: PlanningAccountOverride): number {
   return (
     countPositiveTargets(settings.roleTargets as Record<string, number>) *
       1000 +
-    countPositiveTargets(settings.formatTargets) * 100 +
-    countPositiveTargets(settings.pillarTargets)
+    countPositiveTargets(settings.publicationTypeTargets as Record<string, number>) *
+      100 +
+    countPositiveTargets(settings.pillarTargets) +
+    countPositiveTargets(settings.formatTargets)
   );
 }
 
@@ -32,6 +34,13 @@ export function preferRicherSettings(
       countPositiveTargets(incoming.formatTargets) > 0
         ? incoming.formatTargets
         : current.formatTargets,
+    publicationTypeTargets:
+      countPositiveTargets(
+        incoming.publicationTypeTargets as Record<string, number>,
+      ) > 0
+        ? incoming.publicationTypeTargets
+        : current.publicationTypeTargets,
+    cameraMode: incoming.cameraMode ?? current.cameraMode,
     pillarTargets:
       countPositiveTargets(incoming.pillarTargets) > 0
         ? incoming.pillarTargets

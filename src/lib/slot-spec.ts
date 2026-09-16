@@ -1,5 +1,9 @@
 import { getAngleLabel } from "@/content/angles";
-import { cameraPresenceConstraint, cameraPresenceShortLabel } from "@/content/camera-presence";
+import {
+  cameraModeFromPresence,
+  cameraPresenceConstraint,
+  cameraPresenceShortLabel,
+} from "@/content/camera-presence";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import type { InspirationUseRole } from "@/content/inspiration-analysis";
@@ -11,7 +15,11 @@ import {
 } from "@/content/inspiration-taxonomy";
 import { getPlanningAccount, getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
-import type { PlanningSlot } from "@/content/planned-slots";
+import {
+  resolveSlotPublicationType,
+  type PlanningSlot,
+} from "@/content/planned-slots";
+import { getPublicationTypeLabel } from "@/content/publication-types";
 import type { Proposal } from "@/content/proposals";
 import { brainRefsForSlot, editorialConstraintsForSlot } from "@/content/slot-brain";
 import type {
@@ -22,6 +30,7 @@ import type {
 } from "@/content/slot-specs";
 import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 import { usageForInspiration } from "@/lib/inspiration-usage";
+import { recommendCreativeFormats } from "@/lib/creative-format-recommendations";
 
 export function selectedInspirationKeys(record: SlotSpecRecord | undefined) {
   if (!record) return [];
@@ -128,6 +137,9 @@ export function assembleSlotSpec(
     ? usageForInspiration(primaryKey, proposals, specs, slots)
     : undefined;
 
+  const cameraMode = cameraModeFromPresence(slot.cameraPresence);
+  const publicationTypeId = resolveSlotPublicationType(slot);
+
   return {
     slotId: slot.id,
     accountId: slot.accountId,
@@ -136,7 +148,15 @@ export function assembleSlotSpec(
     time: slot.time,
     roleId: slot.roleId,
     pillarId: slot.pillarId,
+    publicationTypeId,
     formatId: slot.formatId,
+    recommendedCreativeFormats: recommendCreativeFormats({
+      roleId: slot.roleId,
+      publicationTypeId,
+      cameraMode,
+      limit: 4,
+    }),
+    cameraMode,
     inspirationRef: record?.inspirationRef,
     structuralInspirationRef: record?.structuralInspirationRef,
     visualInspirationRef: record?.visualInspirationRef,
@@ -325,10 +345,22 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     "## Misión",
     `- Rol: ${getContentRoleLabel(spec.roleId)}`,
     `- Pilar: ${getPlanningPillarLabel(spec.pillarId)}`,
-    `- Formato: ${getFormatLabel(spec.formatId)}`,
+    `- Tipo de publicación: ${getPublicationTypeLabel(spec.publicationTypeId)}`,
     spec.cameraPresence
       ? `- Producción: ${cameraPresenceShortLabel(spec.cameraPresence)}`
       : "- Producción: —",
+    "",
+    "## Formatos creativos recomendados",
+    "El formato creativo NO está programado en el calendario. Elegí uno de esta lista (ya filtrada por tipo de pieza y restricción de producción):",
+    ...(spec.recommendedCreativeFormats.length
+      ? spec.recommendedCreativeFormats.map(
+          (format) =>
+            `- ${format.label} (${format.id}): ${format.summary}`,
+        )
+      : ["- Sin formatos compatibles. Revisá tipo de publicación y producción."]),
+    spec.formatId
+      ? `- Legacy del slot: ${getFormatLabel(spec.formatId)} (no es obligatorio)`
+      : "",
     ...(spec.editorialDescription
       ? ["", "## Descripción editorial", spec.editorialDescription]
       : []),
@@ -366,8 +398,10 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     spec.status,
     "",
     "## Qué tiene que hacer Cursor",
-    "Desarrollar propuestas completas para este slot: ángulo, concepto, hook, narrativa, copy por slide/escena, CTA, caption y dirección visual.",
-    "No cambiar cuenta, plataformas, fecha, rol, pilar ni formato.",
+    "Desarrollar propuestas completas para este slot: ángulo, concepto, hook, narrativa, 2 a 4 formatos creativos (usar la lista filtrada de arriba), estructura, copy por slide/escena, CTA, caption y dirección visual.",
+    "No cambiar cuenta, plataformas, fecha, rol, pilar ni tipo de publicación.",
+    "No sugerir talking head, vlog, entrevista, selfie ni grabación física si la producción es sin cámara.",
+    "Sí se puede hacer video: motion graphics, screen recording, animación, IA, texto cinético, capturas.",
     "No inventar claims. Consultar el Mercantis Brain citado arriba.",
     "Guardar las propuestas en `src/content/proposals.ts` como `candidate`.",
     "Setear `structuralSourceRef` y `visualSourceRef` (y `sourceRef` legacy) con las keys del spec.",
@@ -394,7 +428,7 @@ export function cursorPromptForSlotDescription(spec: SlotSpec) {
     "### editorialDescription",
     "- 2 a 4 oraciones en español argentino, prosa continua y amigable.",
     "- Sin listas, viñetas, guiones largos (—) ni prefijos del tipo \"Rol:\", \"Pilar:\" o \"Formato:\".",
-    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, pilar, formato y producción.",
+    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, pilar, tipo de publicación y producción.",
     "",
     "### structuralSearchBrief",
     "- 1 a 3 oraciones EXCLUSIVAMENTE sobre: hook deseado, estructura narrativa, beats, ritmo, mecanismo, tipo de desarrollo, payoff / CTA.",

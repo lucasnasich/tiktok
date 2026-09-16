@@ -156,7 +156,7 @@ const formatSection = buildFormatProductionPromptSection({
   cameraPresence: "off-camera",
   cameraPresenceLabel: "Sin cámara",
 });
-assert.ok(formatSection.includes("Formato (manda sobre el pilar)"));
+assert.ok(formatSection.includes("Formato creativo (referencia de producción)"));
 assert.ok(formatSection.includes("Ejemplos visuales"));
 assert.ok(/estrella|quote|Remotion/i.test(formatSection));
 
@@ -171,7 +171,7 @@ const promptWithFormat = buildSlotDescriptionUserPrompt({
   editorialConstraints: ["Prueba social: voz, quote, rating."],
   brainDocuments: [{ file: "inteligencia-artificial.md", content: "IA de catálogo." }],
 });
-assert.ok(promptWithFormat.includes("EL FORMATO MANDA SOBRE EL PILAR"));
+assert.ok(promptWithFormat.includes("EL TIPO DE PUBLICACIÓN DEFINE LA PIEZA"));
 assert.ok(promptWithFormat.includes("Testimonio de cliente"));
 assert.ok(promptWithFormat.includes("Ejemplos estructurales"));
 assert.ok(promptWithFormat.includes("inteligencia-artificial.md"));

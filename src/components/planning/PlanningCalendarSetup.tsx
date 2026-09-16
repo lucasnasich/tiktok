@@ -17,8 +17,9 @@ import {
   PlanningRhythmFields,
 } from "@/components/planning/PlanningRhythmFields";
 import {
-  CAMERA_PRESENCE_OPTIONS,
-  type CameraPresenceMode,
+  CAMERA_MODE_LABELS,
+  cameraModeFromPresence,
+  presenceFromCameraMode,
 } from "@/content/camera-presence";
 import {
   CALENDAR_GENERATION_RANGE_PRESETS,
@@ -164,8 +165,6 @@ export function PlanningCalendarSetup({
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([]);
   const [publishingMode, setPublishingMode] =
     useState<CalendarPublishingMode>("mirrored");
-  const [cameraPresence, setCameraPresence] =
-    useState<CameraPresenceMode>("off-camera");
   const [rhythm, setRhythm] = useState<PlanningRhythm>(DEFAULT_PLANNING_RHYTHM);
   const [selectedProfileId, setSelectedProfileId] = useState<string>();
 
@@ -185,6 +184,12 @@ export function PlanningCalendarSetup({
   const selectedProfile = compatibleProfiles.find(
     (profile) => profile.id === selectedProfileId,
   );
+  const profileCameraMode = selectedProfile
+    ? cameraModeFromPresence(
+        selectedProfile.settings.cameraMode ??
+          selectedProfile.settings.cameraPresence,
+      )
+    : undefined;
 
   const canGenerate =
     resolvedRange !== undefined &&
@@ -239,8 +244,9 @@ export function PlanningCalendarSetup({
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-[13px] leading-relaxed text-muted-foreground">
-              El perfil define roles, pilares y formatos. Después lo asociás a las
-              cuentas al generar el calendario.
+            El perfil define roles, pilares, tipos de publicación y restricciones
+            de producción. Después lo asociás a las cuentas al generar el
+            calendario.
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
               <Link to="/planificacion/configuracion">Ir a configuración</Link>
@@ -297,20 +303,18 @@ export function PlanningCalendarSetup({
 
       <PlanningRhythmFields value={rhythm} onChange={setRhythm} />
 
-      <div className="space-y-2">
-        <p className="text-[13px] font-medium">Presencia en cámara</p>
-        <div className="grid gap-2">
-          {CAMERA_PRESENCE_OPTIONS.map((option) => (
-            <PublishingModeOption
-              key={option.id}
-              label={option.label}
-              description={option.description}
-              selected={cameraPresence === option.id}
-              onSelect={() => setCameraPresence(option.id)}
-            />
-          ))}
+      {profileCameraMode ? (
+        <div className="space-y-1.5 rounded-lg border border-border px-3 py-2.5">
+          <p className="text-[13px] font-medium">Restricción de producción</p>
+          <p className="text-[13px] text-foreground">
+            {CAMERA_MODE_LABELS[profileCameraMode]}
+          </p>
+          <p className="text-[12px] leading-relaxed text-muted-foreground">
+            Viene del perfil editorial. Sin cámara no significa sin video: un
+            reel puede ser motion, screen recording o IA.
+          </p>
         </div>
-      </div>
+      ) : null}
 
       <div className="space-y-2">
         <p className="text-[13px] font-medium">Cuentas</p>
@@ -414,7 +418,9 @@ export function PlanningCalendarSetup({
             dateTo: resolvedRange.dateTo,
             publishingMode:
               selectedAccountIds.length > 1 ? publishingMode : "independent",
-            cameraPresence,
+            cameraPresence: presenceFromCameraMode(
+              profileCameraMode ?? "faceless",
+            ),
             rhythm,
           });
         }}
