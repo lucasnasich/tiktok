@@ -1,6 +1,7 @@
 import type { CameraMode, CameraPresenceMode } from "@/content/camera-presence";
 import { cameraModeFromPresence, presenceFromCameraMode } from "@/content/camera-presence";
-import type { PublicationTypeId } from "@/content/publication-types";
+import type { ProductionOptionId } from "@/content/production-options";
+import { normalizeProductionConfig } from "@/content/production-options";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import type { PlanningProfile } from "@/content/planning-profiles";
@@ -28,8 +29,6 @@ export type CalendarGenerationRequest = {
   dateFrom: string;
   dateTo: string;
   publishingMode: CalendarPublishingMode;
-  cameraMode: CameraMode;
-  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
   rhythm: CalendarGenerationRhythm;
 };
 
@@ -43,7 +42,10 @@ export type CalendarGeneration = {
   dateTo: string;
   publishingMode: CalendarPublishingMode;
   cameraMode: CameraMode;
-  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+  productionEnabledIds: ProductionOptionId[];
+  productionTypeTargets: Partial<Record<ProductionOptionId, number>>;
+  /** Legacy snapshot. */
+  publicationTypeTargets?: Partial<Record<string, number>>;
   /** Derivado de `cameraMode`; se conserva en slots generados. */
   cameraPresence: CameraPresenceMode;
   rhythm: CalendarGenerationRhythm;
@@ -157,6 +159,16 @@ export function normalizeCalendarGeneration(
     sortedDates[sortedDates.length - 1] ??
     dateFrom;
 
+  const cameraMode =
+    generation.cameraMode ??
+    cameraModeFromPresence(generation.cameraPresence ?? "off-camera");
+  const production = normalizeProductionConfig({
+    cameraMode,
+    enabledIds: generation.productionEnabledIds,
+    targets: generation.productionTypeTargets,
+    publicationTypeTargets: generation.publicationTypeTargets,
+  });
+
   return {
     id: generation.id,
     label: generation.label,
@@ -166,16 +178,12 @@ export function normalizeCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode: generation.publishingMode ?? "independent",
-    cameraMode:
-      generation.cameraMode ??
-      cameraModeFromPresence(generation.cameraPresence ?? "off-camera"),
-    publicationTypeTargets: generation.publicationTypeTargets ?? {},
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
+    publicationTypeTargets: production.targets,
     cameraPresence:
-      generation.cameraPresence ??
-      presenceFromCameraMode(
-        generation.cameraMode ??
-          cameraModeFromPresence(generation.cameraPresence ?? "off-camera"),
-      ),
+      generation.cameraPresence ?? presenceFromCameraMode(production.cameraMode),
     rhythm: generation.rhythm ?? DEFAULT_PLANNING_RHYTHM,
     slots: generation.slots.map((slot) => ({
       ...slot,

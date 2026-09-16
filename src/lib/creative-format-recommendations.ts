@@ -2,10 +2,10 @@ import { normalizeRoleId, type ContentRoleId } from "../content/content-roles.ts
 import {
   getFormatCapabilities,
   isFormatCompatibleWithProduction,
-  isFormatCompatibleWithPublicationType,
+  isFormatCompatibleWithProductionOption,
 } from "../content/format-capabilities.ts";
 import { formats } from "../content/formats.ts";
-import type { PublicationTypeId } from "../content/publication-types.ts";
+import type { ProductionOptionId } from "../content/production-options.ts";
 import { isFormatCompatibleWithRole } from "../content/slot-compatibility.ts";
 
 export type CreativeFormatRecommendation = {
@@ -66,26 +66,35 @@ const ROLE_FORMAT_AFFINITY: Record<ContentRoleId, string[]> = {
   ],
 };
 
+const MOTION_FORMATS = new Set([
+  "motion-graphics",
+  "texto-cinetico",
+  "video-ia",
+  "grabacion-pantalla",
+]);
+
 /**
  * Filtra primero los formatos imposibles de producir y recién después rankea.
- * Nunca sugiere talking head / green screen / piel en una cuenta faceless.
+ * El formato creativo no puede contradecir la opción de producción del slot.
  */
 export function recommendCreativeFormats(input: {
   roleId: string;
-  publicationTypeId: PublicationTypeId;
+  productionTypeId: ProductionOptionId;
+  /** @deprecated Usar `productionTypeId`. */
+  publicationTypeId?: ProductionOptionId | string;
   cameraMode?: string;
   limit?: number;
 }): CreativeFormatRecommendation[] {
   const roleId = normalizeRoleId(input.roleId);
   const limit = input.limit ?? 4;
+  const productionTypeId = (input.productionTypeId ??
+    input.publicationTypeId) as ProductionOptionId;
   const affinity = new Set(ROLE_FORMAT_AFFINITY[roleId] ?? []);
   const scored: CreativeFormatRecommendation[] = [];
 
   for (const format of formats) {
     if (!isFormatCompatibleWithProduction(format.id, input.cameraMode)) continue;
-    if (
-      !isFormatCompatibleWithPublicationType(format.id, input.publicationTypeId)
-    ) {
+    if (!isFormatCompatibleWithProductionOption(format.id, productionTypeId)) {
       continue;
     }
     if (!isFormatCompatibleWithRole(roleId, format.id)) continue;
@@ -98,18 +107,24 @@ export function recommendCreativeFormats(input: {
     }
     const caps = getFormatCapabilities(format.id);
     if (
-      input.publicationTypeId === "short_video" &&
-      (caps.needsScreenRecording ||
-        format.id === "motion-graphics" ||
-        format.id === "video-ia" ||
-        format.id === "texto-cinetico")
+      (productionTypeId === "remotion_video" ||
+        productionTypeId === "animated_carousel") &&
+      MOTION_FORMATS.has(format.id)
     ) {
       score += 1;
-      reasons.push("Ejecución de video faceless");
+      reasons.push("Ejecución apta para motion");
+    }
+    if (productionTypeId === "screen_demo" && caps.needsScreenRecording) {
+      score += 1;
+      reasons.push("Demo de pantalla");
+    }
+    if (productionTypeId === "ai_generated_video" && caps.canGenerateWithAi) {
+      score += 1;
+      reasons.push("Generable con IA");
     }
     if (caps.canGenerateWithAi) score += 0.25;
     if (reasons.length === 0) {
-      reasons.push("Compatible con el tipo y la producción");
+      reasons.push("Compatible con la pieza y la producción");
     }
 
     scored.push({

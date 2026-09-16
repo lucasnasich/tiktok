@@ -2,7 +2,7 @@
  * Capas del contenido — no mezclar.
  * Source of truth de roles: content-roles.ts
  * Source of truth de temas por rol: role-topics.ts
- * Source of truth de tipos de publicación: publication-types.ts
+ * Source of truth de opciones de producción: production-options.ts
  * Source of truth de ángulos: angles.ts
  * Source of truth de formatos creativos: formats.ts
  */
@@ -36,9 +36,9 @@ export const CONTENT_LAYERS: ContentLayer[] = [
   },
   {
     id: "tipo_publicacion",
-    label: "Tipo de publicación",
-    question: "¿Qué pieza nativa vamos a producir?",
-    sourceFile: "src/content/publication-types.ts",
+    label: "Producción",
+    question: "¿Qué pieza concreta vamos a fabricar?",
+    sourceFile: "src/content/production-options.ts",
   },
   {
     id: "angulo",
@@ -56,5 +56,5 @@ export const CONTENT_LAYERS: ContentLayer[] = [
 
 export const CONTENT_LAYER_EXAMPLES = [
   "Educación → Inventario y stock → Imagen única → Dolor → Captura de chat",
-  "Producto / Demostración → Stock y variantes → Reel → Storytelling → Screen recording",
+  "Producto / Demostración → Stock y variantes → Demo → Storytelling → Screen recording",
 ] as const;

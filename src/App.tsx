@@ -18,6 +18,7 @@ import { ProposalsScreen } from "@/screens/ProposalsScreen";
 import { ProposalsProvider } from "@/hooks/use-proposals";
 import { SlotSpecsProvider } from "@/hooks/use-slot-specs";
 import { InspirationOverridesProvider } from "@/hooks/use-inspiration-overrides";
+import { ThemeProvider } from "@/hooks/use-theme";
 
 function LegacyIdeasRedirect() {
   const location = useLocation();
@@ -32,68 +33,70 @@ function LegacyIdeasRedirect() {
 export function App() {
   return (
     <BrowserRouter>
-      <TooltipProvider>
-        <IconContext.Provider value={PHOSPHOR_ICON_DEFAULTS}>
-        <ProposalsProvider>
-        <SlotSpecsProvider>
-        <InspirationOverridesProvider>
-        <SidebarProvider
-          className="h-svh overflow-hidden"
-          style={
-            {
-              "--sidebar-width": "180px",
-              "--header-height": "3.5rem",
-            } as CSSProperties
-          }
-        >
-          <AppSidebar />
-          <SidebarInset className="flex h-svh min-h-0 flex-1 flex-col overflow-hidden bg-secondary">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <Routes>
-                <Route path="/inspiracion" element={<InspirationScreen />} />
-                <Route
-                  path="/inspiracion/competidores"
-                  element={<CompetitorsScreen />}
-                />
-                <Route path="/inicio" element={<HomeScreen />} />
-                <Route
-                  path="/planificacion"
-                  element={<LegacyPlanningConfigRedirect />}
-                />
-                <Route
-                  path="/planificacion/configuracion"
-                  element={<PlanningConfigScreen />}
-                />
-                <Route path="/propuestas" element={<ProposalsScreen />} />
-                <Route path="/ideas" element={<LegacyIdeasRedirect />} />
-                <Route
-                  path="/produccion"
-                  element={<Navigate to="/produccion/imagenes" replace />}
-                />
-                <Route
-                  path="/produccion/imagenes"
-                  element={<GalleryScreen />}
-                />
-                <Route path="/documentacion" element={<DocsScreen />} />
-                <Route path="/" element={<Navigate to="/inicio" replace />} />
-                <Route
-                  path="/competidores"
-                  element={<Navigate to="/inspiracion/competidores" replace />}
-                />
-                <Route
-                  path="/imagenes"
-                  element={<Navigate to="/produccion/imagenes" replace />}
-                />
-                <Route path="*" element={<Navigate to="/inicio" replace />} />
-              </Routes>
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-        </InspirationOverridesProvider>
-        </SlotSpecsProvider>
-        </ProposalsProvider>
-        </IconContext.Provider>
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <IconContext.Provider value={PHOSPHOR_ICON_DEFAULTS}>
+            <ProposalsProvider>
+              <SlotSpecsProvider>
+                <InspirationOverridesProvider>
+                  <SidebarProvider
+                    className="h-svh overflow-hidden"
+                    style={
+                      {
+                        "--sidebar-width": "180px",
+                        "--header-height": "3.5rem",
+                      } as CSSProperties
+                    }
+                  >
+                    <AppSidebar />
+                    <SidebarInset className="flex h-svh min-h-0 flex-1 flex-col overflow-hidden bg-secondary">
+                      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        <Routes>
+                          <Route path="/inspiracion" element={<InspirationScreen />} />
+                          <Route
+                            path="/inspiracion/competidores"
+                            element={<CompetitorsScreen />}
+                          />
+                          <Route path="/inicio" element={<HomeScreen />} />
+                          <Route
+                            path="/planificacion"
+                            element={<LegacyPlanningConfigRedirect />}
+                          />
+                          <Route
+                            path="/planificacion/configuracion"
+                            element={<PlanningConfigScreen />}
+                          />
+                          <Route path="/propuestas" element={<ProposalsScreen />} />
+                          <Route path="/ideas" element={<LegacyIdeasRedirect />} />
+                          <Route
+                            path="/produccion"
+                            element={<Navigate to="/produccion/imagenes" replace />}
+                          />
+                          <Route
+                            path="/produccion/imagenes"
+                            element={<GalleryScreen />}
+                          />
+                          <Route path="/documentacion" element={<DocsScreen />} />
+                          <Route path="/" element={<Navigate to="/inicio" replace />} />
+                          <Route
+                            path="/competidores"
+                            element={<Navigate to="/inspiracion/competidores" replace />}
+                          />
+                          <Route
+                            path="/imagenes"
+                            element={<Navigate to="/produccion/imagenes" replace />}
+                          />
+                          <Route path="*" element={<Navigate to="/inicio" replace />} />
+                        </Routes>
+                      </div>
+                    </SidebarInset>
+                  </SidebarProvider>
+                </InspirationOverridesProvider>
+              </SlotSpecsProvider>
+            </ProposalsProvider>
+          </IconContext.Provider>
+        </TooltipProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

@@ -42,7 +42,7 @@ export function buildStructureQuery(slot: PlanningSlot, record?: SlotSpecRecord)
     parts.push(record.editorialDescription.trim());
   }
   parts.push(
-    `Tipo de publicación: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
+    `Pieza: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
   );
   if (slot.formatId) {
     parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
@@ -64,7 +64,7 @@ export function buildVisualQuery(slot: PlanningSlot, record?: SlotSpecRecord) {
     parts.push(brief, brief);
   }
   parts.push(
-    `Tipo de publicación: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
+    `Pieza: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
   );
   if (slot.formatId) {
     parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);

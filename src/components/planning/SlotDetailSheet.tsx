@@ -373,7 +373,7 @@ export function SlotDetailSheet({
                 </p>
                 <p>
                   {getContentRoleLabel(spec.roleId)} · {getSlotTopicLabel(slot)} ·{" "}
-                  {getPublicationTypeLabel(spec.publicationTypeId)}
+                  {getPublicationTypeLabel(spec.productionTypeId)}
                 </p>
                 {spec.recommendedCreativeFormats.length > 0 ? (
                   <p className="text-muted-foreground">

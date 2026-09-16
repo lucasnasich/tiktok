@@ -1,6 +1,6 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import type { CameraMode } from "@/content/camera-presence";
-import type { PublicationTypeId } from "@/content/publication-types";
+import type { ProductionOptionId } from "@/content/production-options";
 import type { RoleTopicPreferences } from "@/content/role-topics";
 import {
   getSlotAccountIds,
@@ -23,6 +23,8 @@ export type RepetitionLimits = {
   /** Legacy: ya no se usa para programar formatos creativos. */
   maxSameFormatInPeriod: number;
   maxSameRoleInRow: number;
+  maxSameProductionTypeInPeriod?: number;
+  /** Legacy alias. */
   maxSamePublicationTypeInPeriod?: number;
 };
 
@@ -42,8 +44,13 @@ export type PlanningAccount = {
   roleTopicPreferences: RoleTopicPreferences;
   /** Legacy: mix global de pilares. Ya no gobierna el calendario. */
   pillarTargets: Record<string, number>;
-  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+  /** Opciones de producción habilitadas. Lo no listado no se genera. */
+  productionEnabledIds: ProductionOptionId[];
+  /** Distribución entre las opciones habilitadas (suma ~100). */
+  productionTypeTargets: Partial<Record<ProductionOptionId, number>>;
   cameraMode: CameraMode;
+  /** Legacy: se migra a `productionTypeTargets`. */
+  publicationTypeTargets?: Partial<Record<string, number>>;
   /** Legacy: mix rígido de formatos creativos. Ya no gobierna el calendario. */
   formatTargets: Record<string, number>;
   repetitionLimits: RepetitionLimits;

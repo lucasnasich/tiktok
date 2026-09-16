@@ -5,6 +5,9 @@ import {
   DEFAULT_REPETITION_LIMITS,
   DEFAULT_TIME_SLOTS,
 } from "@/content/planning-defaults";
+import {
+  cloneDefaultProductionConfig,
+} from "@/content/production-options";
 import { cloneDefaultRoleTopicPreferences } from "@/content/role-topics";
 import type {
   PlanningAccount,
@@ -159,6 +162,7 @@ export function studioAccountPlatforms(
 export function studioAccountToPlanningBase(
   account: PlanningStudioAccount,
 ): PlanningAccount {
+  const production = cloneDefaultProductionConfig();
   return {
     id: account.id,
     label: account.displayName,
@@ -170,7 +174,8 @@ export function studioAccountToPlanningBase(
     roleTargets: {},
     roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: {},
-    publicationTypeTargets: {},
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
     cameraMode: DEFAULT_CAMERA_MODE,
     formatTargets: {},
     repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },

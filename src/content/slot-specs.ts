@@ -2,7 +2,7 @@ import type { CameraMode, CameraPresenceMode } from "@/content/camera-presence";
 import type { PlanningPlatform } from "@/content/planning-accounts";
 import type { ContentRoleId } from "@/content/content-roles";
 import type { InspirationMaterialType } from "@/content/inspiration-taxonomy";
-import type { PublicationTypeId } from "@/content/publication-types";
+import type { ProductionOptionId } from "@/content/production-options";
 
 export type SlotSpecStatus = "draft" | "ready-for-cursor";
 export type SlotDirectionKind = "inspiration" | "manual";
@@ -77,7 +77,9 @@ export type SlotSpec = {
   topicId: string;
   /** Legacy: pilar global. Los specs nuevos usan `topicId`. */
   pillarId?: string;
-  publicationTypeId: PublicationTypeId;
+  productionTypeId: ProductionOptionId;
+  /** Legacy alias de `productionTypeId`. */
+  publicationTypeId: ProductionOptionId;
   /** Legacy: formato creativo rígido. Los slots nuevos no lo traen. */
   formatId?: string;
   recommendedCreativeFormats: Array<{

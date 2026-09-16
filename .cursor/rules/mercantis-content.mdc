@@ -73,7 +73,7 @@ Navegación del Studio (no reorganizar): `Inspiración → Planificación → Pr
 4. El usuario ensambla en Figma con copy de Cursor + visuales + sistema Mercantis.
 5. Buffer programa. Métricas cuando el post estuvo un tiempo live.
 
-Planificación → Cuenta · Plataforma · Hora · Rol · Tema · Tipo de publicación 
+Planificación → Cuenta · Plataforma · Hora · Rol · Tema · Pieza de producción 
 SlotSpec → Inspiración + Brain + restricciones + formatos creativos recomendados 
 Cursor → Proposal (concepto, hook, narrativa, formato creativo, copy, CTA, caption) 
 Una pieza = un slot con `platforms[]` (no duplicar por red).
@@ -84,8 +84,8 @@ El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `
 
 - **Rol** (mundo editorial): `src/content/content-roles.ts` — build in public, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Tema** (de qué, dentro del rol): `src/content/role-topics.ts` — taxonomía compatible por rol. No hay pilares globales.
-- **Tipo de publicación** (qué pieza nativa): `src/content/publication-types.ts` — imagen, carrusel, reel, story. Lo programa el calendario.
-- **Restricción de producción**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video.
+- **Opción de producción** (qué pieza concreta fabricamos): `src/content/production-options.ts` — imagen única, carrusel, Remotion, demo, etc. Lo programa el calendario.
+- **Restricción de cámara**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video.
 - **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
 - **Formato creativo** (cómo ejecutamos la pieza): `src/content/formats.ts` — biblioteca consultable al desarrollar; no se rota en el perfil.
 

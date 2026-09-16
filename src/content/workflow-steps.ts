@@ -9,14 +9,14 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
   {
     id: "planificacion",
     title: "Planificación",
-    summary: "El perfil se convierte en slots: cuenta, hora, rol, tema y tipo de publicación.",
+    summary: "El perfil se convierte en slots: cuenta, hora, rol, tema y pieza de producción.",
     details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-**Perfil** (empezando por Mercantis oficial): plataformas, días, cantidad, horarios, mix de roles, temas por rol, tipos de publicación y restricciones de producción. Se configura con presets, no todos los días.
+**Perfil** (empezando por Mercantis oficial): mix de roles, temas por rol, restricción de cámara y las piezas concretas que el equipo sabe producir. Se configura con presets, no todos los días.
 
 **Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 
-Planificación decide: **Cuenta → Plataforma → Hora → Rol → Tema → Tipo de publicación**.
+Planificación decide: **Cuenta → Plataforma → Hora → Rol → Tema → Pieza de producción**.
 
 El usuario **no** vuelve a elegir esas variables al trabajar el slot. El **formato creativo** se propone después, al desarrollar.
 
@@ -27,8 +27,8 @@ Esta planificación es **orgánica**. Ads es una iteración futura distinta.
 **Capas del contenido** (no mezclar):
 - **Rol** = mundo editorial (\`content-roles.ts\`) — proceso, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Tema** = de qué área concreta hablamos DENTRO de ese rol (\`role-topics.ts\`)
-- **Tipo de publicación** = qué pieza nativa (\`publication-types.ts\`) — imagen, carrusel, reel, story
-- **Restricción de producción** = qué se puede filmar (\`camera-presence.ts\`) — sin cámara ≠ sin video
+- **Opción de producción** = qué pieza concreta fabricamos (\`production-options.ts\`) — imagen única, carrusel, Remotion, demo, etc.
+- **Restricción de cámara** = si se puede grabar a una persona (\`camera-presence.ts\`) — sin cámara ≠ sin video
 - **Ángulo** = cómo lo contamos (\`angles.ts\`) — lo propone Cursor en las Proposals
 - **Formato creativo** = cómo ejecutamos la pieza (\`formats.ts\`) — biblioteca al desarrollar, no rotación del calendario
 

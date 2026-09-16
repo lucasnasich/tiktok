@@ -26,9 +26,9 @@ import {
 } from "@/content/role-topics";
 import { normalizePillarTargets } from "@/content/planning-pillars";
 import {
-  normalizePublicationTypeTargets,
-  type PublicationTypeId,
-} from "@/content/publication-types";
+  normalizeProductionConfig,
+  type ProductionOptionId,
+} from "@/content/production-options";
 import {
   createProfileDraft,
   PROFILE_ACCOUNT_TYPES,
@@ -77,7 +77,10 @@ export type PlanningAccountOverride = {
   roleTopicPreferences?: RoleTopicPreferences;
   pillarTargets?: Record<string, number>;
   formatTargets?: Record<string, number>;
-  publicationTypeTargets?: Partial<Record<PublicationTypeId, number>>;
+  productionEnabledIds?: ProductionOptionId[];
+  productionTypeTargets?: Partial<Record<ProductionOptionId, number>>;
+  /** Legacy: se migra a `productionTypeTargets`. */
+  publicationTypeTargets?: Partial<Record<string, number>>;
   cameraMode?: CameraMode;
   /** Legacy: presencia de cámara de generaciones anteriores. */
   cameraPresence?: CameraPresenceMode;
@@ -132,15 +135,15 @@ function isUserProfile(profile: PlanningProfile): boolean {
 function migrateAccountOverride(
   settings: PlanningAccountOverride,
 ): PlanningAccountOverride {
-  const {
-    publicationTypeTargets: _publicationTypeTargets,
-    cameraMode: _cameraMode,
-    cameraPresence: _cameraPresence,
-    ...editorial
-  } = settings;
+  const production = normalizeProductionConfig({
+    cameraMode: settings.cameraMode ?? settings.cameraPresence,
+    enabledIds: settings.productionEnabledIds,
+    targets: settings.productionTypeTargets,
+    publicationTypeTargets: settings.publicationTypeTargets,
+  });
 
   return {
-    ...editorial,
+    ...settings,
     roleTargets: settings.roleTargets
       ? normalizeRoleTargets(settings.roleTargets)
       : settings.roleTargets,
@@ -148,6 +151,10 @@ function migrateAccountOverride(
       settings.roleTopicPreferences,
       settings.pillarTargets,
     ),
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
+    publicationTypeTargets: undefined,
     alternateRoles: settings.alternateRoles
       ? [
           normalizeRoleId(settings.alternateRoles[0]),
@@ -275,7 +282,8 @@ function normalizeStudioAccounts(store: PlanningConfigStore): PlanningStudioAcco
 
 export type GenerationProductionSettings = {
   cameraMode: CameraMode;
-  publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
+  productionEnabledIds: ProductionOptionId[];
+  productionTypeTargets: Partial<Record<ProductionOptionId, number>>;
 };
 
 export function buildPlanningAccountsForGeneration(
@@ -299,9 +307,8 @@ export function buildPlanningAccountsForGeneration(
         ? {
             ...filled,
             cameraMode: production.cameraMode,
-            publicationTypeTargets: normalizePublicationTypeTargets(
-              production.publicationTypeTargets,
-            ),
+            productionEnabledIds: production.productionEnabledIds,
+            productionTypeTargets: production.productionTypeTargets,
           }
         : filled;
       return rhythm
@@ -346,7 +353,11 @@ export function getAssignedPlanningAccounts(
         cameraMode:
           generation.cameraMode ??
           cameraModeFromPresence(generation.cameraPresence),
-        publicationTypeTargets: generation.publicationTypeTargets,
+        productionEnabledIds: generation.productionEnabledIds ?? [],
+        productionTypeTargets:
+          generation.productionTypeTargets ??
+          generation.publicationTypeTargets ??
+          {},
       },
     )) {
       if (seen.has(account.id)) continue;
@@ -701,7 +712,7 @@ function restoreOfficialProfileForAccount(
           settings: restoredSettings,
           pillarPriorities: session.pillarPriorities ?? {},
           selectedFormatIds: [...MERCANTIS_OFICIAL_CURATED_FORMAT_IDS],
-          stepIndex: Math.min(session.stepIndex, 1),
+          stepIndex: Math.min(session.stepIndex, 2),
         },
       }
     : store.wizardSessions;
@@ -890,6 +901,12 @@ export function parsePlanningConfigStore(raw: unknown): PlanningConfigStore {
 }
 
 export function accountToOverride(account: PlanningAccount): PlanningAccountOverride {
+  const production = normalizeProductionConfig({
+    cameraMode: account.cameraMode,
+    enabledIds: account.productionEnabledIds,
+    targets: account.productionTypeTargets,
+    publicationTypeTargets: account.publicationTypeTargets,
+  });
   return {
     roleTargets: normalizeRoleTargets(account.roleTargets),
     roleTopicPreferences: normalizeRoleTopicPreferences(
@@ -898,6 +915,9 @@ export function accountToOverride(account: PlanningAccount): PlanningAccountOver
     ),
     pillarTargets: { ...account.pillarTargets },
     formatTargets: { ...account.formatTargets },
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,
     alternateRoles: account.alternateRoles,

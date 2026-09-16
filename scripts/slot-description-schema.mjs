@@ -1,19 +1,19 @@
 export const SLOT_DESCRIPTION_PROMPT = `Prepará este slot de contenido Mercantis. No escribas copy final, hooks literales para publicar, captions ni propuestas.
 
-Regla madre: EL TIPO DE PUBLICACIÓN DEFINE LA PIEZA. EL FORMATO CREATIVO SE ELIGE DESPUÉS.
+Regla madre: LA OPCIÓN DE PRODUCCIÓN DEFINE LA PIEZA. EL FORMATO CREATIVO SE ELIGE DESPUÉS.
 - El rol dice qué función editorial cumple la pieza.
 - El tema dice de qué área concreta hablamos dentro de ese rol. No predefine el ángulo.
-- El tipo de publicación dice qué asset nativo hay que producir (imagen, carrusel, reel o story).
+- La opción de producción dice qué pieza concreta hay que fabricar (imagen única, carrusel, Remotion, demo, etc.).
 - El formato creativo NO está asignado en el calendario. Hay una lista recomendada ya filtrada por producción.
-- La cámara es una restricción dura: sin cámara ≠ sin video. No pedir talking head, vlog, entrevista ni grabación física si la producción es faceless.
-- El Mercantis Brain da hechos. No convierte un reel faceless en un demo a cámara.
+- La cámara es una restricción dura: sin cámara ≠ sin video. No pedir talking head ni grabación física si la producción es faceless.
+- El Mercantis Brain da hechos. No convierte un Remotion faceless en un video a cámara.
 - Los tres campos tienen que ser coherentes entre sí y con los formatos creativos permitidos.
 
 Tenés que devolver JSON con exactamente tres campos:
 
 1. editorialDescription — 2 a 4 oraciones en español argentino, prosa continua y amigable.
    - Explicá qué pieza hay que crear y qué intención editorial tiene.
-   - Encajá rol, tema, tipo de publicación, cuenta y producción.
+   - Encajá rol, tema, opción de producción, cuenta y cámara.
    - Sin listas, viñetas, guiones largos (—) ni prefijos del tipo "Rol:", "Tema:" o "Formato:".
    - No inventes features, pricing, clientes, métricas, historia, roadmap ni claims.
    - Si un dato no está en el Mercantis Brain citado: no lo completes.

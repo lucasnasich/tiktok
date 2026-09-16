@@ -1,125 +1,114 @@
 import { ON_CAMERA_FORMAT_IDS } from "./camera-presence.ts";
-import type { PublicationTypeId } from "./publication-types.ts";
 import { isFacelessProduction } from "./camera-presence.ts";
+import type { ProductionOptionId } from "./production-options.ts";
 
 export type CreativeFormatCapabilities = {
   requiresCamera: boolean;
-  publicationTypes: PublicationTypeId[];
+  productionOptions: ProductionOptionId[];
   canGenerateWithAi?: boolean;
   needsScreenRecording?: boolean;
   needsProductAssets?: boolean;
 };
 
-const ALL_FEED: PublicationTypeId[] = [
-  "single_image",
-  "image_carousel",
-  "short_video",
-];
-const GRAPHIC: PublicationTypeId[] = [
-  "single_image",
-  "image_carousel",
-  "short_video",
-  "story",
-];
-const VIDEO: PublicationTypeId[] = ["short_video"];
+const STILL: ProductionOptionId[] = ["single_image", "image_carousel"];
+const MOTION: ProductionOptionId[] = ["animated_carousel", "remotion_video"];
+const DEMO: ProductionOptionId[] = ["screen_demo"];
+const AI_VIDEO: ProductionOptionId[] = ["ai_generated_video"];
+const TALKING: ProductionOptionId[] = ["talking_camera"];
+const TALKING_REMOTION: ProductionOptionId[] = ["talking_camera_remotion"];
 
 const FACELESS: CreativeFormatCapabilities = {
   requiresCamera: false,
-  publicationTypes: ALL_FEED,
+  productionOptions: STILL,
   canGenerateWithAi: true,
 };
 
 const CAPABILITIES: Record<string, CreativeFormatCapabilities> = {
-  "x-razones": { ...FACELESS, publicationTypes: GRAPHIC },
-  "historia-instagram": {
-    requiresCamera: false,
-    publicationTypes: ["story", "single_image"],
-    canGenerateWithAi: true,
-  },
-  "nosotros-vs-ellos": { ...FACELESS, publicationTypes: GRAPHIC },
-  "diagrama-venn": { ...FACELESS, publicationTypes: GRAPHIC },
-  "no-compres-esto": { ...FACELESS, publicationTypes: GRAPHIC },
-  "nota-iphone": { ...FACELESS, publicationTypes: GRAPHIC },
-  "captura-chat": { ...FACELESS, publicationTypes: GRAPHIC },
-  pizarra: { ...FACELESS, publicationTypes: GRAPHIC },
-  "cupos-limitados": { ...FACELESS, publicationTypes: GRAPHIC },
-  "pedimos-disculpas": { ...FACELESS, publicationTypes: GRAPHIC },
+  "x-razones": { ...FACELESS },
+  "historia-instagram": { ...FACELESS, productionOptions: ["single_image"] },
+  "nosotros-vs-ellos": { ...FACELESS },
+  "diagrama-venn": { ...FACELESS },
+  "no-compres-esto": { ...FACELESS },
+  "nota-iphone": { ...FACELESS },
+  "captura-chat": { ...FACELESS },
+  pizarra: { ...FACELESS },
+  "cupos-limitados": { ...FACELESS },
+  "pedimos-disculpas": { ...FACELESS },
   "testimonio-cliente": {
     requiresCamera: false,
-    publicationTypes: GRAPHIC,
+    productionOptions: STILL,
     canGenerateWithAi: false,
   },
-  "lo-nuevo-vs-lo-viejo": { ...FACELESS, publicationTypes: GRAPHIC },
-  "ultima-hora": { ...FACELESS, publicationTypes: GRAPHIC },
-  transformacion: { ...FACELESS, publicationTypes: GRAPHIC },
-  "estilo-reddit": { ...FACELESS, publicationTypes: GRAPHIC },
-  "en-caso-de-emergencia": { ...FACELESS, publicationTypes: GRAPHIC },
-  "busqueda-google": { ...FACELESS, publicationTypes: GRAPHIC },
+  "lo-nuevo-vs-lo-viejo": { ...FACELESS },
+  "ultima-hora": { ...FACELESS },
+  transformacion: { ...FACELESS },
+  "estilo-reddit": { ...FACELESS },
+  "en-caso-de-emergencia": { ...FACELESS },
+  "busqueda-google": { ...FACELESS },
   "problema-vs-solucion": {
     ...FACELESS,
-    publicationTypes: GRAPHIC,
     needsProductAssets: true,
   },
-  "efecto-secundario": { ...FACELESS, publicationTypes: GRAPHIC },
-  "oferta-combo": { ...FACELESS, publicationTypes: GRAPHIC },
-  "titular-con-dato": { ...FACELESS, publicationTypes: GRAPHIC },
-  garabato: { ...FACELESS, publicationTypes: GRAPHIC },
-  "captura-email": { ...FACELESS, publicationTypes: GRAPHIC },
-  "no-seas-ese-que": { ...FACELESS, publicationTypes: GRAPHIC },
-  resenas: { ...FACELESS, publicationTypes: GRAPHIC },
+  "efecto-secundario": { ...FACELESS },
+  "oferta-combo": { ...FACELESS },
+  "titular-con-dato": { ...FACELESS },
+  garabato: { ...FACELESS },
+  "captura-email": { ...FACELESS },
+  "no-seas-ese-que": { ...FACELESS },
+  resenas: { ...FACELESS },
   "texto-sobre-la-piel": {
     requiresCamera: true,
-    publicationTypes: VIDEO,
+    productionOptions: TALKING,
   },
   "podcast-ia": {
     requiresCamera: false,
-    publicationTypes: VIDEO,
+    productionOptions: AI_VIDEO,
     canGenerateWithAi: true,
   },
-  "tier-list": { ...FACELESS, publicationTypes: GRAPHIC },
-  "cero-estrellas": { ...FACELESS, publicationTypes: GRAPHIC },
+  "tier-list": { ...FACELESS },
+  "cero-estrellas": { ...FACELESS },
   "green-screen": {
     requiresCamera: true,
-    publicationTypes: VIDEO,
+    productionOptions: TALKING_REMOTION,
   },
-  "x-senales": { ...FACELESS, publicationTypes: GRAPHIC },
-  "mito-vs-realidad": { ...FACELESS, publicationTypes: GRAPHIC },
-  "problemas-tachados": { ...FACELESS, publicationTypes: GRAPHIC },
-  "lo-que-podes-evitar": { ...FACELESS, publicationTypes: GRAPHIC },
-  advertencia: { ...FACELESS, publicationTypes: GRAPHIC },
+  "x-senales": { ...FACELESS },
+  "mito-vs-realidad": { ...FACELESS },
+  "problemas-tachados": { ...FACELESS },
+  "lo-que-podes-evitar": { ...FACELESS },
+  advertencia: { ...FACELESS },
   "grabacion-pantalla": {
     requiresCamera: false,
-    publicationTypes: VIDEO,
+    productionOptions: DEMO,
     canGenerateWithAi: false,
     needsScreenRecording: true,
     needsProductAssets: true,
   },
   "motion-graphics": {
     requiresCamera: false,
-    publicationTypes: [...VIDEO, "story"],
+    productionOptions: MOTION,
     canGenerateWithAi: true,
   },
   "video-ia": {
     requiresCamera: false,
-    publicationTypes: VIDEO,
+    productionOptions: AI_VIDEO,
     canGenerateWithAi: true,
   },
   "texto-cinetico": {
     requiresCamera: false,
-    publicationTypes: [...VIDEO, "story"],
+    productionOptions: MOTION,
     canGenerateWithAi: true,
   },
   "talking-head": {
     requiresCamera: true,
-    publicationTypes: VIDEO,
+    productionOptions: TALKING,
   },
   entrevista: {
     requiresCamera: true,
-    publicationTypes: VIDEO,
+    productionOptions: TALKING,
   },
   vlog: {
     requiresCamera: true,
-    publicationTypes: VIDEO,
+    productionOptions: TALKING,
   },
 };
 
@@ -129,7 +118,7 @@ export function getFormatCapabilities(
   return (
     CAPABILITIES[formatId] ?? {
       requiresCamera: ON_CAMERA_FORMAT_IDS.has(formatId),
-      publicationTypes: ALL_FEED,
+      productionOptions: STILL,
       canGenerateWithAi: true,
     }
   );
@@ -139,12 +128,23 @@ export function formatRequiresCamera(formatId: string): boolean {
   return getFormatCapabilities(formatId).requiresCamera;
 }
 
+export function isFormatCompatibleWithProductionOption(
+  formatId: string,
+  productionTypeId: ProductionOptionId,
+): boolean {
+  return getFormatCapabilities(formatId).productionOptions.includes(
+    productionTypeId,
+  );
+}
+
+/** @deprecated Usar `isFormatCompatibleWithProductionOption`. */
 export function isFormatCompatibleWithPublicationType(
   formatId: string,
-  publicationTypeId: PublicationTypeId,
+  publicationTypeId: string,
 ): boolean {
-  return getFormatCapabilities(formatId).publicationTypes.includes(
-    publicationTypeId,
+  return isFormatCompatibleWithProductionOption(
+    formatId,
+    publicationTypeId as ProductionOptionId,
   );
 }
 

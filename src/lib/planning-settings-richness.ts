@@ -23,6 +23,7 @@ export function settingsRichness(settings: PlanningAccountOverride): number {
     countPositiveTargets(settings.roleTargets as Record<string, number>) *
       1000 +
     countEnabledTopics(settings.roleTopicPreferences) +
+    (settings.productionEnabledIds?.length ?? 0) * 10 +
     countPositiveTargets(settings.formatTargets)
   );
 }
@@ -48,6 +49,17 @@ export function preferRicherSettings(
       countEnabledTopics(incoming.roleTopicPreferences) > 0
         ? incoming.roleTopicPreferences
         : current.roleTopicPreferences,
+    productionEnabledIds:
+      (incoming.productionEnabledIds?.length ?? 0) > 0
+        ? incoming.productionEnabledIds
+        : current.productionEnabledIds,
+    productionTypeTargets:
+      countPositiveTargets(
+        incoming.productionTypeTargets as Record<string, number>,
+      ) > 0
+        ? incoming.productionTypeTargets
+        : current.productionTypeTargets,
+    cameraMode: incoming.cameraMode ?? current.cameraMode,
     pillarTargets:
       countPositiveTargets(incoming.pillarTargets) > 0
         ? incoming.pillarTargets

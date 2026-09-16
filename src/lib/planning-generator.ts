@@ -9,9 +9,8 @@ import {
   type ContentRoleId,
 } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
-import { DEFAULT_PUBLICATION_TYPE_TARGETS } from "@/content/planning-defaults";
 import {
-  resolveSlotPublicationType,
+  resolveSlotProductionType,
   type PlanningSlot,
 } from "@/content/planned-slots";
 import {
@@ -21,11 +20,11 @@ import {
 } from "@/content/role-topics";
 import { hasPositiveTargets } from "@/content/slot-compatibility";
 import {
-  isPublicationTypeAllowedForProduction,
-  isPublicationTypeCompatibleWithPlatforms,
-  publicationTypeTargetsForPlatforms,
-  type PublicationTypeId,
-} from "@/content/publication-types";
+  enabledProductionTargets,
+  normalizeProductionConfig,
+  productionTargetsForRole,
+  type ProductionOptionId,
+} from "@/content/production-options";
 import {
   addDays,
   getWeekDates,
@@ -168,7 +167,7 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
   for (const slot of ordered) {
     const topicId = resolveSlotTopicId(slot);
     increment(context.topicCounts, topicId);
-    const publicationTypeId = resolveSlotPublicationType(slot);
+    const publicationTypeId = resolveSlotProductionType(slot);
     increment(context.publicationTypeCounts, publicationTypeId);
 
     if (topicId === context.lastTopic) {
@@ -230,27 +229,22 @@ function pickFromTargets(
   targets: Record<string, number>,
   counts: CountMap,
   context: GeneratorContext,
-  kind: "topic" | "publicationType",
+  kind: "topic" | "productionType",
   seed: string,
   limits: PlanningAccount["repetitionLimits"],
 ): string {
   const entries = Object.entries(targets).filter(([, weight]) => weight > 0);
   if (entries.length === 0) {
-    if (kind === "publicationType") {
-      if (targets === DEFAULT_PUBLICATION_TYPE_TARGETS) return "short_video";
-      return pickFromTargets(
-        DEFAULT_PUBLICATION_TYPE_TARGETS,
-        counts,
-        context,
-        kind,
-        seed,
-        limits,
-      );
+    if (kind === "productionType") {
+      return "single_image";
     }
     return entries[0]?.[0] ?? "producto_en_construccion";
   }
 
-  const maxSameType = limits.maxSamePublicationTypeInPeriod ?? 3;
+  const maxSameType =
+    limits.maxSameProductionTypeInPeriod ??
+    limits.maxSamePublicationTypeInPeriod ??
+    3;
   const maxSameTopic =
     limits.maxConsecutiveSameTopic ?? limits.maxConsecutiveSamePillar;
 
@@ -265,7 +259,7 @@ function pickFromTargets(
         }
       }
 
-      if (kind === "publicationType") {
+      if (kind === "productionType") {
         if (id === context.lastPublicationType) score += 0.25;
         if ((counts[id] ?? 0) >= maxSameType) score += 3;
       }
@@ -300,25 +294,21 @@ function pickTopicForRole(
   );
 }
 
-function resolveCompatiblePublicationTypeTargets(
+function resolveCompatibleProductionTargets(
   account: PlanningAccount,
-): Record<PublicationTypeId, number> {
-  const filtered = publicationTypeTargetsForPlatforms(
-    account.publicationTypeTargets,
-    account.platforms,
-  );
-  const compatible = Object.fromEntries(
-    Object.entries(filtered).filter(([id]) => {
-      const typeId = id as PublicationTypeId;
-      return (
-        isPublicationTypeCompatibleWithPlatforms(typeId, account.platforms) &&
-        isPublicationTypeAllowedForProduction(typeId, account.cameraMode)
-      );
-    }),
-  ) as Record<PublicationTypeId, number>;
-
-  if (hasPositiveTargets(compatible)) return compatible;
-  return { short_video: 100 } as Record<PublicationTypeId, number>;
+  roleId: ContentRoleId,
+): Partial<Record<ProductionOptionId, number>> {
+  const config = normalizeProductionConfig({
+    cameraMode: account.cameraMode,
+    enabledIds: account.productionEnabledIds,
+    targets: account.productionTypeTargets,
+    publicationTypeTargets: account.publicationTypeTargets,
+  });
+  const withRole = productionTargetsForRole(config, roleId);
+  if (hasPositiveTargets(withRole)) return withRole;
+  const fallback = enabledProductionTargets(config);
+  if (hasPositiveTargets(fallback)) return fallback;
+  return { single_image: 100 };
 }
 
 function timeSlotRotationOffset(date: string, slotCount: number): number {
@@ -394,14 +384,17 @@ export function generateMissingSlots({
         if (!roleId) break;
 
         const topicId = pickTopicForRole(account, roleId, context, seed);
-        const publicationTypeId = pickFromTargets(
-          resolveCompatiblePublicationTypeTargets(account),
+        const productionTypeId = pickFromTargets(
+          resolveCompatibleProductionTargets(account, roleId) as Record<
+            string,
+            number
+          >,
           context.publicationTypeCounts,
           context,
-          "publicationType",
+          "productionType",
           seed,
           account.repetitionLimits,
-        ) as PublicationTypeId;
+        ) as ProductionOptionId;
 
         const slot: PlanningSlot = {
           id: `gen-${account.id}-${date}-${time.replace(":", "")}`,
@@ -411,7 +404,8 @@ export function generateMissingSlots({
           platforms: [...account.platforms],
           roleId,
           topicId,
-          publicationTypeId,
+          productionTypeId,
+          publicationTypeId: productionTypeId,
           status: "pendiente",
           distributionType: "organic",
           generated: true,
@@ -428,7 +422,7 @@ export function generateMissingSlots({
         workingSlots.push(slot);
 
         increment(context.topicCounts, topicId);
-        increment(context.publicationTypeCounts, publicationTypeId);
+        increment(context.publicationTypeCounts, productionTypeId);
 
         if (topicId === context.lastTopic) {
           context.topicStreak += 1;
@@ -437,7 +431,7 @@ export function generateMissingSlots({
           context.topicStreak = 1;
         }
 
-        context.lastPublicationType = publicationTypeId;
+        context.lastPublicationType = productionTypeId;
       }
     }
   }

@@ -17,6 +17,7 @@ import {
   normalizeRoleTopicPreferences,
   type RoleTopicPreferences,
 } from "@/content/role-topics";
+import { cloneDefaultProductionConfig } from "@/content/production-options";
 import { normalizePercentTargets } from "@/lib/planning-percent";
 
 export type RoleMixPreset = {
@@ -186,7 +187,7 @@ function hasPositiveTargets(targets: Record<string, number> | undefined) {
   return Object.values(targets ?? {}).some((value) => (value ?? 0) > 0);
 }
 
-/** Completa temas y tipos de publicación vacíos del piloto oficial si el mix de roles ya existe. */
+/** Completa temas y producción vacíos del piloto oficial si el mix de roles ya existe. */
 export function fillOfficialEditorialGaps(
   account: PlanningAccount,
 ): PlanningAccount {
@@ -202,6 +203,15 @@ export function fillOfficialEditorialGaps(
       ? account.pillarTargets
       : { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
     formatTargets: account.formatTargets,
+    productionEnabledIds:
+      account.productionEnabledIds?.length > 0
+        ? account.productionEnabledIds
+        : cloneDefaultProductionConfig().enabledIds,
+    productionTypeTargets: hasPositiveTargets(
+      account.productionTypeTargets as Record<string, number>,
+    )
+      ? account.productionTypeTargets
+      : cloneDefaultProductionConfig().targets,
   };
 }
 
@@ -252,6 +262,9 @@ export function buildMercantisOfficialCuratedSettings(): PlanningAccountOverride
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
+    cameraMode: "faceless",
+    productionEnabledIds: cloneDefaultProductionConfig().enabledIds,
+    productionTypeTargets: cloneDefaultProductionConfig().targets,
     formatTargets: normalizePercentTargets(formatWeights),
     repetitionLimits: repetitionLimitsWithFormatRotation(3),
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
@@ -267,6 +280,9 @@ export function buildOfficialRecommendedSettings(): PlanningAccountOverride {
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
     roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
+    cameraMode: "faceless",
+    productionEnabledIds: cloneDefaultProductionConfig().enabledIds,
+    productionTypeTargets: cloneDefaultProductionConfig().targets,
     formatTargets: { ...DEFAULT_FORMAT_TARGETS },
     repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
     defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,

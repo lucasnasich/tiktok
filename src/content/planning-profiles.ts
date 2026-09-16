@@ -1,8 +1,4 @@
 import {
-  cameraModeFromPresence,
-  type CameraMode,
-} from "@/content/camera-presence";
-import {
   getContentRoleLabel,
   normalizeRoleId,
   normalizeRoleTargets,
@@ -19,7 +15,7 @@ import {
 } from "@/content/planning-defaults";
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
-import { normalizePublicationTypeTargets } from "@/content/publication-types";
+import { normalizeProductionConfig } from "@/content/production-options";
 import { buildOfficialBalancedEditorialDefaults } from "@/content/planning-presets";
 import { normalizeRoleTopicPreferences } from "@/content/role-topics";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
@@ -40,11 +36,20 @@ export type PlanningProfile = {
 };
 
 function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
+  const production = normalizeProductionConfig({
+    cameraMode: account.cameraMode,
+    enabledIds: account.productionEnabledIds,
+    targets: account.productionTypeTargets,
+    publicationTypeTargets: account.publicationTypeTargets,
+  });
   return {
     roleTargets: { ...account.roleTargets },
     roleTopicPreferences: account.roleTopicPreferences,
     pillarTargets: { ...account.pillarTargets },
     formatTargets: { ...account.formatTargets },
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
     repetitionLimits: { ...account.repetitionLimits },
     defaultDistributionType: account.defaultDistributionType,
     alternateRoles: account.alternateRoles,
@@ -70,21 +75,20 @@ export function resolveProfile(
   return profiles.find((profile) => profile.id === profileId);
 }
 
-function resolveProfileCameraMode(
-  settings: PlanningAccountOverride,
-  fallback: CameraMode,
-): CameraMode {
-  if (settings.cameraMode) return cameraModeFromPresence(settings.cameraMode);
-  if (settings.cameraPresence) {
-    return cameraModeFromPresence(settings.cameraPresence);
-  }
-  return fallback;
-}
-
 export function profileSettingsToAccount(
   baseAccount: PlanningAccount,
   settings: PlanningAccountOverride,
 ): PlanningAccount {
+  const production = normalizeProductionConfig({
+    cameraMode:
+      settings.cameraMode ??
+      settings.cameraPresence ??
+      baseAccount.cameraMode,
+    enabledIds: settings.productionEnabledIds ?? baseAccount.productionEnabledIds,
+    targets: settings.productionTypeTargets ?? baseAccount.productionTypeTargets,
+    publicationTypeTargets:
+      settings.publicationTypeTargets ?? baseAccount.publicationTypeTargets,
+  });
   return {
     ...baseAccount,
     roleTargets: normalizeRoleTargets({
@@ -103,12 +107,10 @@ export function profileSettingsToAccount(
       ...baseAccount.formatTargets,
       ...settings.formatTargets,
     }),
-    publicationTypeTargets: normalizePublicationTypeTargets(
-      settings.publicationTypeTargets ?? baseAccount.publicationTypeTargets,
-    ),
-    cameraMode: settings.cameraMode
-      ? resolveProfileCameraMode(settings, baseAccount.cameraMode)
-      : baseAccount.cameraMode,
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
+    publicationTypeTargets: production.targets,
     repetitionLimits: {
       ...baseAccount.repetitionLimits,
       ...settings.repetitionLimits,

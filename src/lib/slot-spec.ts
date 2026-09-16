@@ -16,7 +16,7 @@ import {
 import { getPlanningAccount, getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getSlotTopicLabel, resolveSlotTopicId } from "@/content/role-topics";
 import {
-  resolveSlotPublicationType,
+  resolveSlotProductionType,
   type PlanningSlot,
 } from "@/content/planned-slots";
 import { getPublicationTypeLabel } from "@/content/publication-types";
@@ -138,7 +138,7 @@ export function assembleSlotSpec(
     : undefined;
 
   const cameraMode = cameraModeFromPresence(slot.cameraPresence);
-  const publicationTypeId = resolveSlotPublicationType(slot);
+  const productionTypeId = resolveSlotProductionType(slot);
 
   return {
     slotId: slot.id,
@@ -149,11 +149,12 @@ export function assembleSlotSpec(
     roleId: slot.roleId,
     topicId: resolveSlotTopicId(slot),
     pillarId: slot.pillarId,
-    publicationTypeId,
+    productionTypeId,
+    publicationTypeId: productionTypeId,
     formatId: slot.formatId,
     recommendedCreativeFormats: recommendCreativeFormats({
       roleId: slot.roleId,
-      publicationTypeId,
+      productionTypeId,
       cameraMode,
       limit: 4,
     }),
@@ -346,7 +347,7 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     "## Misión",
     `- Rol: ${getContentRoleLabel(spec.roleId)}`,
     `- Tema: ${getSlotTopicLabel({ roleId: spec.roleId, topicId: spec.topicId, pillarId: spec.pillarId })}`,
-    `- Tipo de publicación: ${getPublicationTypeLabel(spec.publicationTypeId)}`,
+    `- Pieza: ${getPublicationTypeLabel(spec.productionTypeId)}`,
     spec.cameraPresence
       ? `- Producción: ${cameraPresenceShortLabel(spec.cameraPresence)}`
       : "- Producción: —",
@@ -358,7 +359,7 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
           (format) =>
             `- ${format.label} (${format.id}): ${format.summary}`,
         )
-      : ["- Sin formatos compatibles. Revisá tipo de publicación y producción."]),
+      : ["- Sin formatos compatibles. Revisá la opción de producción."]),
     spec.formatId
       ? `- Legacy del slot: ${getFormatLabel(spec.formatId)} (no es obligatorio)`
       : "",
@@ -400,7 +401,7 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     "",
     "## Qué tiene que hacer Cursor",
     "Desarrollar propuestas completas para este slot: ángulo, concepto, hook, narrativa, 2 a 4 formatos creativos (usar la lista filtrada de arriba), estructura, copy por slide/escena, CTA, caption y dirección visual.",
-    "No cambiar cuenta, plataformas, fecha, rol, tema ni tipo de publicación.",
+    "No cambiar cuenta, plataformas, fecha, rol, tema ni opción de producción.",
     "No sugerir talking head, vlog, entrevista, selfie ni grabación física si la producción es sin cámara.",
     "Sí se puede hacer video: motion graphics, screen recording, animación, IA, texto cinético, capturas.",
     "No inventar claims. Consultar el Mercantis Brain citado arriba.",
@@ -429,7 +430,7 @@ export function cursorPromptForSlotDescription(spec: SlotSpec) {
     "### editorialDescription",
     "- 2 a 4 oraciones en español argentino, prosa continua y amigable.",
     "- Sin listas, viñetas, guiones largos (—) ni prefijos del tipo \"Rol:\", \"Pilar:\" o \"Formato:\".",
-    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, pilar, tipo de publicación y producción.",
+    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, tema y opción de producción.",
     "",
     "### structuralSearchBrief",
     "- 1 a 3 oraciones EXCLUSIVAMENTE sobre: hook deseado, estructura narrativa, beats, ritmo, mecanismo, tipo de desarrollo, payoff / CTA.",

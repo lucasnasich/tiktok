@@ -1,9 +1,24 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mercantis Studio</title>
+    <script>
+      (function () {
+        var theme = "dark";
+        try {
+          var raw = localStorage.getItem("mercantis-studio:theme");
+          if (raw != null) {
+            var parsed = JSON.parse(raw);
+            if (parsed === "light" || parsed === "dark") theme = parsed;
+          }
+        } catch (e) {}
+        var root = document.documentElement;
+        root.classList.toggle("dark", theme === "dark");
+        root.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

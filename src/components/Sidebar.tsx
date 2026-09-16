@@ -12,6 +12,7 @@ import {
 import { NavLink, useLocation } from "react-router-dom";
 
 import { MercantisIconBold } from "@/components/MercantisIcon";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import {
@@ -288,6 +289,7 @@ export function AppSidebar() {
         <SidebarGroup className="p-0">
           <SidebarGroupContent>
             <SidebarMenu>
+              <ThemeToggle />
               <NavItem {...DOCS_NAV} />
             </SidebarMenu>
           </SidebarGroupContent>

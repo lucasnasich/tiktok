@@ -1,12 +1,14 @@
 import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { ContentRoleId } from "@/content/content-roles";
 import {
-  isPublicationTypeId,
   getPublicationTypeLabel,
   getPublicationTypeShortLabel,
-  type PublicationTypeId,
 } from "@/content/publication-types";
-import { getFormatCapabilities } from "@/content/format-capabilities";
+import {
+  isProductionOptionId,
+  migrateLegacyPublicationTypeId,
+  type ProductionOptionId,
+} from "@/content/production-options";
 import {
   PLANNING_ALL_ACCOUNTS_ID,
   type PlanningPlatform,
@@ -37,10 +39,15 @@ export type PlanningSlot = {
   /** Legacy: pilar global. Los slots nuevos guardan el tema en `topicId`. */
   pillarId?: string;
   /**
-   * Tipo de publicación nativo (imagen, carrusel, reel, story).
-   * En slots nuevos es la capa que decide el calendario.
+   * Opción exacta de producción (imagen única, Remotion, demo, etc.).
+   * Source of truth en slots nuevos.
    */
-  publicationTypeId?: PublicationTypeId;
+  productionTypeId?: ProductionOptionId;
+  /**
+   * Legacy: tipo nativo abstracto (short_video, story).
+   * Los slots nuevos guardan `productionTypeId`.
+   */
+  publicationTypeId?: ProductionOptionId | string;
   /**
    * Legacy: formato creativo rígido del calendario anterior.
    * Los slots nuevos no lo asignan; las propuestas lo recomiendan.
@@ -123,26 +130,33 @@ export function getSlotDistributionType(
   return slot.distributionType ?? "organic";
 }
 
+export function resolveSlotProductionType(
+  slot: Pick<PlanningSlot, "productionTypeId" | "publicationTypeId" | "formatId">,
+): ProductionOptionId {
+  if (slot.productionTypeId && isProductionOptionId(slot.productionTypeId)) {
+    return slot.productionTypeId;
+  }
+  if (slot.publicationTypeId) {
+    return migrateLegacyPublicationTypeId(slot.publicationTypeId);
+  }
+  return "single_image";
+}
+
+/** @deprecated Usar `resolveSlotProductionType`. */
 export function resolveSlotPublicationType(
-  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
-): PublicationTypeId {
-  if (slot.publicationTypeId && isPublicationTypeId(slot.publicationTypeId)) {
-    return slot.publicationTypeId;
-  }
-  if (slot.formatId) {
-    return getFormatCapabilities(slot.formatId).publicationTypes[0] ?? "short_video";
-  }
-  return "short_video";
+  slot: Pick<PlanningSlot, "productionTypeId" | "publicationTypeId" | "formatId">,
+): ProductionOptionId {
+  return resolveSlotProductionType(slot);
 }
 
 export function getSlotPublicationTypeLabel(
-  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
+  slot: Pick<PlanningSlot, "productionTypeId" | "publicationTypeId" | "formatId">,
 ): string {
-  return getPublicationTypeLabel(resolveSlotPublicationType(slot));
+  return getPublicationTypeLabel(resolveSlotProductionType(slot));
 }
 
 export function getSlotPublicationTypeShortLabel(
-  slot: Pick<PlanningSlot, "publicationTypeId" | "formatId">,
+  slot: Pick<PlanningSlot, "productionTypeId" | "publicationTypeId" | "formatId">,
 ): string {
-  return getPublicationTypeShortLabel(resolveSlotPublicationType(slot));
+  return getPublicationTypeShortLabel(resolveSlotProductionType(slot));
 }

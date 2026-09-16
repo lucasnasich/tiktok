@@ -97,7 +97,9 @@ export function usePlanningConfig() {
       {
         cameraMode:
           active.cameraMode ?? cameraModeFromPresence(active.cameraPresence),
-        publicationTypeTargets: active.publicationTypeTargets,
+        productionEnabledIds: active.productionEnabledIds ?? [],
+        productionTypeTargets:
+          active.productionTypeTargets ?? active.publicationTypeTargets ?? {},
       },
     );
   }, [store]);

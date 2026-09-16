@@ -2,7 +2,7 @@ import {
   presenceFromCameraMode,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
-import { normalizePublicationTypeTargets } from "@/content/publication-types";
+import { normalizeProductionConfig } from "@/content/production-options";
 import {
   formatCalendarGenerationLabel,
   type CalendarGeneration,
@@ -98,8 +98,6 @@ export function createCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode,
-    cameraMode,
-    publicationTypeTargets,
     rhythm,
   } = input;
   const profile = resolveProfile(profileId, store.profiles);
@@ -110,24 +108,28 @@ export function createCalendarGeneration(
   );
   if (accounts.length === 0) return undefined;
 
-  const production = {
-    cameraMode,
-    publicationTypeTargets: normalizePublicationTypeTargets(
-      publicationTypeTargets,
-    ),
-  };
+  const production = normalizeProductionConfig({
+    cameraMode: profile.settings.cameraMode ?? profile.settings.cameraPresence,
+    enabledIds: profile.settings.productionEnabledIds,
+    targets: profile.settings.productionTypeTargets,
+    publicationTypeTargets: profile.settings.publicationTypeTargets,
+  });
 
   const planningAccounts = buildPlanningAccountsForGeneration(
     store,
     profileId,
     accountIds,
     rhythm,
-    production,
+    {
+      cameraMode: production.cameraMode,
+      productionEnabledIds: production.enabledIds,
+      productionTypeTargets: production.targets,
+    },
   );
   if (planningAccounts.length === 0) return undefined;
   if (dateFrom > dateTo) return undefined;
 
-  const cameraPresence = presenceFromCameraMode(cameraMode);
+  const cameraPresence = presenceFromCameraMode(production.cameraMode);
 
   const generationId = `generation:${Date.now()}`;
   const useMirrored =
@@ -165,8 +167,9 @@ export function createCalendarGeneration(
     dateFrom,
     dateTo,
     publishingMode: useMirrored ? "mirrored" : "independent",
-    cameraMode,
-    publicationTypeTargets: production.publicationTypeTargets,
+    cameraMode: production.cameraMode,
+    productionEnabledIds: production.enabledIds,
+    productionTypeTargets: production.targets,
     cameraPresence,
     rhythm,
     slots,

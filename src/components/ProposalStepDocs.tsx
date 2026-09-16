@@ -57,7 +57,7 @@ export function ProposalStepDocs() {
         <TabsContent value="slot" className="mt-0 flex-none space-y-3">
           <p className="text-[14px] leading-relaxed text-muted-foreground">
             El flujo parte del calendario: click en un slot abre el sheet. El
-            brief (cuenta, rol, tema, tipo de publicación, plataformas, fecha/hora) queda
+            brief (cuenta, rol, tema, pieza de producción, plataformas, fecha/hora) queda
             fijo. El spec suma inspiración, Brain e historial.
           </p>
         </TabsContent>
