@@ -25,7 +25,7 @@ Los \`roleTargets\` del perfil gobiernan el mix **semanal**.
 Esta planificación es **orgánica**. Ads es una iteración futura distinta.
 
 **Capas del contenido** (no mezclar):
-- **Rol** = para qué publicamos (\`content-roles.ts\`)
+- **Rol** = mundo editorial (\`content-roles.ts\`) — educación, producto, evidencia, proceso, marca, comunidad, conversión. Alcance y valor no son roles.
 - **Pilar** = de qué hablamos (\`planning-pillars.ts\`)
 - **Ángulo** = cómo lo contamos (\`angles.ts\`) — lo propone Cursor en las Proposals
 - **Formato** = cómo lo mostramos (\`formats.ts\`)

@@ -1,6 +1,6 @@
 import { getAngleLabel } from "@/content/angles";
 import type { ContentRoleId } from "@/content/content-roles";
-import { getContentRoleLabel } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getFormatById } from "@/content/formats";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
@@ -78,7 +78,9 @@ function detectTargetDrift(
   const total = periodSlots.length;
   if (total < 4) return insights;
 
-  const roleCounts = countBy(periodSlots, (slot) => slot.roleId);
+  const roleCounts = countBy(periodSlots, (slot) =>
+    normalizeRoleId(slot.roleId),
+  );
   for (const [roleId, targetPercent] of Object.entries(account.roleTargets)) {
     if (!targetPercent) continue;
     const actual = ((roleCounts.get(roleId as ContentRoleId) ?? 0) / total) * 100;

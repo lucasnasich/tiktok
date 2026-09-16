@@ -21,7 +21,7 @@
     "competitor:pdf": "node scripts/add-competitor-pdf.mjs",
     "competitor:logo": "node scripts/add-competitor-logo.mjs",
     "competitor:logos:fetch": "node scripts/fetch-competitor-logos.mjs",
-    "test:planning": "node scripts/planning-generator.test.mjs && node --experimental-strip-types --no-warnings scripts/slot-compatibility.test.mjs",
+    "test:planning": "node scripts/planning-generator.test.mjs && node --experimental-strip-types --no-warnings scripts/slot-compatibility.test.mjs && node --experimental-strip-types --no-warnings scripts/content-roles.test.mjs",
     "test:workflow": "node scripts/slot-workflow.test.mjs",
     "test:intelligence": "node scripts/inspiration-intelligence.test.mjs && node scripts/slot-description.test.mjs",
     "studio:reset-workflow": "node scripts/reset-studio-workflow.mjs",

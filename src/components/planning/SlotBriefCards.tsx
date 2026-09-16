@@ -13,7 +13,7 @@ import {
   cameraPresenceShortLabel,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
-import { getContentRoleLabel, type ContentRoleId } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId, type ContentRoleId } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import type { PlanningSlot } from "@/content/planned-slots";
@@ -28,10 +28,14 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 const ROLE_CARD_CLASS: Record<ContentRoleId, string> = {
-  alcance: "border-violet-500/25 bg-violet-500/12 text-violet-900 dark:text-violet-100",
-  valor: "border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100",
-  prueba:
+  educacion:
+    "border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100",
+  producto:
+    "border-indigo-500/25 bg-indigo-500/12 text-indigo-900 dark:text-indigo-100",
+  evidencia:
     "border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100",
+  "build-in-public":
+    "border-violet-500/25 bg-violet-500/12 text-violet-900 dark:text-violet-100",
   conversion:
     "border-amber-500/25 bg-amber-500/12 text-amber-900 dark:text-amber-100",
   marca: "border-rose-500/25 bg-rose-500/12 text-rose-900 dark:text-rose-100",
@@ -40,9 +44,10 @@ const ROLE_CARD_CLASS: Record<ContentRoleId, string> = {
 };
 
 const ROLE_ICON_SHELL_CLASS: Record<ContentRoleId, string> = {
-  alcance: "bg-violet-500/20",
-  valor: "bg-sky-500/20",
-  prueba: "bg-emerald-500/20",
+  educacion: "bg-sky-500/20",
+  producto: "bg-indigo-500/20",
+  evidencia: "bg-emerald-500/20",
+  "build-in-public": "bg-violet-500/20",
   conversion: "bg-amber-500/20",
   marca: "bg-rose-500/20",
   comunidad: "bg-fuchsia-500/20",
@@ -154,7 +159,7 @@ export function SlotBriefCards({
   slot: PlanningSlot;
   studioAccounts?: PlanningStudioAccount[];
 }) {
-  const roleId = slot.roleId as ContentRoleId;
+  const roleId = normalizeRoleId(slot.roleId);
   const productionMode = slot.cameraPresence ?? "off-camera";
   const platformLabel = slot.platforms
     .map((platform) => PLATFORM_LABELS[platform] ?? platform)
@@ -190,9 +195,9 @@ export function SlotBriefCards({
           label="Rol"
           value={getContentRoleLabel(roleId)}
           icon={<ContentRoleIcon roleId={roleId} className="size-4" />}
-          className={ROLE_CARD_CLASS[roleId] ?? ROLE_CARD_CLASS.alcance}
+          className={ROLE_CARD_CLASS[roleId] ?? ROLE_CARD_CLASS.educacion}
           iconShellClassName={
-            ROLE_ICON_SHELL_CLASS[roleId] ?? ROLE_ICON_SHELL_CLASS.alcance
+            ROLE_ICON_SHELL_CLASS[roleId] ?? ROLE_ICON_SHELL_CLASS.educacion
           }
         />
         <BriefHighlightCard

@@ -2,8 +2,16 @@ import type { CameraPresenceMode } from "@/content/camera-presence";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import type { PlanningProfile } from "@/content/planning-profiles";
+import {
+  DEFAULT_PLANNING_RHYTHM,
+  formatPlanningRhythmSummary,
+  type PlanningRhythm,
+} from "@/content/planning-rhythm";
 import { cameraPresenceShortLabel } from "@/content/camera-presence";
+import { normalizeRoleId } from "@/content/content-roles";
 import { parseIsoDate, toIsoDate } from "@/lib/planning-dates";
+
+export type CalendarGenerationRhythm = PlanningRhythm;
 
 export type CalendarPublishingMode = "mirrored" | "independent";
 
@@ -19,6 +27,7 @@ export type CalendarGenerationRequest = {
   dateTo: string;
   publishingMode: CalendarPublishingMode;
   cameraPresence: CameraPresenceMode;
+  rhythm: CalendarGenerationRhythm;
 };
 
 export type CalendarGeneration = {
@@ -31,6 +40,7 @@ export type CalendarGeneration = {
   dateTo: string;
   publishingMode: CalendarPublishingMode;
   cameraPresence: CameraPresenceMode;
+  rhythm: CalendarGenerationRhythm;
   /** Slots congelados al generar — no se recalculan solos. */
   slots: PlanningSlot[];
 };
@@ -151,8 +161,10 @@ export function normalizeCalendarGeneration(
     dateTo,
     publishingMode: generation.publishingMode ?? "independent",
     cameraPresence: generation.cameraPresence ?? "off-camera",
+    rhythm: generation.rhythm ?? DEFAULT_PLANNING_RHYTHM,
     slots: generation.slots.map((slot) => ({
       ...slot,
+      roleId: normalizeRoleId(slot.roleId),
       cameraPresence:
         slot.cameraPresence ?? generation.cameraPresence ?? "off-camera",
     })),
@@ -187,5 +199,6 @@ export function formatCalendarGenerationMeta(
       ? " · unificada"
       : "";
   const camera = ` · ${cameraPresenceShortLabel(generation.cameraPresence)}`;
-  return `${count} slots · ${range}${mode}${camera}`;
+  const rhythm = ` · ${formatPlanningRhythmSummary(generation.rhythm)}`;
+  return `${count} slots · ${range}${mode}${camera}${rhythm}`;
 }

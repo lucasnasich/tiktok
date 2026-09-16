@@ -39,12 +39,13 @@
             "21:00"
           ],
           "roleTargets": {
-            "alcance": 35,
-            "valor": 25,
-            "prueba": 15,
-            "conversion": 5,
+            "educacion": 30,
+            "producto": 20,
+            "evidencia": 15,
+            "build-in-public": 10,
             "marca": 10,
-            "comunidad": 10
+            "comunidad": 10,
+            "conversion": 5
           },
           "pillarTargets": {
             "ventas-atencion": 5,

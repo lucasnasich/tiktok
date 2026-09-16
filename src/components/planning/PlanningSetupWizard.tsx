@@ -20,27 +20,21 @@ import {
   type PlanningProfile,
 } from "@/content/planning-profiles";
 import {
-  DEFAULT_TIME_SLOTS,
-} from "@/content/planning-defaults";
-import {
   OFFICIAL_ROLE_MIX_PRESETS,
   FORMAT_ROTATION_PRESETS,
   formatRotationPresetIdFor,
   officialFormatIds,
   repetitionLimitsWithFormatRotation,
 } from "@/content/planning-presets";
-import type { PlanningPlatform } from "@/content/planning-accounts";
 import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
   PILLAR_PRIORITY_WEIGHT,
   PLANNING_SETUP_STEPS,
-  RHYTHM_COPY,
   ROLE_GUIDES,
   getSetupFormats,
   type PillarPriority,
   type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
-import { WEEKDAY_LABELS } from "@/lib/planning-dates";
 import { accountToOverride } from "@/lib/planning-config-store";
 import {
   normalizePercentTargets,
@@ -61,8 +55,6 @@ import {
   type PlanningWizardSession,
 } from "@/lib/planning-wizard-session";
 import { cn } from "@/lib/utils";
-
-const TIME_OPTIONS = [...DEFAULT_TIME_SLOTS];
 
 function SingleChoice<T extends string>({
   value,
@@ -89,43 +81,6 @@ function SingleChoice<T extends string>({
           {option.label}
         </Button>
       ))}
-    </div>
-  );
-}
-
-function MultiChoice<T extends string>({
-  values,
-  onChange,
-  options,
-  className,
-}: {
-  values: T[];
-  onChange: (values: T[]) => void;
-  options: { value: T; label: ReactNode }[];
-  className?: string;
-}) {
-  return (
-    <div className={cn("flex flex-wrap gap-2", className)}>
-      {options.map((option) => {
-        const selected = values.includes(option.value);
-        return (
-          <Button
-            key={option.value}
-            type="button"
-            variant={selected ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              onChange(
-                selected
-                  ? values.filter((v) => v !== option.value)
-                  : [...values, option.value],
-              );
-            }}
-          >
-            {option.label}
-          </Button>
-        );
-      })}
     </div>
   );
 }
@@ -159,12 +114,6 @@ function isStepComplete(
   switch (stepId) {
     case "profile":
       return ctx.profileLabel.trim().length > 0;
-    case "rhythm":
-      return (
-        ctx.draft.postsPerDay > 0 &&
-        ctx.draft.activeDays.length > 0 &&
-        ctx.draft.timeSlots.length > 0
-      );
     case "roles":
       return Math.abs(ctx.roleSum - 100) <= 2;
     case "pillars":
@@ -481,87 +430,13 @@ export function PlanningSetupWizard({
         </div>
       )}
 
-      {step.id === "rhythm" && (
-        <div className="space-y-5">
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Plataformas</p>
-            <GuideCallout>
-              Una pieza puede salir en varias plataformas a la vez. No cuenta doble.
-            </GuideCallout>
-            <MultiChoice
-              className="mt-3"
-              values={draft.platforms}
-              onChange={(values) => {
-                if (values.length === 0) return;
-                updateDraft({
-                  platforms: values as PlanningPlatform[],
-                });
-              }}
-              options={[
-                { value: "tiktok", label: "TikTok" },
-                { value: "instagram", label: "Instagram" },
-              ]}
-            />
-          </div>
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Piezas por día</p>
-            <GuideCallout>{RHYTHM_COPY.postsPerDay}</GuideCallout>
-            <SingleChoice
-              className="mt-3"
-              value={String(draft.postsPerDay)}
-              onChange={(v) => updateDraft({ postsPerDay: Number(v) })}
-              options={[1, 2, 3, 4].map((n) => ({
-                value: String(n),
-                label: n,
-              }))}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Días activos</p>
-            <GuideCallout>{RHYTHM_COPY.activeDays}</GuideCallout>
-            <MultiChoice
-              className="mt-3"
-              values={draft.activeDays.map(String)}
-              onChange={(values) =>
-                updateDraft({
-                  activeDays: values.map(Number).sort((a, b) => a - b),
-                })
-              }
-              options={WEEKDAY_LABELS.map((label, index) => ({
-                value: String(index + 1),
-                label,
-              }))}
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-medium">Horarios</p>
-            <GuideCallout>{RHYTHM_COPY.timeSlots}</GuideCallout>
-            <MultiChoice
-              className="mt-3"
-              values={draft.timeSlots}
-              onChange={(values) =>
-                updateDraft({
-                  timeSlots: TIME_OPTIONS.filter((t) => values.includes(t)),
-                })
-              }
-              options={TIME_OPTIONS.map((time) => ({
-                value: time,
-                label: time,
-              }))}
-            />
-          </div>
-        </div>
-      )}
-
       {step.id === "roles" && (
         <div className="space-y-5">
           <GuideCallout>
-            Pensá el mix como un embudo suave a lo largo de la semana: primero
-            llegás (alcance), después enseñás (valor), mostrás (prueba) y
-            recién ahí pedís acción (conversión). Los porcentajes gobiernan
-            la semana, no cada día.
+            Cada rol es un mundo editorial distinto. No uses “alcance” ni
+            “valor” como categorías: el alcance se gana con el hook y el
+            valor debería estar en casi cualquier pieza. Los porcentajes
+            gobiernan la semana, no cada día.
           </GuideCallout>
 
           <div className="flex flex-wrap gap-2">

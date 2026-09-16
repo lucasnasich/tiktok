@@ -108,8 +108,15 @@ export function createCalendarGeneration(
   store: PlanningConfigStore,
   input: CalendarGenerationRequest,
 ): CalendarGeneration | undefined {
-  const { profileId, accountIds, dateFrom, dateTo, publishingMode, cameraPresence } =
-    input;
+  const {
+    profileId,
+    accountIds,
+    dateFrom,
+    dateTo,
+    publishingMode,
+    cameraPresence,
+    rhythm,
+  } = input;
   const profile = resolveProfile(profileId, store.profiles);
   if (!profile) return undefined;
 
@@ -122,6 +129,7 @@ export function createCalendarGeneration(
     store,
     profileId,
     accountIds,
+    rhythm,
   );
   if (planningAccounts.length === 0) return undefined;
   if (dateFrom > dateTo) return undefined;
@@ -168,6 +176,7 @@ export function createCalendarGeneration(
     dateTo,
     publishingMode: useMirrored ? "mirrored" : "independent",
     cameraPresence,
+    rhythm,
     slots,
   };
 }

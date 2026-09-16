@@ -19,7 +19,7 @@ export const CONTENT_LAYERS: ContentLayer[] = [
   {
     id: "rol",
     label: "Rol",
-    question: "¿Para qué publicamos?",
+    question: "¿Qué mundo editorial cubre esta pieza?",
     sourceFile: "src/content/content-roles.ts",
   },
   {
@@ -43,6 +43,6 @@ export const CONTENT_LAYERS: ContentLayer[] = [
 ];
 
 export const CONTENT_LAYER_EXAMPLES = [
-  "Alcance → Ventas y atención → Dolor → Captura de chat",
-  "Prueba → Automatización e IA → Storytelling → Demo",
+  "Educación → Ventas y atención → Dolor → Captura de chat",
+  "Producto / Demostración → Automatización e IA → Storytelling → Demo",
 ] as const;

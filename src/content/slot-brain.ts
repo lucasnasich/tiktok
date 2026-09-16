@@ -1,6 +1,6 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import type { PlanningAccountType } from "@/content/planning-accounts";
-import { getContentRoleLabel } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
 import { cameraPresenceConstraint } from "@/content/camera-presence";
@@ -29,7 +29,10 @@ const PILLAR_BRAIN_REFS: Record<string, string[]> = {
 const ROLE_BRAIN_REFS: Partial<Record<ContentRoleId, string[]>> = {
   marca: ["marca.md", "filosofia.md", "posicionamiento.md"],
   conversion: ["claims.md", "pricing-modelo-negocio.md"],
-  prueba: ["clientes-casos.md", "producto.md"],
+  producto: ["producto.md", "funcionalidades.md"],
+  evidencia: ["clientes-casos.md"],
+  "build-in-public": ["historia.md", "fundadores.md", "filosofia.md"],
+  educacion: ["dolores-jtbd.md", "contenido-comunicacion.md"],
   comunidad: ["usuarios-clientes.md", "contenido-comunicacion.md"],
 };
 
@@ -50,7 +53,7 @@ export function brainRefsForSlot(slot: PlanningSlot): string[] {
       "dolores-jtbd.md",
       "posicionamiento.md",
     ]),
-    ...(ROLE_BRAIN_REFS[slot.roleId] ?? []),
+    ...(ROLE_BRAIN_REFS[normalizeRoleId(slot.roleId)] ?? []),
     ...(FORMAT_BRAIN_REFS[slot.formatId] ?? []),
   ]);
 }
@@ -70,22 +73,27 @@ export function editorialConstraintsForSlot(
     "Consultar el Mercantis Brain. Si algo no está: marcarlo como desconocido.",
   ];
 
-  if (slot.roleId === "alcance") {
-    constraints.push("No convertirlo en venta directa.");
+  const roleId = normalizeRoleId(slot.roleId);
+
+  if (roleId === "educacion") {
+    constraints.push("Enseñar algo aplicable. El producto no es el protagonista.");
   }
-  if (slot.roleId === "valor") {
-    constraints.push("Enseñar; el producto no es el protagonista.");
+  if (roleId === "producto") {
+    constraints.push("Mostrar Mercantis funcionando. No reemplazarlo por un consejo genérico ni por un testimonio.");
   }
-  if (slot.roleId === "prueba") {
-    constraints.push("Mostrar evidencia real. No inventar resultados.");
+  if (roleId === "evidencia") {
+    constraints.push("Mostrar evidencia real de clientes o resultados. No inventar métricas ni casos.");
   }
-  if (slot.roleId === "conversion") {
+  if (roleId === "build-in-public") {
+    constraints.push("Mostrar el proceso real de construir Mercantis. No inventar hitos, métricas internas ni reuniones.");
+  }
+  if (roleId === "conversion") {
     constraints.push("CTA concreto, sin claims no respaldados.");
   }
-  if (slot.roleId === "marca") {
+  if (roleId === "marca") {
     constraints.push("Instalar postura, no pitch de features.");
   }
-  if (slot.roleId === "comunidad") {
+  if (roleId === "comunidad") {
     constraints.push("Invitar a opinar; no cerrar en venta.");
   }
   if (

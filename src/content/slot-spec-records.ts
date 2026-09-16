@@ -31,7 +31,7 @@ export const slotSpecRecordSeeds: SlotSpecRecord[] = [
     directionKind: "manual",
     status: "draft",
     editorialDescription:
-      "Esta pieza tiene que hacer ver, de un modo simple y creíble, cómo Mercantis funciona en la práctica: mostrar algo concreto del producto sin apelar a slogans ni inventar resultados. El formato pizarra encaja porque permite explicar un flujo o una capacidad a mano alzada, educativo y fácil de seguir en el feed. Como es contenido de prueba y va sin cámara, todo pasa por pantalla, texto, capturas o B-roll, con voz en off si suma, pero sin nadie hablando a cámara.",
+      "Esta pieza tiene que hacer ver, de un modo simple y creíble, cómo Mercantis funciona en la práctica: mostrar algo concreto del producto sin apelar a slogans ni inventar resultados. El formato pizarra encaja porque permite explicar un flujo o una capacidad a mano alzada, educativo y fácil de seguir en el feed. Como es contenido de producto y va sin cámara, todo pasa por pantalla, texto, capturas o B-roll, con voz en off si suma, pero sin nadie hablando a cámara.",
     inspirationSearchBrief:
       "Buscá explicaciones tipo pizarra o whiteboard que muestren un flujo paso a paso. Sin cámara frontal: trazos en pantalla, animación de dibujo o grabación de UI con voz en off.",
   },

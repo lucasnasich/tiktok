@@ -13,6 +13,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PlanningCustomDateRange } from "@/components/planning/PlanningCustomDateRange";
 import {
+  DEFAULT_PLANNING_RHYTHM,
+  PlanningRhythmFields,
+} from "@/components/planning/PlanningRhythmFields";
+import {
   CAMERA_PRESENCE_OPTIONS,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
@@ -25,6 +29,10 @@ import {
   type CalendarPublishingMode,
 } from "@/content/calendar-generations";
 import { hasEditorialMix } from "@/content/planning-presets";
+import {
+  isPlanningRhythmComplete,
+  type PlanningRhythm,
+} from "@/content/planning-rhythm";
 import type { PlanningProfile } from "@/content/planning-profiles";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import { toIsoDate } from "@/lib/planning-dates";
@@ -158,6 +166,7 @@ export function PlanningCalendarSetup({
     useState<CalendarPublishingMode>("mirrored");
   const [cameraPresence, setCameraPresence] =
     useState<CameraPresenceMode>("off-camera");
+  const [rhythm, setRhythm] = useState<PlanningRhythm>(DEFAULT_PLANNING_RHYTHM);
   const [selectedProfileId, setSelectedProfileId] = useState<string>();
 
   const resolvedRange = useMemo(
@@ -181,6 +190,7 @@ export function PlanningCalendarSetup({
     resolvedRange !== undefined &&
     selectedAccountIds.length > 0 &&
     selectedProfile !== undefined &&
+    isPlanningRhythmComplete(rhythm) &&
     hasEditorialMix({
       roleTargets: selectedProfile.settings.roleTargets ?? {},
     });
@@ -284,6 +294,8 @@ export function PlanningCalendarSetup({
           </p>
         )}
       </div>
+
+      <PlanningRhythmFields value={rhythm} onChange={setRhythm} />
 
       <div className="space-y-2">
         <p className="text-[13px] font-medium">Presencia en cámara</p>
@@ -403,6 +415,7 @@ export function PlanningCalendarSetup({
             publishingMode:
               selectedAccountIds.length > 1 ? publishingMode : "independent",
             cameraPresence,
+            rhythm,
           });
         }}
       >
@@ -425,8 +438,8 @@ export function PlanningCalendarSetup({
           </div>
           <CardTitle className="text-base">Generar calendario</CardTitle>
           <p className="text-[13px] leading-relaxed text-muted-foreground">
-            Definí el período, las cuentas y el perfil editorial. Los slots se
-            congelan al confirmar.
+            Definí el período, el ritmo, las cuentas y el perfil editorial. Los
+            slots se congelan al confirmar.
           </p>
         </CardHeader>
         <CardContent>{form}</CardContent>

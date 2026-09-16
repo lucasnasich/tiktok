@@ -28,7 +28,7 @@ Cursor desarrolla las Proposals. El usuario selecciona una.
 
 | Capa | Pregunta | Source of truth | Quién decide |
 |------|----------|-----------------|--------------|
-| Rol | ¿Para qué publicamos? | `src/content/content-roles.ts` | Planificación |
+| Rol | ¿Qué mundo editorial cubre esta pieza? | `src/content/content-roles.ts` | Planificación |
 | Pilar | ¿De qué hablamos? | `src/content/planning-pillars.ts` | Planificación |
 | Formato | ¿Cómo lo mostramos? | `src/content/formats.ts` | Planificación |
 | Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` | Cursor, en la Proposal |

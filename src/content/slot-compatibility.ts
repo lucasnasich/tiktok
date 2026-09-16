@@ -31,18 +31,18 @@ import type { ContentRoleId } from "./content-roles.ts";
  *   https://www.digitalapplied.com/blog/social-proof-trust-signals-2026-conversion-placement-framework
  *   https://www.growthsuite.net/blog/perfect-timing-when-to-introduce-urgency-in-customer-journey
  * - Pilares = temas (Sprout). El mismo tema puede vivir en varias etapas,
- *   pero el pilar `producto-mercantis` de este studio es features/demos:
- *   eso es product-aware, no alcance de audiencias nuevas.
+ *   pero el pilar `producto-mercantis` de este studio es features/demos.
  *   https://sproutsocial.com/insights/social-media-content-pillars/
  *   https://www.tenspeed.io/blog/content-marketing-framework
  *
  * Mapeo de roles del studio:
- *   alcance     → TOFU / unaware–problem-aware (gente nueva)
- *   valor       → educación TOFU–MOFU
- *   prueba      → evidencia MOFU–BOFU
- *   conversion  → most-aware / BOFU
- *   marca       → posicionamiento (no prueba ni oferta)
- *   comunidad   → conversación (no cierre)
+ *   educacion        → enseñar (TOFU–MOFU); el alcance es transversal
+ *   producto         → demo / product-aware
+ *   evidencia        → prueba social / MOFU–BOFU
+ *   build-in-public  → proceso interno; no es oferta ni testimonio de cliente
+ *   conversion       → most-aware / BOFU
+ *   marca            → posicionamiento (no prueba ni oferta)
+ *   comunidad        → conversación (no cierre)
  */
 
 export type SlotCompatibilityInput = {
@@ -52,24 +52,31 @@ export type SlotCompatibilityInput = {
   cameraPresence?: CameraPresenceMode;
 };
 
+const OFFER_FORMATS = ["oferta-combo", "cupos-limitados"] as const;
+const SOCIAL_PROOF_FORMATS = [
+  "testimonio-cliente",
+  "resenas",
+  "captura-email",
+] as const;
+
 /** Formatos que no pueden cumplir el trabajo del rol. */
 export const BLOCKED_FORMATS_BY_ROLE: Record<
   ContentRoleId,
   readonly string[]
 > = {
-  alcance: [
+  educacion: [...OFFER_FORMATS],
+  producto: [...OFFER_FORMATS, "efecto-secundario", "pedimos-disculpas"],
+  evidencia: [
+    ...OFFER_FORMATS,
+    "efecto-secundario",
+    "pedimos-disculpas",
+    "texto-sobre-la-piel",
+  ],
+  "build-in-public": [
+    ...OFFER_FORMATS,
     "testimonio-cliente",
     "resenas",
     "captura-email",
-    "oferta-combo",
-    "cupos-limitados",
-  ],
-  valor: ["oferta-combo", "cupos-limitados"],
-  prueba: [
-    "oferta-combo",
-    "cupos-limitados",
-    "efecto-secundario",
-    "pedimos-disculpas",
   ],
   conversion: [
     "texto-sobre-la-piel",
@@ -78,16 +85,9 @@ export const BLOCKED_FORMATS_BY_ROLE: Record<
     "podcast-ia",
     "diagrama-venn",
   ],
-  marca: [
-    "testimonio-cliente",
-    "resenas",
-    "oferta-combo",
-    "cupos-limitados",
-    "captura-email",
-  ],
+  marca: [...SOCIAL_PROOF_FORMATS, ...OFFER_FORMATS],
   comunidad: [
-    "oferta-combo",
-    "cupos-limitados",
+    ...OFFER_FORMATS,
     "texto-sobre-la-piel",
     "captura-email",
   ],
@@ -97,8 +97,9 @@ export const BLOCKED_FORMATS_BY_ROLE: Record<
 export const BLOCKED_PILLARS_BY_ROLE: Partial<
   Record<ContentRoleId, readonly string[]>
 > = {
-  alcance: ["producto-mercantis"],
-  prueba: ["mercado-tendencias"],
+  educacion: ["producto-mercantis"],
+  evidencia: ["mercado-tendencias"],
+  "build-in-public": ["mercado-tendencias"],
   conversion: ["mercado-tendencias"],
 };
 
@@ -117,18 +118,20 @@ export const BLOCKED_PILLARS_BY_FORMAT: Record<string, readonly string[]> = {
 
 /** Si el filtro deja la bolsa vacía, el generador cae a estos IDs. */
 export const ROLE_FORMAT_FALLBACKS: Record<ContentRoleId, string> = {
-  alcance: "x-razones",
-  valor: "pizarra",
-  prueba: "testimonio-cliente",
+  educacion: "pizarra",
+  producto: "problema-vs-solucion",
+  evidencia: "testimonio-cliente",
+  "build-in-public": "nota-iphone",
   conversion: "problema-vs-solucion",
   marca: "mito-vs-realidad",
   comunidad: "tier-list",
 };
 
 export const ROLE_PILLAR_FALLBACKS: Record<ContentRoleId, string> = {
-  alcance: "emprendimiento",
-  valor: "operacion-gestion",
-  prueba: "producto-mercantis",
+  educacion: "operacion-gestion",
+  producto: "producto-mercantis",
+  evidencia: "clientes-fidelizacion",
+  "build-in-public": "emprendimiento",
   conversion: "ventas-atencion",
   marca: "emprendimiento",
   comunidad: "emprendimiento",

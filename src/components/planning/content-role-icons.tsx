@@ -1,28 +1,30 @@
 import type { Icon, IconProps } from "@phosphor-icons/react";
 import {
   BookOpenIcon,
-  BroadcastIcon,
   ChatsCircleIcon,
   CompassIcon,
   CursorClickIcon,
+  MonitorPlayIcon,
   SealCheckIcon,
   TagIcon,
+  UsersThreeIcon,
 } from "@phosphor-icons/react";
 
-import type { ContentRoleId } from "@/content/content-roles";
+import { normalizeRoleId, type ContentRoleId } from "@/content/content-roles";
 
 /** Un icono distinto por rol — sin repetir dentro de la taxonomía. */
 const CONTENT_ROLE_ICONS: Record<ContentRoleId, Icon> = {
-  alcance: BroadcastIcon,
-  valor: BookOpenIcon,
-  prueba: SealCheckIcon,
+  educacion: BookOpenIcon,
+  producto: MonitorPlayIcon,
+  evidencia: SealCheckIcon,
+  "build-in-public": UsersThreeIcon,
   conversion: CursorClickIcon,
   marca: CompassIcon,
   comunidad: ChatsCircleIcon,
 };
 
 export function getContentRoleIcon(roleId: ContentRoleId | string): Icon {
-  return CONTENT_ROLE_ICONS[roleId as ContentRoleId] ?? TagIcon;
+  return CONTENT_ROLE_ICONS[normalizeRoleId(roleId)] ?? TagIcon;
 }
 
 export function ContentRoleIcon({

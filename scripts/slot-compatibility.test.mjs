@@ -49,47 +49,47 @@ const officialPillarMix = {
 
 assert.equal(
   isSlotComboCompatible({
-    roleId: "alcance",
+    roleId: "educacion",
     pillarId: "automatizacion-ia",
-    formatId: "testimonio-cliente",
+    formatId: "oferta-combo",
     cameraPresence: "off-camera",
   }),
   false,
-  "alcance + testimonio es agua seca: no se llega a gente nueva con prueba de cliente",
+  "educación + oferta es agua seca: no se enseña con escasez",
 );
 
 assert.equal(
   isSlotComboCompatible({
-    roleId: "alcance",
+    roleId: "educacion",
     pillarId: "automatizacion-ia",
     formatId: "x-razones",
     cameraPresence: "off-camera",
   }),
   true,
-  "alcance + IA + lista sí es compatible",
+  "educación + IA + lista sí es compatible",
 );
 
-assert.equal(
-  isFormatCompatibleWithRole("alcance", "testimonio-cliente"),
-  false,
-);
-assert.equal(isFormatCompatibleWithRole("alcance", "resenas"), false);
-assert.equal(isFormatCompatibleWithRole("alcance", "oferta-combo"), false);
-assert.equal(isFormatCompatibleWithRole("alcance", "cupos-limitados"), false);
-assert.equal(isFormatCompatibleWithRole("prueba", "testimonio-cliente"), true);
-assert.equal(isFormatCompatibleWithRole("valor", "pizarra"), true);
-assert.equal(isFormatCompatibleWithRole("valor", "cupos-limitados"), false);
+assert.equal(isFormatCompatibleWithRole("educacion", "oferta-combo"), false);
+assert.equal(isFormatCompatibleWithRole("educacion", "pizarra"), true);
+assert.equal(isFormatCompatibleWithRole("producto", "testimonio-cliente"), true);
+assert.equal(isFormatCompatibleWithRole("producto", "oferta-combo"), false);
+assert.equal(isFormatCompatibleWithRole("evidencia", "testimonio-cliente"), true);
+assert.equal(isFormatCompatibleWithRole("evidencia", "cupos-limitados"), false);
 assert.equal(isFormatCompatibleWithRole("marca", "testimonio-cliente"), false);
 assert.equal(isFormatCompatibleWithRole("conversion", "efecto-secundario"), false);
 assert.equal(
   isFormatCompatibleWithRole("conversion", "problema-vs-solucion"),
   true,
 );
+assert.equal(
+  isFormatCompatibleWithRole("build-in-public", "testimonio-cliente"),
+  false,
+);
 
-assert.equal(isPillarCompatibleWithRole("alcance", "producto-mercantis"), false);
-assert.equal(isPillarCompatibleWithRole("alcance", "automatizacion-ia"), true);
-assert.equal(isPillarCompatibleWithRole("prueba", "mercado-tendencias"), false);
-assert.equal(isPillarCompatibleWithRole("prueba", "producto-mercantis"), true);
+assert.equal(isPillarCompatibleWithRole("educacion", "producto-mercantis"), false);
+assert.equal(isPillarCompatibleWithRole("educacion", "automatizacion-ia"), true);
+assert.equal(isPillarCompatibleWithRole("evidencia", "mercado-tendencias"), false);
+assert.equal(isPillarCompatibleWithRole("producto", "producto-mercantis"), true);
 assert.equal(isPillarCompatibleWithRole("conversion", "mercado-tendencias"), false);
 
 assert.equal(
@@ -109,31 +109,38 @@ assert.equal(
   "testimonio off-camera es válido (quote, estrellas, overlay)",
 );
 
-const alcanceFormats = compatibleFormatTargets(officialFormatMix, {
-  roleId: "alcance",
+const educacionFormats = compatibleFormatTargets(officialFormatMix, {
+  roleId: "educacion",
   pillarId: "automatizacion-ia",
   cameraPresence: "off-camera",
 });
-assert.equal(alcanceFormats["testimonio-cliente"], undefined);
-assert.equal(alcanceFormats["green-screen"], undefined);
-assert.ok(alcanceFormats["x-razones"] > 0);
-assert.ok(alcanceFormats.pizarra > 0);
+assert.equal(educacionFormats["oferta-combo"], undefined);
+assert.equal(educacionFormats["green-screen"], undefined);
+assert.ok(educacionFormats["x-razones"] > 0);
+assert.ok(educacionFormats.pizarra > 0);
 
-const alcancePillars = compatiblePillarTargets(
+const educacionPillars = compatiblePillarTargets(
   { ...officialPillarMix, "automatizacion-ia": 10 },
-  "alcance",
+  "educacion",
 );
-assert.equal(alcancePillars["producto-mercantis"], undefined);
-assert.ok(alcancePillars.emprendimiento > 0);
-assert.ok(alcancePillars["automatizacion-ia"] > 0);
-assert.ok(alcancePillars["operacion-gestion"] > 0);
+assert.equal(educacionPillars["producto-mercantis"], undefined);
+assert.ok(educacionPillars.emprendimiento > 0);
+assert.ok(educacionPillars["automatizacion-ia"] > 0);
+assert.ok(educacionPillars["operacion-gestion"] > 0);
 
-const pruebaFormats = compatibleFormatTargets(officialFormatMix, {
-  roleId: "prueba",
+const evidenciaFormats = compatibleFormatTargets(officialFormatMix, {
+  roleId: "evidencia",
+  pillarId: "clientes-fidelizacion",
+  cameraPresence: "off-camera",
+});
+assert.ok(evidenciaFormats["testimonio-cliente"] > 0);
+
+const productoFormats = compatibleFormatTargets(officialFormatMix, {
+  roleId: "producto",
   pillarId: "producto-mercantis",
   cameraPresence: "off-camera",
 });
-assert.ok(pruebaFormats["testimonio-cliente"] > 0);
+assert.ok(productoFormats["problema-vs-solucion"] > 0);
 
 for (const [roleId, formats] of Object.entries(BLOCKED_FORMATS_BY_ROLE)) {
   for (const formatId of formats) {
@@ -157,8 +164,9 @@ for (const [formatId, pillars] of Object.entries(BLOCKED_PILLARS_BY_FORMAT)) {
   }
 }
 
-assert.equal(ROLE_FORMAT_FALLBACKS.alcance, "x-razones");
-assert.equal(ROLE_PILLAR_FALLBACKS.alcance, "emprendimiento");
-assert.notEqual(ROLE_PILLAR_FALLBACKS.alcance, "producto-mercantis");
+assert.equal(ROLE_FORMAT_FALLBACKS.educacion, "pizarra");
+assert.equal(ROLE_PILLAR_FALLBACKS.educacion, "operacion-gestion");
+assert.equal(ROLE_FORMAT_FALLBACKS.evidencia, "testimonio-cliente");
+assert.notEqual(ROLE_PILLAR_FALLBACKS.educacion, "producto-mercantis");
 
 console.log("slot-compatibility.test.mjs: ok");

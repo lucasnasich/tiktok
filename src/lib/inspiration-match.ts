@@ -1,5 +1,5 @@
 import type { ContentRoleId } from "@/content/content-roles";
-import { getContentRoleLabel } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { INSPIRATION_ALL_SOURCE_ID } from "@/content/idea-sources";
 import type { InspirationMatchCandidate, InspirationMatchMode } from "@/content/inspiration-analysis";
@@ -24,12 +24,13 @@ export type { InspirationUsage } from "@/lib/inspiration-usage";
 export { formatInspirationUsage, usageForInspiration } from "@/lib/inspiration-usage";
 
 const ROLE_KEYWORDS: Record<ContentRoleId, string[]> = {
-  alcance: ["hook", "viral", "scroll", "tendencia", "meme", "alcance", "parar"],
-  valor: ["cómo", "guia", "guía", "tutorial", "tip", "método", "razones", "aprender"],
-  prueba: ["demo", "caso", "testimonio", "antes", "después", "resultado", "prueba"],
-  conversion: ["cta", "gratis", "probar", "registr", "oferta", "probar"],
-  marca: ["marca", "posición", "filosof", "visión", "identidad"],
-  comunidad: ["pregunta", "opin", "comentario", "comunidad"],
+  educacion: ["cómo", "guia", "guía", "tutorial", "tip", "método", "razones", "aprender", "error"],
+  producto: ["demo", "feature", "pantalla", "workflow", "software", "funciona", "descuenta"],
+  evidencia: ["testimonio", "cliente", "caso", "resultado", "reseña", "adopción", "métrica"],
+  "build-in-public": ["hoy", "esta semana", "feature", "lanzamos", "reunión", "aprendimos", "error", "proceso"],
+  conversion: ["cta", "gratis", "probar", "registr", "oferta", "demo"],
+  marca: ["marca", "posición", "filosof", "visión", "identidad", "sistema"],
+  comunidad: ["pregunta", "opin", "comentario", "comunidad", "te consume"],
 };
 
 const PILLAR_KEYWORDS: Record<string, string[]> = {
@@ -145,11 +146,11 @@ function scoreItem(
     }
   }
 
-  if (item.roleAffinities?.includes(slot.roleId)) {
+  if (item.roleAffinities?.includes(normalizeRoleId(slot.roleId))) {
     score += w.roleAffinity;
     reasons.push(`Afín a ${getContentRoleLabel(slot.roleId)}`);
   } else {
-    const roleHits = keywordHits(text, ROLE_KEYWORDS[slot.roleId] ?? []);
+    const roleHits = keywordHits(text, ROLE_KEYWORDS[normalizeRoleId(slot.roleId)] ?? []);
     if (roleHits > 0) {
       score += Math.min(w.roleKeywordCap, roleHits * w.roleKeyword);
       reasons.push(`Afín a ${getContentRoleLabel(slot.roleId)}`);
@@ -176,7 +177,8 @@ function scoreItem(
   }
   if (
     item.materialType === "suggestion" &&
-    (slot.roleId === "valor" || slot.roleId === "comunidad")
+    (normalizeRoleId(slot.roleId) === "educacion" ||
+      normalizeRoleId(slot.roleId) === "comunidad")
   ) {
     score += w.suggestionForValueCommunity;
     reasons.push("Sugerencia de contenido");

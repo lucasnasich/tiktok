@@ -1,4 +1,8 @@
-import type { ContentRoleId } from "@/content/content-roles";
+import {
+  normalizeRoleId,
+  normalizeRoleTargets,
+  type ContentRoleId,
+} from "@/content/content-roles";
 import {
   getPlanningAccountLabel,
   type PlanningAccount,
@@ -43,6 +47,10 @@ import {
   type PlanningWizardSession,
 } from "@/lib/planning-wizard-session";
 import type { PillarPriority } from "@/content/planning-setup-guide";
+import {
+  applyRhythmToPlanningAccount,
+  type PlanningRhythm,
+} from "@/content/planning-rhythm";
 type LegacyAccountMeta = {
   tiktokHandle?: string;
   instagramHandle?: string;
@@ -106,10 +114,28 @@ function isUserProfile(profile: PlanningProfile): boolean {
   return !profile.id.startsWith("builtin:");
 }
 
+function migrateAccountOverride(
+  settings: PlanningAccountOverride,
+): PlanningAccountOverride {
+  return {
+    ...settings,
+    roleTargets: settings.roleTargets
+      ? normalizeRoleTargets(settings.roleTargets)
+      : settings.roleTargets,
+    alternateRoles: settings.alternateRoles
+      ? [
+          normalizeRoleId(settings.alternateRoles[0]),
+          normalizeRoleId(settings.alternateRoles[1]),
+        ]
+      : settings.alternateRoles,
+  };
+}
+
 function sanitizeProfiles(profiles: PlanningProfile[]): PlanningProfile[] {
   return profiles.filter(isUserProfile).map((profile) => ({
     ...profile,
     builtIn: undefined,
+    settings: migrateAccountOverride(profile.settings),
   })) as PlanningProfile[];
 }
 
@@ -225,6 +251,7 @@ export function buildPlanningAccountsForGeneration(
   store: PlanningConfigStore,
   profileId: string,
   accountIds: string[],
+  rhythm?: PlanningRhythm,
 ): PlanningAccount[] {
   const profile = resolveProfile(profileId, store.profiles);
   if (!profile) return [];
@@ -235,7 +262,8 @@ export function buildPlanningAccountsForGeneration(
     .map((studioAccount) => {
       const base = studioAccountToPlanningBase(studioAccount);
       const merged = mergePlanningAccount(base, profile.settings);
-      return fillOfficialEditorialGaps(merged);
+      const filled = fillOfficialEditorialGaps(merged);
+      return rhythm ? applyRhythmToPlanningAccount(filled, rhythm) : filled;
     });
 }
 
@@ -270,6 +298,7 @@ export function getAssignedPlanningAccounts(
       store,
       generation.profileId,
       generation.accountIds,
+      generation.rhythm,
     )) {
       if (seen.has(account.id)) continue;
       seen.add(account.id);
@@ -504,6 +533,9 @@ function normalizeProfileSettingsList(
           : undefined,
         formatTargets: profile.settings.formatTargets
           ? normalizeFormatTargets(profile.settings.formatTargets)
+          : undefined,
+        roleTargets: profile.settings.roleTargets
+          ? normalizeRoleTargets(profile.settings.roleTargets)
           : undefined,
       },
     })),
@@ -744,7 +776,10 @@ function sanitizeWizardSessions(
     ) {
       continue;
     }
-    result[sessionKey] = session;
+    result[sessionKey] = {
+      ...session,
+      settings: migrateAccountOverride(session.settings),
+    };
   }
   return result;
 }
@@ -806,11 +841,7 @@ export function parsePlanningConfigStore(raw: unknown): PlanningConfigStore {
 
 export function accountToOverride(account: PlanningAccount): PlanningAccountOverride {
   return {
-    platforms: [...account.platforms],
-    postsPerDay: account.postsPerDay,
-    activeDays: [...account.activeDays],
-    timeSlots: [...account.timeSlots],
-    roleTargets: { ...account.roleTargets },
+    roleTargets: normalizeRoleTargets(account.roleTargets),
     pillarTargets: { ...account.pillarTargets },
     formatTargets: { ...account.formatTargets },
     repetitionLimits: { ...account.repetitionLimits },

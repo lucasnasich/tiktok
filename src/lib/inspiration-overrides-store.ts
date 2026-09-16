@@ -1,4 +1,5 @@
 import type { ContentRoleId } from "@/content/content-roles";
+import { normalizeRoleId } from "@/content/content-roles";
 import type {
   InspirationMaterialType,
   InspirationOrigin,
@@ -62,9 +63,7 @@ export function parseInspirationOverride(
     materialType,
     signal: typeof value.signal === "string" ? value.signal : undefined,
     pillarAffinities: stringArray(value.pillarAffinities),
-    roleAffinities: stringArray(value.roleAffinities) as
-      | ContentRoleId[]
-      | undefined,
+    roleAffinities: stringArray(value.roleAffinities)?.map(normalizeRoleId),
     formatAffinities: stringArray(value.formatAffinities),
     angleAffinities: stringArray(value.angleAffinities),
     creativeMechanism:

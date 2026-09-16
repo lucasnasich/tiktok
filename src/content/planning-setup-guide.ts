@@ -3,7 +3,6 @@ import { formats, type Format } from "@/content/formats";
 
 export type PlanningSetupStepId =
   | "profile"
-  | "rhythm"
   | "roles"
   | "pillars"
   | "formats";
@@ -24,18 +23,11 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
       "Solo el nombre del mix editorial. Oficial o satélite lo define cada cuenta; las cuentas se eligen al generar el calendario.",
   },
   {
-    id: "rhythm",
-    label: "Ritmo",
-    title: "Ritmo de publicación",
-    intro:
-      "Acá definís cuánto publicás y cuándo. El motor usa esto para llenar huecos en el calendario sin pisar piezas que ya armaste manualmente.",
-  },
-  {
     id: "roles",
     label: "Roles",
     title: "Roles del contenido",
     intro:
-      "El rol responde para qué publicamos — por encima del pilar, el ángulo y el formato. No mezcles capas: Rol ≠ Pilar ≠ Ángulo ≠ Formato.",
+      "El rol es el mundo editorial de la pieza: educación, producto, evidencia, proceso, marca, comunidad o conversión. No es un objetivo genérico. Alcance y valor no son roles: cualquier pieza debería tener ambos.",
   },
   {
     id: "pillars",
@@ -62,52 +54,60 @@ export type RoleGuide = {
 
 export const ROLE_GUIDES: RoleGuide[] = [
   {
-    id: "alcance",
+    id: "educacion",
     cuandoUsar:
-      "Cuando querés llegar a gente que todavía no conoce Mercantis. Hooks fuertes, tendencias, dolores universales del emprendedor.",
+      "Cuando el trabajo de la pieza es enseñar algo aplicable: un tip, un framework, un error común o una explicación. El producto no es el protagonista.",
     ejemplo:
-      "“3 señales de que tu negocio de WhatsApp está perdiendo ventas” — no menciona producto, pero atrae al público correcto.",
-    tip: "En satélites suele ser el 60–70% del mix. En la oficial, equilibralo con valor y prueba.",
+      "“3 formas de organizar los pedidos que te llegan por WhatsApp.”",
+    tip: "Si mostrás la interfaz o un cliente real, ya no es educación: es producto o evidencia. El alcance se gana con el hook, no con este rol.",
   },
   {
-    id: "valor",
+    id: "producto",
     cuandoUsar:
-      "Cuando enseñás algo útil: tips, frameworks, errores comunes. Genera autoridad y guardados.",
+      "Cuando el trabajo es mostrar Mercantis en acción: una feature, un workflow, una pantalla, un antes/después del producto o un caso de uso.",
     ejemplo:
-      "“Cómo organizar pedidos de WhatsApp sin planillas” — educa y posiciona a Mercantis como quien entiende el problema.",
-    tip: "Es el rol más sostenible a largo plazo. Si dudás, subí valor antes que conversión.",
+      "Mostrar cómo entra un pedido y se descuenta automáticamente el stock.",
+    tip: "Distinto de evidencia: acá habla el producto, no el cliente. Distinto de educación: acá se ve Mercantis, no un consejo genérico.",
   },
   {
-    id: "prueba",
+    id: "evidencia",
     cuandoUsar:
-      "Cuando mostrás evidencia: demo del producto, caso de cliente, antes/después, pantalla real.",
+      "Cuando el trabajo es una señal externa de que Mercantis funciona: testimonio, resultado, métrica, caso o adopción real.",
     ejemplo:
-      "Screen recording de un pedido entrando por WhatsApp y quedando registrado en Mercantis.",
-    tip: "En satélites también entra: evidencia, demos y casos. El mix semanal del perfil decide cuánto.",
+      "“Este negocio cargó 800 productos en Mercantis y dejó de manejar el stock en Excel.”",
+    tip: "No inventar clientes ni números. Si la pieza es un tour de la interfaz sin voz de cliente, es producto, no evidencia.",
   },
   {
-    id: "conversion",
+    id: "build-in-public",
     cuandoUsar:
-      "Cuando pedís una acción concreta: probar Mercantis, registrarse, agendar demo. Usalo con moderación.",
+      "Cuando el trabajo es el detrás de escena de construir Mercantis: avances, reuniones, lanzamientos, métricas internas, errores y aprendizajes. Sirve para contenido serializado.",
     ejemplo:
-      "“Probá Mercantis gratis esta semana” con CTA claro — después de haber dado valor o prueba en posts anteriores.",
-    tip: "Si el target queda en 0%, el motor no la programa. Una pieza manual igual puede usarla de forma excepcional.",
+      "“Hoy terminamos esta feature.” / “Esta semana tuvimos X registros.” / “Esto salió mal y lo vamos a cambiar.”",
+    tip: "La audiencia sigue la evolución de la empresa, no un tutorial ni una demo. Si no hay proceso real, no fuerces este rol.",
   },
   {
     id: "marca",
     cuandoUsar:
-      "Cuando queremos que Mercantis se asocie a una idea, postura o filosofía, incluso sin vender directamente.",
+      "Cuando queremos instalar una visión, postura o filosofía, incluso sin enseñar ni mostrar producto.",
     ejemplo:
       "“Tu negocio no necesita más herramientas. Necesita un sistema.”",
-    tip: "Instala visión de marca. No compite con valor ni prueba — ocupa otro lugar en el mix.",
+    tip: "No es un pitch de features ni un caso de cliente. Si enseña un método, es educación; si pide registrarse, es conversión.",
   },
   {
     id: "comunidad",
     cuandoUsar:
-      "Cuando queremos abrir conversación con dueños de negocio, hacerlos opinar o compartir experiencias.",
+      "Cuando el trabajo es abrir conversación: una pregunta, una opinión o una experiencia para que la audiencia participe.",
     ejemplo:
       "“¿Qué parte de manejar tu negocio te consume más tiempo?”",
-    tip: "Priorizá preguntas abiertas y hooks que inviten a comentar o guardar para debatir.",
+    tip: "Priorizá preguntas abiertas. Si cerrás en CTA de registro, ya es conversión.",
+  },
+  {
+    id: "conversion",
+    cuandoUsar:
+      "Cuando pedís una acción concreta: probar Mercantis, registrarse, agendar demo o visitar el producto. Usalo con moderación.",
+    ejemplo:
+      "“Probá Mercantis gratis esta semana” con CTA claro — después de haber educado, mostrado producto o dado evidencia.",
+    tip: "Si el target queda en 0%, el motor no la programa. Una pieza manual igual puede usarla de forma excepcional.",
   },
 ];
 
@@ -124,13 +124,5 @@ export const PILLAR_PRIORITY_WEIGHT: Record<PillarPriority, number> = {
 export function getSetupFormats(): Format[] {
   return formats;
 }
-
-export const RHYTHM_COPY = {
-  postsPerDay:
-    "Cuántas piezas únicas por día. Una pieza puede salir en TikTok + IG a la vez — no cuenta doble.",
-  activeDays: "Días en que la cuenta publica. Podés dejar domingo libre si el público no está activo.",
-  timeSlots:
-    "Horarios editoriales posibles. Si elegís más horarios que piezas por día, el motor rota cuál queda fuera cada día para que todos se usen a lo largo de la semana. No es la hora exacta de Buffer, pero sí la estructura del día.",
-};
 
 /** Límites internos del motor — no se configuran en el wizard orgánico. */

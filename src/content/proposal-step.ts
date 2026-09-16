@@ -7,7 +7,7 @@ export const PROPOSAL_FINAL_FORMULA =
   "PlanningSlot + inspiración elegida + Mercantis Brain → SlotSpec → Cursor desarrolla Proposals";
 
 export const PROPOSAL_FINAL_EXAMPLE =
-  "Slot Alcance / Inventario / Tier list + ejemplo de ranking + dolores/stock → Cursor entrega 3 propuestas con copy completo → el usuario selecciona una.";
+  "Slot Educación / Inventario / Tier list + ejemplo de ranking + dolores/stock → Cursor entrega 3 propuestas con copy completo → el usuario selecciona una.";
 
 export const PROPOSAL_CARD_FIELDS = [
   "Slot",

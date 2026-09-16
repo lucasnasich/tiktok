@@ -8,9 +8,10 @@ import { deriveSlotPublicationLed } from "@/lib/slot-workflow";
 import { cn } from "@/lib/utils";
 
 const ROLE_CHIP_CLASS: Record<string, string> = {
-  alcance: "bg-violet-500/15 text-violet-900 dark:text-violet-200",
-  valor: "bg-sky-500/15 text-sky-900 dark:text-sky-200",
-  prueba: "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200",
+  educacion: "bg-sky-500/15 text-sky-900 dark:text-sky-200",
+  producto: "bg-indigo-500/15 text-indigo-900 dark:text-indigo-200",
+  evidencia: "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200",
+  "build-in-public": "bg-violet-500/15 text-violet-900 dark:text-violet-200",
   conversion: "bg-amber-500/15 text-amber-900 dark:text-amber-200",
   marca: "bg-rose-500/15 text-rose-900 dark:text-rose-200",
   comunidad: "bg-fuchsia-500/15 text-fuchsia-900 dark:text-fuchsia-200",

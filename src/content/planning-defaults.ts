@@ -47,12 +47,13 @@ export const DEFAULT_PILLAR_TARGETS_STUDY: Record<string, number> = {
 export const DEFAULT_ROLE_TARGETS_OFFICIAL: Partial<
   Record<ContentRoleId, number>
 > = {
-  alcance: 35,
-  valor: 25,
-  prueba: 15,
-  conversion: 5,
+  educacion: 30,
+  producto: 20,
+  evidencia: 15,
+  "build-in-public": 10,
   marca: 10,
   comunidad: 10,
+  conversion: 5,
 };
 
 /** Plataformas por defecto de la cuenta oficial. */

@@ -19,9 +19,9 @@ function pickWeeklyRole(targets, counts, capacity, lastRole, streak, maxStreak) 
 }
 
 const official = {
-  alcance: 35,
-  valor: 25,
-  prueba: 15,
+  educacion: 30,
+  producto: 20,
+  evidencia: 15,
   conversion: 5,
   marca: 10,
   comunidad: 10,
@@ -29,30 +29,30 @@ const official = {
 
 assert.equal(
   pickWeeklyRole(official, {}, 21, null, 0, 2),
-  "alcance",
+  "educacion",
   "con la semana vacía gana el rol de mayor target",
 );
 
 assert.equal(
-  pickWeeklyRole(official, { alcance: 8 }, 21, "alcance", 1, 2),
-  "valor",
-  "después de cubrir alcance, sigue el siguiente déficit",
+  pickWeeklyRole(official, { educacion: 8 }, 21, "educacion", 1, 2),
+  "producto",
+  "después de cubrir educación, sigue el siguiente déficit",
 );
 
-const satellite = { alcance: 60, valor: 25, prueba: 15, conversion: 0 };
+const satellite = { educacion: 60, producto: 25, evidencia: 15, conversion: 0 };
 assert.equal(
   pickWeeklyRole(satellite, {}, 21, null, 0, 2),
-  "alcance",
+  "educacion",
 );
 assert.notEqual(
-  pickWeeklyRole(satellite, { alcance: 12, valor: 5, prueba: 4 }, 21, null, 0, 2),
+  pickWeeklyRole(satellite, { educacion: 12, producto: 5, evidencia: 4 }, 21, null, 0, 2),
   "conversion",
   "target 0 no se programa",
 );
 
 assert.equal(
-  pickWeeklyRole({ alcance: 50, prueba: 50 }, { alcance: 3 }, 10, "alcance", 2, 2),
-  "prueba",
+  pickWeeklyRole({ educacion: 50, evidencia: 50 }, { educacion: 3 }, 10, "educacion", 2, 2),
+  "evidencia",
   "respeta el tope de repetición seguida",
 );
 

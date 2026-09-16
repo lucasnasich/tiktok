@@ -162,7 +162,7 @@ assert.ok(/estrella|quote|Remotion/i.test(formatSection));
 
 const promptWithFormat = buildSlotDescriptionUserPrompt({
   slotId: "slot-2",
-  roleLabel: "Alcance",
+  roleLabel: "Educación",
   pillarLabel: "Automatización e IA",
   formatLabel: "Testimonio de cliente",
   formatId: "testimonio-cliente",

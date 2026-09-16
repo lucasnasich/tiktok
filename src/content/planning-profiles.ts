@@ -1,4 +1,8 @@
-import type { ContentRoleId } from "@/content/content-roles";
+import {
+  normalizeRoleId,
+  normalizeRoleTargets,
+  type ContentRoleId,
+} from "@/content/content-roles";
 import {
   createPlanningAccountTemplate,
   type PlanningAccount,
@@ -29,10 +33,6 @@ export type PlanningProfile = {
 
 function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
   return {
-    platforms: [...account.platforms],
-    postsPerDay: account.postsPerDay,
-    activeDays: [...account.activeDays],
-    timeSlots: [...account.timeSlots],
     roleTargets: { ...account.roleTargets },
     pillarTargets: { ...account.pillarTargets },
     formatTargets: { ...account.formatTargets },
@@ -67,11 +67,10 @@ export function profileSettingsToAccount(
 ): PlanningAccount {
   return {
     ...baseAccount,
-    platforms: settings.platforms ?? baseAccount.platforms,
-    postsPerDay: settings.postsPerDay ?? baseAccount.postsPerDay,
-    activeDays: settings.activeDays ?? baseAccount.activeDays,
-    timeSlots: settings.timeSlots ?? baseAccount.timeSlots,
-    roleTargets: { ...baseAccount.roleTargets, ...settings.roleTargets },
+    roleTargets: normalizeRoleTargets({
+      ...baseAccount.roleTargets,
+      ...settings.roleTargets,
+    }),
     pillarTargets: normalizePillarTargets({
       ...baseAccount.pillarTargets,
       ...settings.pillarTargets,
@@ -86,7 +85,12 @@ export function profileSettingsToAccount(
     },
     defaultDistributionType:
       settings.defaultDistributionType ?? baseAccount.defaultDistributionType,
-    alternateRoles: settings.alternateRoles ?? baseAccount.alternateRoles,
+    alternateRoles: settings.alternateRoles
+      ? ([
+          normalizeRoleId(settings.alternateRoles[0]),
+          normalizeRoleId(settings.alternateRoles[1]),
+        ] as [ContentRoleId, ContentRoleId])
+      : baseAccount.alternateRoles,
     conversionExceptional:
       settings.conversionExceptional ?? baseAccount.conversionExceptional,
   };
@@ -128,7 +132,7 @@ export function createProfileDraft(
 export function formatProfileRoleSummary(
   settings: PlanningAccountOverride,
 ): string {
-  const targets = settings.roleTargets ?? {};
+  const targets = normalizeRoleTargets(settings.roleTargets);
   const parts = Object.entries(targets).filter(([, value]) => value && value > 0);
   if (parts.length === 0) return "Sin roles definidos";
   return parts.map(([id, value]) => `${id} ${value}%`).join(" · ");

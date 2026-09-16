@@ -1,5 +1,9 @@
 import type { CameraPresenceMode } from "@/content/camera-presence";
-import type { ContentRoleId } from "@/content/content-roles";
+import {
+  normalizeRoleId,
+  normalizeRoleTargets,
+  type ContentRoleId,
+} from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   DEFAULT_FORMAT_TARGETS,
@@ -83,7 +87,7 @@ function increment(map: CountMap, key: string) {
 }
 
 function roleTargets(account: PlanningAccount): Array<[ContentRoleId, number]> {
-  return Object.entries(account.roleTargets).filter(
+  return Object.entries(normalizeRoleTargets(account.roleTargets)).filter(
     (entry): entry is [ContentRoleId, number] => (entry[1] ?? 0) > 0,
   );
 }
@@ -108,7 +112,7 @@ function countRolesForWeek(
   const counts: CountMap = {};
   for (const slot of slots) {
     if (slot.accountId !== accountId || !dates.has(slot.date)) continue;
-    increment(counts, slot.roleId);
+    increment(counts, normalizeRoleId(slot.roleId));
   }
   return counts;
 }
@@ -128,10 +132,10 @@ function roleStreakForAccount(
 
   if (ordered.length === 0) return { lastRole: null, streak: 0 };
 
-  const lastRole = ordered[ordered.length - 1].roleId;
+  const lastRole = normalizeRoleId(ordered[ordered.length - 1].roleId);
   let streak = 0;
   for (let index = ordered.length - 1; index >= 0; index -= 1) {
-    if (ordered[index].roleId !== lastRole) break;
+    if (normalizeRoleId(ordered[index].roleId) !== lastRole) break;
     streak += 1;
   }
   return { lastRole, streak };
