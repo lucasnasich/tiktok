@@ -28,28 +28,25 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 const ROLE_CARD_CLASS: Record<ContentRoleId, string> = {
+  build_in_public:
+    "border-violet-500/25 bg-violet-500/12 text-violet-900 dark:text-violet-100",
   educacion:
     "border-sky-500/25 bg-sky-500/12 text-sky-900 dark:text-sky-100",
   producto:
     "border-indigo-500/25 bg-indigo-500/12 text-indigo-900 dark:text-indigo-100",
+  marca: "border-rose-500/25 bg-rose-500/12 text-rose-900 dark:text-rose-100",
   evidencia:
     "border-emerald-500/25 bg-emerald-500/12 text-emerald-900 dark:text-emerald-100",
-  "build-in-public":
-    "border-violet-500/25 bg-violet-500/12 text-violet-900 dark:text-violet-100",
-  conversion:
-    "border-amber-500/25 bg-amber-500/12 text-amber-900 dark:text-amber-100",
-  marca: "border-rose-500/25 bg-rose-500/12 text-rose-900 dark:text-rose-100",
   comunidad:
     "border-fuchsia-500/25 bg-fuchsia-500/12 text-fuchsia-900 dark:text-fuchsia-100",
 };
 
 const ROLE_ICON_SHELL_CLASS: Record<ContentRoleId, string> = {
+  build_in_public: "bg-violet-500/20",
   educacion: "bg-sky-500/20",
   producto: "bg-indigo-500/20",
-  evidencia: "bg-emerald-500/20",
-  "build-in-public": "bg-violet-500/20",
-  conversion: "bg-amber-500/20",
   marca: "bg-rose-500/20",
+  evidencia: "bg-emerald-500/20",
   comunidad: "bg-fuchsia-500/20",
 };
 

@@ -10,7 +10,7 @@ import { ArrowLeftIcon, ArrowRightIcon, LightbulbIcon } from "@phosphor-icons/re
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { contentRoles } from "@/content/content-roles";
+import { contentRoles, type ContentRoleId } from "@/content/content-roles";
 import {
   createPlanningAccountTemplate,
   type PlanningAccount,
@@ -55,6 +55,36 @@ import {
   type PlanningWizardSession,
 } from "@/lib/planning-wizard-session";
 import { cn } from "@/lib/utils";
+
+const ROLE_WIZARD_TONE: Record<
+  ContentRoleId,
+  { card: string; icon: string }
+> = {
+  build_in_public: {
+    card: "ring-violet-500/25",
+    icon: "bg-violet-500/15 text-violet-800 dark:text-violet-200",
+  },
+  educacion: {
+    card: "ring-sky-500/25",
+    icon: "bg-sky-500/15 text-sky-800 dark:text-sky-200",
+  },
+  producto: {
+    card: "ring-indigo-500/25",
+    icon: "bg-indigo-500/15 text-indigo-800 dark:text-indigo-200",
+  },
+  marca: {
+    card: "ring-rose-500/25",
+    icon: "bg-rose-500/15 text-rose-800 dark:text-rose-200",
+  },
+  evidencia: {
+    card: "ring-emerald-500/25",
+    icon: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200",
+  },
+  comunidad: {
+    card: "ring-fuchsia-500/25",
+    icon: "bg-fuchsia-500/15 text-fuchsia-800 dark:text-fuchsia-200",
+  },
+};
 
 function SingleChoice<T extends string>({
   value,
@@ -424,7 +454,7 @@ export function PlanningSetupWizard({
           <Input
             value={profileLabel}
             onChange={(event) => setProfileLabel(event.target.value)}
-            placeholder="Ej. Institucional, Q4 alcance…"
+            placeholder="Ej. Institucional, Q4…"
             className="max-w-md"
           />
         </div>
@@ -433,10 +463,9 @@ export function PlanningSetupWizard({
       {step.id === "roles" && (
         <div className="space-y-5">
           <GuideCallout>
-            Cada rol es un mundo editorial distinto. No uses “alcance” ni
-            “valor” como categorías: el alcance se gana con el hook y el
-            valor debería estar en casi cualquier pieza. Los porcentajes
-            gobiernan la semana, no cada día.
+            Cada rol es un mundo editorial distinto. Los porcentajes
+            gobiernan la semana, no cada día. Un CTA puede aparecer en
+            cualquier pieza: no define el rol.
           </GuideCallout>
 
           <div className="flex flex-wrap gap-2">
@@ -455,14 +484,20 @@ export function PlanningSetupWizard({
 
           <div className="space-y-3">
             {contentRoles.map((role) => {
-                const guide = ROLE_GUIDES.find((g) => g.id === role.id)!;
+                const guide = ROLE_GUIDES[role.id];
                 const value = draft.roleTargets[role.id] ?? 0;
+                const tone = ROLE_WIZARD_TONE[role.id];
                 return (
-                  <Card key={role.id} size="sm" className="ring-border/80">
+                  <Card key={role.id} size="sm" className={cn("ring-border/80", tone.card)}>
                     <CardHeader className="gap-2">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex min-w-0 items-start gap-3">
-                          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+                          <div
+                            className={cn(
+                              "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                              tone.icon,
+                            )}
+                          >
                             <ContentRoleIcon
                               roleId={role.id}
                               className="size-4"

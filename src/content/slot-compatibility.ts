@@ -2,7 +2,7 @@ import {
   ON_CAMERA_FORMAT_IDS,
   type CameraPresenceMode,
 } from "./camera-presence.ts";
-import type { ContentRoleId } from "./content-roles.ts";
+import { normalizeRoleId, type ContentRoleId } from "./content-roles.ts";
 
 /**
  * Compatibilidad entre rol, pilar, formato y producción.
@@ -39,10 +39,9 @@ import type { ContentRoleId } from "./content-roles.ts";
  *   educacion        → enseñar (TOFU–MOFU); el alcance es transversal
  *   producto         → demo / product-aware
  *   evidencia        → prueba social / MOFU–BOFU
- *   build-in-public  → proceso interno; no es oferta ni testimonio de cliente
- *   conversion       → most-aware / BOFU
+ *   build_in_public  → proceso interno; no es oferta ni testimonio de cliente
  *   marca            → posicionamiento (no prueba ni oferta)
- *   comunidad        → conversación (no cierre)
+ *   comunidad        → conversación (el CTA no define el rol)
  */
 
 export type SlotCompatibilityInput = {
@@ -72,18 +71,11 @@ export const BLOCKED_FORMATS_BY_ROLE: Record<
     "pedimos-disculpas",
     "texto-sobre-la-piel",
   ],
-  "build-in-public": [
+  build_in_public: [
     ...OFFER_FORMATS,
     "testimonio-cliente",
     "resenas",
     "captura-email",
-  ],
-  conversion: [
-    "texto-sobre-la-piel",
-    "estilo-reddit",
-    "efecto-secundario",
-    "podcast-ia",
-    "diagrama-venn",
   ],
   marca: [...SOCIAL_PROOF_FORMATS, ...OFFER_FORMATS],
   comunidad: [
@@ -99,8 +91,7 @@ export const BLOCKED_PILLARS_BY_ROLE: Partial<
 > = {
   educacion: ["producto-mercantis"],
   evidencia: ["mercado-tendencias"],
-  "build-in-public": ["mercado-tendencias"],
-  conversion: ["mercado-tendencias"],
+  build_in_public: ["mercado-tendencias"],
 };
 
 /**
@@ -121,8 +112,7 @@ export const ROLE_FORMAT_FALLBACKS: Record<ContentRoleId, string> = {
   educacion: "pizarra",
   producto: "problema-vs-solucion",
   evidencia: "testimonio-cliente",
-  "build-in-public": "nota-iphone",
-  conversion: "problema-vs-solucion",
+  build_in_public: "nota-iphone",
   marca: "mito-vs-realidad",
   comunidad: "tier-list",
 };
@@ -131,8 +121,7 @@ export const ROLE_PILLAR_FALLBACKS: Record<ContentRoleId, string> = {
   educacion: "operacion-gestion",
   producto: "producto-mercantis",
   evidencia: "clientes-fidelizacion",
-  "build-in-public": "emprendimiento",
-  conversion: "ventas-atencion",
+  build_in_public: "emprendimiento",
   marca: "emprendimiento",
   comunidad: "emprendimiento",
 };
@@ -159,17 +148,21 @@ export function omitBlockedTargets(
 }
 
 export function isFormatCompatibleWithRole(
-  roleId: ContentRoleId,
+  roleId: ContentRoleId | string,
   formatId: string,
 ): boolean {
-  return !blockedSet(BLOCKED_FORMATS_BY_ROLE[roleId]).has(formatId);
+  return !blockedSet(BLOCKED_FORMATS_BY_ROLE[normalizeRoleId(roleId)]).has(
+    formatId,
+  );
 }
 
 export function isPillarCompatibleWithRole(
-  roleId: ContentRoleId,
+  roleId: ContentRoleId | string,
   pillarId: string,
 ): boolean {
-  return !blockedSet(BLOCKED_PILLARS_BY_ROLE[roleId]).has(pillarId);
+  return !blockedSet(BLOCKED_PILLARS_BY_ROLE[normalizeRoleId(roleId)]).has(
+    pillarId,
+  );
 }
 
 export function isFormatCompatibleWithPillar(
@@ -200,20 +193,24 @@ export function isSlotComboCompatible(
 
 export function compatiblePillarTargets(
   targets: Record<string, number>,
-  roleId: ContentRoleId,
+  roleId: ContentRoleId | string,
 ): Record<string, number> {
-  return omitBlockedTargets(targets, blockedSet(BLOCKED_PILLARS_BY_ROLE[roleId]));
+  return omitBlockedTargets(
+    targets,
+    blockedSet(BLOCKED_PILLARS_BY_ROLE[normalizeRoleId(roleId)]),
+  );
 }
 
 export function compatibleFormatTargets(
   targets: Record<string, number>,
   input: {
-    roleId: ContentRoleId;
+    roleId: ContentRoleId | string;
     pillarId?: string;
     cameraPresence?: CameraPresenceMode;
   },
 ): Record<string, number> {
-  const blocked = new Set<string>(BLOCKED_FORMATS_BY_ROLE[input.roleId]);
+  const roleId = normalizeRoleId(input.roleId);
+  const blocked = new Set<string>(BLOCKED_FORMATS_BY_ROLE[roleId] ?? []);
 
   if (input.cameraPresence === "off-camera") {
     for (const formatId of ON_CAMERA_FORMAT_IDS) blocked.add(formatId);

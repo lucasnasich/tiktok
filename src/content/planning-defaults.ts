@@ -1,4 +1,5 @@
 import type { ContentRoleId } from "@/content/content-roles";
+import { DEFAULT_ROLE_TARGETS_OFFICIAL as ROLE_TARGETS_OFFICIAL } from "@/content/content-roles";
 import type { DistributionType } from "@/content/planned-slots";
 
 /** Horarios disponibles por defecto para asignar piezas. */
@@ -44,16 +45,8 @@ export const DEFAULT_PILLAR_TARGETS_STUDY: Record<string, number> = {
 };
 
 /** Mix de roles — cuenta oficial (suma 100). */
-export const DEFAULT_ROLE_TARGETS_OFFICIAL: Partial<
-  Record<ContentRoleId, number>
-> = {
-  educacion: 30,
-  producto: 20,
-  evidencia: 15,
-  "build-in-public": 10,
-  marca: 10,
-  comunidad: 10,
-  conversion: 5,
+export const DEFAULT_ROLE_TARGETS_OFFICIAL: Record<ContentRoleId, number> = {
+  ...ROLE_TARGETS_OFFICIAL,
 };
 
 /** Plataformas por defecto de la cuenta oficial. */

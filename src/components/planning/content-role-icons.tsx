@@ -3,23 +3,21 @@ import {
   BookOpenIcon,
   ChatsCircleIcon,
   CompassIcon,
-  CursorClickIcon,
+  HammerIcon,
   MonitorPlayIcon,
   SealCheckIcon,
   TagIcon,
-  UsersThreeIcon,
 } from "@phosphor-icons/react";
 
 import { normalizeRoleId, type ContentRoleId } from "@/content/content-roles";
 
 /** Un icono distinto por rol — sin repetir dentro de la taxonomía. */
 const CONTENT_ROLE_ICONS: Record<ContentRoleId, Icon> = {
+  build_in_public: HammerIcon,
   educacion: BookOpenIcon,
   producto: MonitorPlayIcon,
-  evidencia: SealCheckIcon,
-  "build-in-public": UsersThreeIcon,
-  conversion: CursorClickIcon,
   marca: CompassIcon,
+  evidencia: SealCheckIcon,
   comunidad: ChatsCircleIcon,
 };
 

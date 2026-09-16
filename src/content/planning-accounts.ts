@@ -42,7 +42,7 @@ export type PlanningAccount = {
    * El mix semanal de `roleTargets` es la source of truth.
    */
   alternateRoles?: [ContentRoleId, ContentRoleId];
-  /** Conservado en perfiles. Conversión con target 0 no se programa. */
+  /** Legacy: se conserva si está persistido. Ya no hay rol de conversión. */
   conversionExceptional?: boolean;
 };
 

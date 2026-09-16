@@ -2,7 +2,7 @@ import type { KeyboardEvent } from "react";
 
 import { PlatformIcon } from "@/components/icons/platform-icon";
 import { getAngleLabel } from "@/content/angles";
-import { getContentRoleLabel } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
 import { getPlanningPillarLabel } from "@/content/planning-pillars";
@@ -28,12 +28,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const ROLE_BADGE_CLASS: Record<string, string> = {
+  build_in_public: "bg-violet-500/15 text-violet-800 dark:text-violet-300",
   educacion: "bg-sky-500/15 text-sky-800 dark:text-sky-300",
   producto: "bg-indigo-500/15 text-indigo-800 dark:text-indigo-300",
-  evidencia: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
-  "build-in-public": "bg-violet-500/15 text-violet-800 dark:text-violet-300",
-  conversion: "bg-amber-500/15 text-amber-800 dark:text-amber-300",
   marca: "bg-rose-500/15 text-rose-800 dark:text-rose-300",
+  evidencia: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300",
   comunidad: "bg-fuchsia-500/15 text-fuchsia-800 dark:text-fuchsia-300",
 };
 
@@ -142,7 +141,7 @@ export function PlanningSlotCard({
           variant="secondary"
           className={cn(
             "border-0 text-[11px] font-medium",
-            ROLE_BADGE_CLASS[slot.roleId],
+            ROLE_BADGE_CLASS[normalizeRoleId(slot.roleId)],
           )}
         >
           {getContentRoleLabel(slot.roleId)}

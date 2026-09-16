@@ -1,6 +1,6 @@
 import { getAngleLabel } from "@/content/angles";
 import type { ContentRoleId } from "@/content/content-roles";
-import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
+import { getContentRoleLabel, normalizeRoleId, normalizeRoleTargets } from "@/content/content-roles";
 import { getFormatById } from "@/content/formats";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
@@ -81,7 +81,9 @@ function detectTargetDrift(
   const roleCounts = countBy(periodSlots, (slot) =>
     normalizeRoleId(slot.roleId),
   );
-  for (const [roleId, targetPercent] of Object.entries(account.roleTargets)) {
+  for (const [roleId, targetPercent] of Object.entries(
+    normalizeRoleTargets(account.roleTargets),
+  )) {
     if (!targetPercent) continue;
     const actual = ((roleCounts.get(roleId as ContentRoleId) ?? 0) / total) * 100;
     const drift = actual - targetPercent;

@@ -27,7 +27,7 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
     label: "Roles",
     title: "Roles del contenido",
     intro:
-      "El rol es el mundo editorial de la pieza: educación, producto, evidencia, proceso, marca, comunidad o conversión. No es un objetivo genérico. Alcance y valor no son roles: cualquier pieza debería tener ambos.",
+      "El rol es el mundo editorial de la pieza: proceso, educación, producto, marca, evidencia o comunidad. Un CTA puede aparecer en cualquiera; no define el rol.",
   },
   {
     id: "pillars",
@@ -46,70 +46,55 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
 ];
 
 export type RoleGuide = {
-  id: ContentRoleId;
   cuandoUsar: string;
   ejemplo: string;
   tip: string;
 };
 
-export const ROLE_GUIDES: RoleGuide[] = [
-  {
-    id: "educacion",
+export const ROLE_GUIDES: Record<ContentRoleId, RoleGuide> = {
+  build_in_public: {
     cuandoUsar:
-      "Cuando el trabajo de la pieza es enseñar algo aplicable: un tip, un framework, un error común o una explicación. El producto no es el protagonista.",
+      "Cuando el trabajo es el detrás de escena de construir Mercantis: avances, problemas, decisiones, lanzamientos, reuniones, features, métricas, errores y aprendizajes. Sirve para contenido serializado.",
     ejemplo:
-      "“3 formas de organizar los pedidos que te llegan por WhatsApp.”",
-    tip: "Si mostrás la interfaz o un cliente real, ya no es educación: es producto o evidencia. El alcance se gana con el hook, no con este rol.",
+      "“Nos pidieron esto tres clientes y decidimos construirlo.” / “Esta feature nos llevó tres semanas y hoy finalmente salió.” / “Hoy entraron X tiendas nuevas.”",
+    tip: "Siempre tiene que haber avance, tensión, decisión, aprendizaje o cambio. No lo conviertas en lifestyle vacío.",
   },
-  {
-    id: "producto",
+  educacion: {
     cuandoUsar:
-      "Cuando el trabajo es mostrar Mercantis en acción: una feature, un workflow, una pantalla, un antes/después del producto o un caso de uso.",
+      "Cuando enseñás algo útil que un dueño de negocio o emprendedor pueda aplicar. Temas universales de LATAM: stock, conversión, tráfico, organización, catálogo, métricas, procesos y ventas.",
     ejemplo:
-      "Mostrar cómo entra un pedido y se descuenta automáticamente el stock.",
-    tip: "Distinto de evidencia: acá habla el producto, no el cliente. Distinto de educación: acá se ve Mercantis, no un consejo genérico.",
+      "“3 formas de reducir errores cuando manejás stock en varios canales.”",
+    tip: "Evitá temas demasiado locales (facturación, impuestos, medios de pago de un solo país). Si mostrás la interfaz, ya es producto.",
   },
-  {
-    id: "evidencia",
+  producto: {
     cuandoUsar:
-      "Cuando el trabajo es una señal externa de que Mercantis funciona: testimonio, resultado, métrica, caso o adopción real.",
+      "Cuando el trabajo es mostrar Mercantis funcionando de forma explícita: features, workflows, pantallas, demos, antes/después, automatizaciones o casos de uso.",
     ejemplo:
-      "“Este negocio cargó 800 productos en Mercantis y dejó de manejar el stock en Excel.”",
-    tip: "No inventar clientes ni números. Si la pieza es un tour de la interfaz sin voz de cliente, es producto, no evidencia.",
+      "Mostrar cómo entra un pedido y se actualiza automáticamente el stock.",
+    tip: "Acá se ve el producto. Distinto de evidencia (habla un cliente o un resultado externo) y de educación (un consejo sin demo).",
   },
-  {
-    id: "build-in-public",
+  marca: {
     cuandoUsar:
-      "Cuando el trabajo es el detrás de escena de construir Mercantis: avances, reuniones, lanzamientos, métricas internas, errores y aprendizajes. Sirve para contenido serializado.",
+      "Cuando instalás una postura, filosofía o visión. Mercantis no debe sonar neutral ni tibio sobre cómo deberían funcionar los negocios y el software para comercios.",
     ejemplo:
-      "“Hoy terminamos esta feature.” / “Esta semana tuvimos X registros.” / “Esto salió mal y lo vamos a cambiar.”",
-    tip: "La audiencia sigue la evolución de la empresa, no un tutorial ni una demo. Si no hay proceso real, no fuerces este rol.",
+      "“Tu negocio no necesita más herramientas aisladas. Necesita un sistema.”",
+    tip: "No es un tutorial ni un tour de features. Si enseña un método, es educación; si muestra la app, es producto.",
   },
-  {
-    id: "marca",
+  evidencia: {
     cuandoUsar:
-      "Cuando queremos instalar una visión, postura o filosofía, incluso sin enseñar ni mostrar producto.",
+      "Cuando el trabajo es una señal externa de que Mercantis funciona: clientes, testimonios, citas, resultados, métricas, pedidos reales, historias o feedback.",
     ejemplo:
-      "“Tu negocio no necesita más herramientas. Necesita un sistema.”",
-    tip: "No es un pitch de features ni un caso de cliente. Si enseña un método, es educación; si pide registrarse, es conversión.",
+      "Contar cómo un cliente pidió una mejora, la implementamos y qué resultado tuvo.",
+    tip: "No hace falta video del cliente. Sirven citas escritas, capturas e historias contadas por Mercantis. No inventar números ni casos.",
   },
-  {
-    id: "comunidad",
+  comunidad: {
     cuandoUsar:
-      "Cuando el trabajo es abrir conversación: una pregunta, una opinión o una experiencia para que la audiencia participe.",
+      "Cuando el trabajo es abrir conversación: una pregunta, una opinión o una situación reconocible para dueños de negocio. También cuando alguien te pregunta algo sobre la empresa y lo respondés en un video para abrir el tema.",
     ejemplo:
-      "“¿Qué parte de manejar tu negocio te consume más tiempo?”",
-    tip: "Priorizá preguntas abiertas. Si cerrás en CTA de registro, ya es conversión.",
+      "“¿Qué parte de manejar tu negocio te consume más tiempo?” / “Me preguntaron por qué Mercantis no cobra comisión por venta y lo respondí en un video.”",
+    tip: "Priorizá identificación y participación. Si respondés una pregunta sobre la empresa, que sea apertura de conversación — no un pitch. Un CTA natural puede existir, pero no conviertas la pieza en un aviso.",
   },
-  {
-    id: "conversion",
-    cuandoUsar:
-      "Cuando pedís una acción concreta: probar Mercantis, registrarse, agendar demo o visitar el producto. Usalo con moderación.",
-    ejemplo:
-      "“Probá Mercantis gratis esta semana” con CTA claro — después de haber educado, mostrado producto o dado evidencia.",
-    tip: "Si el target queda en 0%, el motor no la programa. Una pieza manual igual puede usarla de forma excepcional.",
-  },
-];
+};
 
 export type PillarPriority = "alta" | "media" | "baja" | "no";
 

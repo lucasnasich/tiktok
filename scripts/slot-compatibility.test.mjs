@@ -76,21 +76,26 @@ assert.equal(isFormatCompatibleWithRole("producto", "oferta-combo"), false);
 assert.equal(isFormatCompatibleWithRole("evidencia", "testimonio-cliente"), true);
 assert.equal(isFormatCompatibleWithRole("evidencia", "cupos-limitados"), false);
 assert.equal(isFormatCompatibleWithRole("marca", "testimonio-cliente"), false);
-assert.equal(isFormatCompatibleWithRole("conversion", "efecto-secundario"), false);
+assert.equal(isFormatCompatibleWithRole("producto", "efecto-secundario"), false);
 assert.equal(
-  isFormatCompatibleWithRole("conversion", "problema-vs-solucion"),
+  isFormatCompatibleWithRole("producto", "problema-vs-solucion"),
   true,
 );
 assert.equal(
-  isFormatCompatibleWithRole("build-in-public", "testimonio-cliente"),
+  isFormatCompatibleWithRole("build_in_public", "testimonio-cliente"),
   false,
+);
+assert.equal(
+  isFormatCompatibleWithRole("conversion", "problema-vs-solucion"),
+  true,
+  "conversion legacy cae a producto",
 );
 
 assert.equal(isPillarCompatibleWithRole("educacion", "producto-mercantis"), false);
 assert.equal(isPillarCompatibleWithRole("educacion", "automatizacion-ia"), true);
 assert.equal(isPillarCompatibleWithRole("evidencia", "mercado-tendencias"), false);
 assert.equal(isPillarCompatibleWithRole("producto", "producto-mercantis"), true);
-assert.equal(isPillarCompatibleWithRole("conversion", "mercado-tendencias"), false);
+assert.equal(isPillarCompatibleWithRole("build_in_public", "mercado-tendencias"), false);
 
 assert.equal(
   isFormatCompatibleWithPillar("testimonio-cliente", "mercado-tendencias"),

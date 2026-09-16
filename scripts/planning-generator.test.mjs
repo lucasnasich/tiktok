@@ -19,24 +19,24 @@ function pickWeeklyRole(targets, counts, capacity, lastRole, streak, maxStreak) 
 }
 
 const official = {
-  educacion: 30,
-  producto: 20,
-  evidencia: 15,
-  conversion: 5,
-  marca: 10,
-  comunidad: 10,
+  build_in_public: 35,
+  educacion: 20,
+  producto: 15,
+  marca: 15,
+  evidencia: 10,
+  comunidad: 5,
 };
 
 assert.equal(
   pickWeeklyRole(official, {}, 21, null, 0, 2),
-  "educacion",
+  "build_in_public",
   "con la semana vacía gana el rol de mayor target",
 );
 
 assert.equal(
-  pickWeeklyRole(official, { educacion: 8 }, 21, "educacion", 1, 2),
-  "producto",
-  "después de cubrir educación, sigue el siguiente déficit",
+  pickWeeklyRole(official, { build_in_public: 8 }, 21, "build_in_public", 1, 2),
+  "educacion",
+  "después de cubrir proceso, sigue el siguiente déficit",
 );
 
 const satellite = { educacion: 60, producto: 25, evidencia: 15, conversion: 0 };

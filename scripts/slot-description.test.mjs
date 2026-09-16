@@ -67,7 +67,7 @@ assert.throws(() =>
 const prompt = buildSlotDescriptionUserPrompt({
   slotId: "slot-1",
   accountLabel: "Mercantis",
-  roleLabel: "Valor",
+  roleLabel: "Educación",
   pillarLabel: "Clientes",
   formatLabel: "Tier list",
   cameraPresenceLabel: "Sin cámara",

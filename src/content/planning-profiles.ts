@@ -1,4 +1,5 @@
 import {
+  getContentRoleLabel,
   normalizeRoleId,
   normalizeRoleTargets,
   type ContentRoleId,
@@ -124,7 +125,6 @@ export function createProfileDraft(
         repetitionLimits: { ...DEFAULT_REPETITION_LIMITS },
         defaultDistributionType: DEFAULT_DISTRIBUTION_TYPE,
         alternateRoles: undefined,
-        conversionExceptional: accountType === "satellite",
       }),
   };
 }
@@ -133,7 +133,11 @@ export function formatProfileRoleSummary(
   settings: PlanningAccountOverride,
 ): string {
   const targets = normalizeRoleTargets(settings.roleTargets);
-  const parts = Object.entries(targets).filter(([, value]) => value && value > 0);
+  const parts = Object.entries(targets)
+    .filter(([, value]) => value && value > 0)
+    .sort((a, b) => (b[1] ?? 0) - (a[1] ?? 0));
   if (parts.length === 0) return "Sin roles definidos";
-  return parts.map(([id, value]) => `${id} ${value}%`).join(" · ");
+  return parts
+    .map(([id, value]) => `${getContentRoleLabel(id)} ${value}%`)
+    .join(" · ");
 }

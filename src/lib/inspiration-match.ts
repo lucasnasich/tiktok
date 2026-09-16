@@ -24,13 +24,12 @@ export type { InspirationUsage } from "@/lib/inspiration-usage";
 export { formatInspirationUsage, usageForInspiration } from "@/lib/inspiration-usage";
 
 const ROLE_KEYWORDS: Record<ContentRoleId, string[]> = {
+  build_in_public: ["hoy", "esta semana", "feature", "lanzamos", "reunión", "aprendimos", "error", "proceso"],
   educacion: ["cómo", "guia", "guía", "tutorial", "tip", "método", "razones", "aprender", "error"],
   producto: ["demo", "feature", "pantalla", "workflow", "software", "funciona", "descuenta"],
-  evidencia: ["testimonio", "cliente", "caso", "resultado", "reseña", "adopción", "métrica"],
-  "build-in-public": ["hoy", "esta semana", "feature", "lanzamos", "reunión", "aprendimos", "error", "proceso"],
-  conversion: ["cta", "gratis", "probar", "registr", "oferta", "demo"],
   marca: ["marca", "posición", "filosof", "visión", "identidad", "sistema"],
-  comunidad: ["pregunta", "opin", "comentario", "comunidad", "te consume"],
+  evidencia: ["testimonio", "cliente", "caso", "resultado", "reseña", "adopción", "métrica"],
+  comunidad: ["pregunta", "opin", "comentario", "comunidad", "te consume", "me pregunt", "respond"],
 };
 
 const PILLAR_KEYWORDS: Record<string, string[]> = {

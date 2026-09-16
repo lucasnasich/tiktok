@@ -82,7 +82,7 @@ El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `
 
 ## Taxonomías (no mezclar capas)
 
-- **Rol** (mundo editorial): `src/content/content-roles.ts` — educación, producto, evidencia, build in public, marca, comunidad, conversión. Alcance y valor no son roles.
+- **Rol** (mundo editorial): `src/content/content-roles.ts` — build in public, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Pilar** (de qué): `src/content/planning-pillars.ts` — taxonomía global Mercantis + pilares extra por cuenta (`estudiantes` solo Study)
 - **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
 - **Formato** (cómo mostramos): `src/content/formats.ts`

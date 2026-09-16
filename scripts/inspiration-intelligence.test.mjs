@@ -103,7 +103,7 @@ const structureQuery = buildStructureQuery({
   inspirationSearchBrief: "fallback legacy de búsqueda",
   editorialDescription: "Enseñar postventa sin vender el producto.",
   formatLabel: "X razones",
-  roleLabel: "Valor",
+  roleLabel: "Educación",
   pillarLabel: "Clientes",
   cameraPresenceLabel: "Sin cámara",
 });
@@ -121,10 +121,10 @@ assert.ok(
   "el brief estructural se pondera repitiéndolo",
 );
 assert.ok(structureQuery.includes("Enseñar postventa"));
-assert.ok(structureQuery.includes("Rol: Valor"));
+assert.ok(structureQuery.includes("Rol: Educación"));
 assert.ok(structureQuery.includes("Pilar: Clientes"));
 assert.ok(!visualQuery.includes("Enseñar postventa"), "visual no mete el tema editorial");
-assert.ok(!visualQuery.includes("Rol: Valor"), "visual no mete el rol");
+assert.ok(!visualQuery.includes("Rol: Educación"), "visual no mete el rol");
 assert.ok(visualQuery.includes("Placas tipográficas"));
 assert.ok(visualQuery.includes("Cámara: Sin cámara"));
 
