@@ -171,7 +171,7 @@ const promptWithFormat = buildSlotDescriptionUserPrompt({
   editorialConstraints: ["Prueba social: voz, quote, rating."],
   brainDocuments: [{ file: "inteligencia-artificial.md", content: "IA de catálogo." }],
 });
-assert.ok(promptWithFormat.includes("EL TIPO DE PUBLICACIÓN DEFINE LA PIEZA"));
+assert.ok(promptWithFormat.includes("LA OPCIÓN DE PRODUCCIÓN DEFINE LA PIEZA"));
 assert.ok(promptWithFormat.includes("Testimonio de cliente"));
 assert.ok(promptWithFormat.includes("Ejemplos estructurales"));
 assert.ok(promptWithFormat.includes("inteligencia-artificial.md"));

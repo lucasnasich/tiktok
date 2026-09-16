@@ -21,7 +21,7 @@
     "competitor:pdf": "node scripts/add-competitor-pdf.mjs",
     "competitor:logo": "node scripts/add-competitor-logo.mjs",
     "competitor:logos:fetch": "node scripts/fetch-competitor-logos.mjs",
-    "test:planning": "node scripts/planning-generator.test.mjs && node --experimental-strip-types --no-warnings scripts/slot-compatibility.test.mjs && node --experimental-strip-types --no-warnings scripts/content-roles.test.mjs && node --experimental-strip-types --no-warnings scripts/publication-planning.test.mjs && node --experimental-strip-types --no-warnings scripts/role-topics.test.mjs && node --experimental-strip-types --no-warnings scripts/production-options.test.mjs",
+    "test:planning": "node scripts/planning-generator.test.mjs && node --experimental-strip-types --no-warnings scripts/slot-compatibility.test.mjs && node --experimental-strip-types --no-warnings scripts/content-roles.test.mjs && node --experimental-strip-types --no-warnings scripts/publication-planning.test.mjs && node --experimental-strip-types --no-warnings scripts/role-topics.test.mjs && node --experimental-strip-types --no-warnings scripts/production-options.test.mjs && vite-node scripts/calendar-generation.test.mjs",
     "test:workflow": "node scripts/slot-workflow.test.mjs",
     "test:intelligence": "node scripts/inspiration-intelligence.test.mjs && node scripts/slot-description.test.mjs",
     "studio:reset-workflow": "node scripts/reset-studio-workflow.mjs",
@@ -54,6 +54,7 @@
     "playwright": "^1.55.0",
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
-    "vite": "^7.1.5"
+    "vite": "^7.1.5",
+    "vite-node": "^6.0.0"
   }
 }

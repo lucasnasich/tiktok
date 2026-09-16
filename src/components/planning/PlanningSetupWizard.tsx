@@ -37,17 +37,10 @@ import {
   topicPrioritySummary,
   type TopicPriority,
 } from "@/content/role-topics";
-import { accountToOverride } from "@/lib/planning-config-store";
+import { accountToProfileOverride } from "@/lib/planning-config-store";
 import { sumPercentTargets } from "@/lib/planning-percent";
 import { settingsRichness } from "@/lib/planning-settings-richness";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { PlanningProductionFields } from "@/components/planning/PlanningProductionFields";
-import {
-  enabledProductionTargets,
-  hasEnabledProductionOptions,
-  normalizeProductionConfig,
-  type ProductionConfig,
-} from "@/content/production-options";
 import {
   buildWizardSessionSnapshot,
   isWizardDraftProfileId,
@@ -132,7 +125,6 @@ type PlanningSetupWizardProps = {
 type StepValidationContext = {
   draft: PlanningAccount;
   roleSum: number;
-  productionConfig: ProductionConfig;
   profileLabel: string;
 };
 
@@ -151,20 +143,6 @@ function isStepComplete(
           ctx.draft.roleTopicPreferences,
         )
       );
-    case "production": {
-      if (!hasEnabledProductionOptions(ctx.productionConfig)) return false;
-      if (ctx.productionConfig.enabledIds.length <= 1) return true;
-      return (
-        Math.abs(
-          sumPercentTargets(
-            enabledProductionTargets(ctx.productionConfig) as Record<
-              string,
-              number
-            >,
-          ) - 100,
-        ) <= 2
-      );
-    }
     default:
       return true;
   }
@@ -245,8 +223,8 @@ function resolveWizardInitialState({
   if (session) {
     const fromSession = sessionToAccount(draftTemplate, session);
     if (
-      settingsRichness(accountToOverride(fromSession)) >
-      settingsRichness(accountToOverride(draft))
+      settingsRichness(accountToProfileOverride(fromSession)) >
+      settingsRichness(accountToProfileOverride(draft))
     ) {
       draft = fromSession;
     }
@@ -258,19 +236,6 @@ function resolveWizardInitialState({
       draft.roleTopicPreferences ?? cloneDefaultRoleTopicPreferences(),
       draft.pillarTargets,
     ),
-  };
-
-  const production = normalizeProductionConfig({
-    cameraMode: draft.cameraMode,
-    enabledIds: draft.productionEnabledIds,
-    targets: draft.productionTypeTargets,
-    publicationTypeTargets: draft.publicationTypeTargets,
-  });
-  draft = {
-    ...draft,
-    cameraMode: production.cameraMode,
-    productionEnabledIds: production.enabledIds,
-    productionTypeTargets: production.targets,
   };
 
   const hasRoleMix = Object.values(draft.roleTargets ?? {}).some(
@@ -405,16 +370,9 @@ export function PlanningSetupWizard({
   const roleSum = sumPercentTargets(
     draft.roleTargets as Record<string, number>,
   );
-  const productionConfig = normalizeProductionConfig({
-    cameraMode: draft.cameraMode,
-    enabledIds: draft.productionEnabledIds,
-    targets: draft.productionTypeTargets,
-    publicationTypeTargets: draft.publicationTypeTargets,
-  });
   const stepValidation: StepValidationContext = {
     draft,
     roleSum,
-    productionConfig,
     profileLabel,
   };
   const canAdvance = isStepComplete(step.id, stepValidation);
@@ -621,25 +579,6 @@ export function PlanningSetupWizard({
             Suma actual: <strong>{roleSum}%</strong> — idealmente ~100%. Un rol
             en 0% no se programa; una pieza manual igual puede usarlo.
           </p>
-        </div>
-      )}
-
-      {step.id === "production" && (
-        <div className="space-y-5">
-          <GuideCallout>
-            Elegí las piezas concretas que sabemos producir. El calendario no
-            va a generar nada que no esté habilitado acá.
-          </GuideCallout>
-          <PlanningProductionFields
-            value={productionConfig}
-            onChange={(next) =>
-              updateDraft({
-                cameraMode: next.cameraMode,
-                productionEnabledIds: next.enabledIds,
-                productionTypeTargets: next.targets,
-              })
-            }
-          />
         </div>
       )}
 

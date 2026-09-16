@@ -1,6 +1,9 @@
 import type { CameraMode, CameraPresenceMode } from "@/content/camera-presence";
 import { cameraModeFromPresence, presenceFromCameraMode } from "@/content/camera-presence";
-import type { ProductionOptionId } from "@/content/production-options";
+import type {
+  ProductionConfig,
+  ProductionOptionId,
+} from "@/content/production-options";
 import { normalizeProductionConfig } from "@/content/production-options";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
@@ -30,6 +33,7 @@ export type CalendarGenerationRequest = {
   dateTo: string;
   publishingMode: CalendarPublishingMode;
   rhythm: CalendarGenerationRhythm;
+  production: ProductionConfig;
 };
 
 export type CalendarGeneration = {

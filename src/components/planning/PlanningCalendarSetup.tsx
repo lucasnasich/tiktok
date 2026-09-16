@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PlanningCustomDateRange } from "@/components/planning/PlanningCustomDateRange";
+import { PlanningProductionFields } from "@/components/planning/PlanningProductionFields";
 import {
   DEFAULT_PLANNING_RHYTHM,
   PlanningRhythmFields,
@@ -24,6 +25,12 @@ import {
   type CalendarGenerationRequest,
   type CalendarPublishingMode,
 } from "@/content/calendar-generations";
+import {
+  cloneDefaultProductionConfig,
+  isProductionConfigComplete,
+  normalizeProductionConfig,
+  type ProductionConfig,
+} from "@/content/production-options";
 import { hasEditorialMix } from "@/content/planning-presets";
 import {
   isPlanningRhythmComplete,
@@ -162,6 +169,9 @@ export function PlanningCalendarSetup({
     useState<CalendarPublishingMode>("mirrored");
   const [rhythm, setRhythm] = useState<PlanningRhythm>(DEFAULT_PLANNING_RHYTHM);
   const [selectedProfileId, setSelectedProfileId] = useState<string>();
+  const [production, setProduction] = useState<ProductionConfig>(() =>
+    cloneDefaultProductionConfig(),
+  );
 
   const resolvedRange = useMemo(
     () =>
@@ -187,7 +197,8 @@ export function PlanningCalendarSetup({
     isPlanningRhythmComplete(rhythm) &&
     hasEditorialMix({
       roleTargets: selectedProfile.settings.roleTargets ?? {},
-    });
+    }) &&
+    isProductionConfigComplete(production);
 
   const toggleAccount = (accountId: string) => {
     setSelectedAccountIds((current) =>
@@ -233,7 +244,7 @@ export function PlanningCalendarSetup({
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-[13px] leading-relaxed text-muted-foreground">
-            El perfil define roles, temas y qué piezas sabe producir el equipo.
+            El perfil define la estrategia editorial: roles y temas.
             Después lo asociás a las cuentas al generar el calendario.
             </p>
             <Button asChild variant="outline" size="sm" className="mt-4">
@@ -380,6 +391,14 @@ export function PlanningCalendarSetup({
         ) : null}
       </div>
 
+      <div className="space-y-2">
+        <p className="text-[13px] font-medium">Producción</p>
+        <p className="text-[12px] leading-relaxed text-muted-foreground">
+          Elegí qué piezas querés producir en esta generación.
+        </p>
+        <PlanningProductionFields value={production} onChange={setProduction} />
+      </div>
+
       <Button
         type="button"
         className="w-full"
@@ -394,6 +413,7 @@ export function PlanningCalendarSetup({
             publishingMode:
               selectedAccountIds.length > 1 ? publishingMode : "independent",
             rhythm,
+            production: normalizeProductionConfig(production),
           });
         }}
       >
@@ -416,8 +436,8 @@ export function PlanningCalendarSetup({
           </div>
           <CardTitle className="text-base">Generar calendario</CardTitle>
           <p className="text-[13px] leading-relaxed text-muted-foreground">
-            Definí el período, el ritmo, las cuentas y el perfil editorial. La
-            producción sale del perfil. Los slots se congelan al confirmar.
+            Definí el período, el ritmo, las cuentas, el perfil editorial y qué
+            piezas querés producir esta vez. Los slots se congelan al confirmar.
           </p>
         </CardHeader>
         <CardContent>{form}</CardContent>

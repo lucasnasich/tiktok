@@ -8,6 +8,7 @@ import {
   cloneDefaultProductionConfig,
   enabledProductionTargets,
   getProductionOptionsForCamera,
+  isProductionConfigComplete,
   isProductionOptionCompatibleWithCamera,
   migrateLegacyPublicationTypeId,
   migrateLegacyPublicationTypeTargets,
@@ -150,5 +151,31 @@ const imageFormats = recommendCreativeFormats({
 });
 assert.ok(!imageFormats.some((item) => item.id === "grabacion-pantalla"));
 assert.ok(!imageFormats.some((item) => item.id === "talking-head"));
+
+assert.equal(isProductionConfigComplete(defaults), true);
+assert.equal(
+  isProductionConfigComplete({
+    cameraMode: "faceless",
+    enabledIds: [],
+    targets: {},
+  }),
+  false,
+);
+assert.equal(
+  isProductionConfigComplete({
+    cameraMode: "faceless",
+    enabledIds: ["single_image", "image_carousel"],
+    targets: { single_image: 60, image_carousel: 40 },
+  }),
+  true,
+);
+assert.equal(
+  isProductionConfigComplete({
+    cameraMode: "faceless",
+    enabledIds: ["single_image", "image_carousel"],
+    targets: { single_image: 60, image_carousel: 30 },
+  }),
+  false,
+);
 
 console.log("production-options.test.mjs: ok");

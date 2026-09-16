@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import type { CalendarGenerationRequest } from "@/content/calendar-generations";
 import { cameraModeFromPresence } from "@/content/camera-presence";
+import { normalizeProductionConfig } from "@/content/production-options";
 import type { PlanningAccount } from "@/content/planning-accounts";
 import {
   createProfileDraft,
@@ -18,7 +19,7 @@ import {
 import { usePlanningStoreState } from "@/hooks/use-planning-store-state";
 import {
   EMPTY_PLANNING_CONFIG,
-  accountToOverride,
+  accountToProfileOverride,
   buildPlanningAccountsForGeneration,
   getAssignedPlanningAccounts,
   getEffectivePlanningAccounts,
@@ -94,13 +95,13 @@ export function usePlanningConfig() {
       active.profileId,
       active.accountIds,
       active.rhythm,
-      {
+      normalizeProductionConfig({
         cameraMode:
           active.cameraMode ?? cameraModeFromPresence(active.cameraPresence),
-        productionEnabledIds: active.productionEnabledIds ?? [],
-        productionTypeTargets:
-          active.productionTypeTargets ?? active.publicationTypeTargets ?? {},
-      },
+        enabledIds: active.productionEnabledIds ?? [],
+        targets: active.productionTypeTargets,
+        publicationTypeTargets: active.publicationTypeTargets,
+      }),
     );
   }, [store]);
 
@@ -312,7 +313,7 @@ export function usePlanningConfig() {
       profileDescription?: string,
       existingProfileId?: string,
     ) => {
-      const incomingSettings = accountToOverride(account);
+      const incomingSettings = accountToProfileOverride(account);
 
       if (
         existingProfileId &&

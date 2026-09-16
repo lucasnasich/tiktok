@@ -12,7 +12,9 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
     summary: "El perfil se convierte en slots: cuenta, hora, rol, tema y pieza de producción.",
     details: `Respondés **qué contenido falta producir** con un generador determinístico.
 
-**Perfil** (empezando por Mercantis oficial): mix de roles, temas por rol, restricción de cámara y las piezas concretas que el equipo sabe producir. Se configura con presets, no todos los días.
+**Perfil** (empezando por Mercantis oficial): mix de roles y temas por rol. Se configura con presets, no todos los días.
+
+**Generación**: período, ritmo, cuentas, perfil editorial, restricción de cámara y las piezas concretas a producir esta vez. La producción no vive en el perfil: cada generación puede usar el mismo mix editorial con piezas distintas.
 
 **Calendario**: el motor completa huecos sin tocar piezas manuales o publicadas. Cada **pieza** = un slot con \`platforms[]\` (TikTok + Instagram juntos si aplica).
 

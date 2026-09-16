@@ -89,10 +89,10 @@ export function PlanningProductionFields({
       </div>
 
       <div className="space-y-3">
-        <p className="text-[13px] font-medium">Qué podemos producir</p>
+        <p className="text-[13px] font-medium">Qué piezas querés producir</p>
         <p className="text-[12px] leading-relaxed text-muted-foreground">
-          Primero elegí las piezas que el equipo sabe hacer. El porcentaje viene
-          después, y sólo entre las opciones activas.
+          Elegí las opciones de esta generación. El porcentaje viene después, y
+          sólo entre las piezas activas.
         </p>
         <div className="grid gap-2">
           {visibleOptions.map((option) => {

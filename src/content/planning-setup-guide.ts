@@ -2,7 +2,7 @@ import type { ContentRoleId } from "@/content/content-roles";
 import { formats, type Format } from "@/content/formats";
 import type { TopicPriority } from "@/content/role-topics";
 
-export type PlanningSetupStepId = "profile" | "roles" | "production";
+export type PlanningSetupStepId = "profile" | "roles";
 
 export type PlanningSetupStep = {
   id: PlanningSetupStepId;
@@ -25,13 +25,6 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
     title: "Roles y temas",
     intro:
       "El rol es el mundo editorial. El tema es el área concreta de la que vamos a hablar dentro de ese rol. Un CTA puede aparecer en cualquiera; no define el rol.",
-  },
-  {
-    id: "production",
-    label: "Producción",
-    title: "Qué podemos producir",
-    intro:
-      "Elegí si se puede grabar a una persona y, después, las piezas concretas que el equipo sabe hacer. El formato creativo se decide al desarrollar cada slot.",
   },
 ];
 

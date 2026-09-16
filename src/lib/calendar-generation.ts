@@ -108,23 +108,14 @@ export function createCalendarGeneration(
   );
   if (accounts.length === 0) return undefined;
 
-  const production = normalizeProductionConfig({
-    cameraMode: profile.settings.cameraMode ?? profile.settings.cameraPresence,
-    enabledIds: profile.settings.productionEnabledIds,
-    targets: profile.settings.productionTypeTargets,
-    publicationTypeTargets: profile.settings.publicationTypeTargets,
-  });
+  const production = normalizeProductionConfig(input.production);
 
   const planningAccounts = buildPlanningAccountsForGeneration(
     store,
     profileId,
     accountIds,
     rhythm,
-    {
-      cameraMode: production.cameraMode,
-      productionEnabledIds: production.enabledIds,
-      productionTypeTargets: production.targets,
-    },
+    production,
   );
   if (planningAccounts.length === 0) return undefined;
   if (dateFrom > dateTo) return undefined;

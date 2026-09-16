@@ -231,7 +231,7 @@ export function PlanningProfilesPanel({
     <AddEmptyState
       icon={MaskHappyIcon}
       title="Crear perfil editorial"
-      description="Mix de roles, temas y opciones de producción que podés reutilizar al generar."
+      description="Mix de roles y temas que podés reutilizar al generar."
       buttonLabel="Crear nuevo perfil"
       onAction={onCreateProfile}
     />

@@ -1,7 +1,7 @@
 /**
  * Restricción productiva de cámara.
  *
- * `CameraMode` es la source of truth del perfil editorial.
+ * `CameraMode` es la source of truth de cada generación de slots.
  * `CameraPresenceMode` se conserva en slots/generaciones ya persistidos.
  *
  * faceless ≠ sin video. Significa: no grabar físicamente a una persona.

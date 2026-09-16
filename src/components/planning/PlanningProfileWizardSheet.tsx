@@ -39,7 +39,7 @@ export function PlanningProfileWizardSheet({
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar perfil editorial" : "Crear perfil editorial"}
-      description="Nombre, roles, temas y las piezas que el equipo sabe producir."
+      description="Nombre, roles y temas. La producción se elige al generar el calendario."
     >
       {open ? (
         <PlanningSetupWizard

@@ -24,7 +24,7 @@ export const STUDIO_ONBOARDING_STEPS: StudioOnboardingStep[] = [
   {
     id: "perfil",
     title: "Configurar perfil editorial",
-    summary: "Definí mix de roles, temas por rol, cámara y las piezas que el equipo sabe producir.",
+    summary: "Definí mix de roles y temas por rol.",
     detail:
       "Sin perfil activo el calendario queda vacío. Completá el asistente en Configuración y guardá el perfil.",
     href: "/planificacion/configuracion",

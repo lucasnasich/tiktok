@@ -84,8 +84,8 @@ El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `
 
 - **Rol** (mundo editorial): `src/content/content-roles.ts` — build in public, educación, producto, marca, evidencia, comunidad. Alcance, valor y conversión no son roles.
 - **Tema** (de qué, dentro del rol): `src/content/role-topics.ts` — taxonomía compatible por rol. No hay pilares globales.
-- **Opción de producción** (qué pieza concreta fabricamos): `src/content/production-options.ts` — imagen única, carrusel, Remotion, demo, etc. Lo programa el calendario.
-- **Restricción de cámara**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video.
+- **Opción de producción** (qué pieza concreta fabricamos): `src/content/production-options.ts` — imagen única, carrusel, Remotion, demo, etc. Lo decide cada generación de slots, no el perfil.
+- **Restricción de cámara**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video. También se elige en cada generación.
 - **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
 - **Formato creativo** (cómo ejecutamos la pieza): `src/content/formats.ts` — biblioteca consultable al desarrollar; no se rota en el perfil.
 

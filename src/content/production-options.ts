@@ -2,7 +2,10 @@ import {
   cameraModeFromPresence,
   type CameraMode,
 } from "./camera-presence.ts";
-import { normalizePercentTargets } from "../lib/planning-percent.ts";
+import {
+  normalizePercentTargets,
+  sumPercentTargets,
+} from "../lib/planning-percent.ts";
 
 /**
  * Opción de producción = la pieza concreta que el equipo sabe y quiere fabricar.
@@ -296,6 +299,18 @@ export function hasEnabledProductionOptions(
   config: Pick<ProductionConfig, "enabledIds" | "cameraMode">,
 ): boolean {
   return uniqueEnabledIds(config.enabledIds, config.cameraMode).length > 0;
+}
+
+export function isProductionConfigComplete(config: ProductionConfig): boolean {
+  const enabledIds = uniqueEnabledIds(config.enabledIds, config.cameraMode);
+  if (enabledIds.length === 0) return false;
+  if (enabledIds.length === 1) return true;
+  const sum = sumPercentTargets(
+    Object.fromEntries(
+      enabledIds.map((id) => [id, config.targets[id] ?? 0]),
+    ) as Record<string, number>,
+  );
+  return Math.abs(sum - 100) <= 2;
 }
 
 export function applyCameraModeToProduction(
