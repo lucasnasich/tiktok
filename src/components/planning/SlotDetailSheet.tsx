@@ -3,7 +3,7 @@ import { ArrowLeftIcon, CopyIcon } from "@phosphor-icons/react";
 
 import { InspirationDetailBody } from "@/components/inspiration/InspirationDetailBody";
 import { SlotBriefCards } from "@/components/planning/SlotBriefCards";
-import { SlotEditorialDescription } from "@/components/planning/SlotEditorialDescription";
+import { SlotCreativeProposals } from "@/components/planning/SlotCreativeProposals";
 import { SlotInspirationBrowse } from "@/components/planning/SlotInspirationBrowse";
 import { SlotInspirationRecommendations } from "@/components/planning/SlotInspirationRecommendations";
 import { StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
@@ -25,21 +25,21 @@ import {
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import { PROPOSAL_STATUS_LABELS } from "@/content/proposals";
 import { SLOT_SPEC_STATUS_LABELS } from "@/content/slot-specs";
-import { signalPresetsForTopic } from "@/content/slot-signals";
 import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
-import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
 import { copyText } from "@/lib/clipboard";
+import { selectedCreativeProposal } from "@/lib/creative-proposals";
 import { usageForInspiration } from "@/lib/inspiration-usage";
 import {
   proposalsForSlot,
   selectedProposalForSlot,
 } from "@/lib/proposals-store";
 import {
-  applyGeneratedSlotDescription,
-  applyInspirationSelection,
+  applyGeneratedCreativeProposals,
+  applyProposalInspirationRef,
+  applySelectedCreativeProposal,
   assembleSlotSpec,
   canPrepareSlotSpec,
   cursorPromptForSpec,
@@ -74,20 +74,24 @@ export function SlotDetailSheet({
   const { overrides } = useInspirationOverrides();
   const [pane, setPane] = useState<"slot" | "inspiration">("slot");
   const [inspectingKey, setInspectingKey] = useState<string | null>(null);
-  const [showManual, setShowManual] = useState(false);
   const [showLibrary, setShowLibrary] = useState(false);
+  const [showInspirationSearch, setShowInspirationSearch] = useState(false);
   const [copied, setCopied] = useState<"spec" | "prompt" | null>(null);
 
   useEffect(() => {
     setPane("slot");
     setInspectingKey(null);
-    setShowManual(false);
     setShowLibrary(false);
+    setShowInspirationSearch(false);
     setCopied(null);
   }, [slot?.id]);
 
   const record = slot ? getRecord(slot.id) : undefined;
   const specRecords = useMemo(() => Object.values(records), [records]);
+  const idea = selectedCreativeProposal(
+    record?.creativeProposals,
+    record?.selectedCreativeProposalId,
+  );
 
   const selected = slot
     ? selectedProposalForSlot(proposals, slot.id)
@@ -99,43 +103,23 @@ export function SlotDetailSheet({
   const spec = slot
     ? assembleSlotSpec(slot, record, proposals, specRecords, slots, overrides)
     : undefined;
-  const selectedStructural = record?.structuralInspirationRef
-    ? getInspirationByKey(record.structuralInspirationRef, overrides)
-    : !record?.visualInspirationRef && record?.inspirationRef
-      ? getInspirationByKey(record.inspirationRef, overrides)
-      : undefined;
-  const selectedVisual = record?.visualInspirationRef
-    ? getInspirationByKey(record.visualInspirationRef, overrides)
-    : !record?.structuralInspirationRef && record?.inspirationRef
-      ? getInspirationByKey(record.inspirationRef, overrides)
-      : undefined;
-  const selectedInspiration = selectedStructural || selectedVisual;
   const inspecting = inspectingKey
     ? getInspirationByKey(inspectingKey, overrides)
     : undefined;
 
-  function useInspiration(key: string, role: InspirationUseRole = "both") {
-    if (!slot) return;
-    const item = getInspirationByKey(key, overrides);
-    upsertRecord(applyInspirationSelection(record, slot.id, key, role, item));
+  function associateInspiration(key: string, attached = true) {
+    if (!slot || !record?.selectedCreativeProposalId) return;
+    upsertRecord(
+      applyProposalInspirationRef(
+        record,
+        slot.id,
+        record.selectedCreativeProposalId,
+        key,
+        attached,
+      ),
+    );
     setPane("slot");
     setInspectingKey(null);
-    setShowManual(false);
-  }
-
-  function useManualSignal(signal: string) {
-    if (!slot) return;
-    upsertRecord({
-      slotId: slot.id,
-      directionKind: "manual",
-      signal,
-      editorialDescription: record?.editorialDescription,
-      inspirationSearchBrief: record?.inspirationSearchBrief,
-      structuralSearchBrief: record?.structuralSearchBrief,
-      visualSearchBrief: record?.visualSearchBrief,
-      status: record?.status ?? "draft",
-    });
-    setShowManual(false);
   }
 
   async function copySpec() {
@@ -160,6 +144,7 @@ export function SlotDetailSheet({
   }
 
   const canPrepare = canPrepareSlotSpec(record);
+  const associatedKeys = new Set(idea?.inspirationRefs ?? []);
 
   return (
     <StudioSheet
@@ -209,7 +194,12 @@ export function SlotDetailSheet({
               )}
               slots={slots}
               proposals={proposals}
-              onUseRole={(role) => useInspiration(inspecting.key, role)}
+              onUse={() =>
+                associateInspiration(
+                  inspecting.key,
+                  !associatedKeys.has(inspecting.key),
+                )
+              }
             />
           </div>
         ) : (
@@ -228,161 +218,131 @@ export function SlotDetailSheet({
 
             <SlotBriefCards slot={slot} studioAccounts={studioAccounts} />
 
-            <SlotEditorialDescription
+            <SlotCreativeProposals
               spec={spec}
+              record={record}
               accountLabel={getSlotAccountLabel(slot, studioAccounts)}
-              editorialDescription={record?.editorialDescription}
-              inspirationSearchBrief={record?.inspirationSearchBrief}
-              structuralSearchBrief={record?.structuralSearchBrief}
-              visualSearchBrief={record?.visualSearchBrief}
-              onGenerated={(payload) => {
+              overrides={overrides}
+              onGenerated={(next) => {
                 upsertRecord(
-                  applyGeneratedSlotDescription(record, slot.id, payload),
+                  applyGeneratedCreativeProposals(record, slot.id, next),
                 );
+              }}
+              onSelect={(proposalId) => {
+                upsertRecord(
+                  applySelectedCreativeProposal(record, slot.id, proposalId),
+                );
+                setShowInspirationSearch(false);
               }}
             />
 
-            <StudioSection
-              title="Inspiración"
-              description="Recomendaciones automáticas según estructura y visual. La biblioteca completa sigue disponible."
-            >
-              <SlotInspirationRecommendations
-                slot={slot}
-                record={record}
-                proposals={proposals}
-                specs={specRecords}
-                slots={slots}
-                overrides={overrides}
-                onOpenReference={(key) => {
-                  setInspectingKey(key);
-                  setPane("inspiration");
-                }}
-                onSelect={(key, role) => useInspiration(key, role)}
-              />
-              <div className="pt-3">
+            {idea ? (
+              <StudioSection
+                title="Dirección seleccionada"
+                description={idea.title}
+              >
+                <p className="text-[13px] leading-relaxed">{idea.idea}</p>
+                <p className="text-[12px] text-muted-foreground">
+                  {idea.message}
+                </p>
+              </StudioSection>
+            ) : null}
+
+            {idea ? (
+              <StudioSection
+                title="Inspiración"
+                description="Después de elegir una idea. Primero filtro por tipo de pieza; después afinidad con el concepto visual."
+              >
                 <Button
                   type="button"
                   size="sm"
-                  variant="ghost"
-                  className="h-7 px-0 text-xs"
-                  onClick={() => setShowLibrary((value) => !value)}
+                  variant={showInspirationSearch ? "outline" : "default"}
+                  onClick={() =>
+                    setShowInspirationSearch((value) => !value)
+                  }
                 >
-                  {showLibrary ? "Ocultar biblioteca completa" : "Explorar biblioteca completa"}
+                  {showInspirationSearch
+                    ? "Ocultar referencias"
+                    : "Buscar inspiración para esta idea"}
                 </Button>
-                {showLibrary ? (
-                  <div className="mt-3">
-                    <SlotInspirationBrowse
-                      slotId={slot.id}
+                {showInspirationSearch ? (
+                  <div className="space-y-3 pt-3">
+                    <p className="text-[12px] font-medium">
+                      Referencias sugeridas
+                    </p>
+                    <SlotInspirationRecommendations
+                      slot={slot}
+                      record={record}
+                      proposal={idea}
+                      proposals={proposals}
+                      specs={specRecords}
+                      slots={slots}
+                      overrides={overrides}
                       onOpenReference={(key) => {
                         setInspectingKey(key);
                         setPane("inspiration");
                       }}
+                      onAssociate={(key, attached) =>
+                        associateInspiration(key, attached)
+                      }
                     />
-                  </div>
-                ) : null}
-              </div>
-              <div className="pt-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-0 text-xs"
-                  onClick={() => setShowManual((value) => !value)}
-                >
-                  {showManual ? "Ocultar dirección personalizada" : "Dirección personalizada"}
-                </Button>
-                {showManual ? (
-                  <div className="mt-2 space-y-2 rounded-lg border border-dashed border-border px-3 py-3">
-                    <p className="text-[12px] text-muted-foreground">
-                      Escape hatch. El camino principal es elegir una referencia.
-                    </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {signalPresetsForTopic(slot).map((preset) => (
-                        <Button
-                          key={preset.id}
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          onClick={() => useManualSignal(preset.signal)}
-                        >
-                          {preset.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </StudioSection>
-
-            <StudioSection title="Dirección seleccionada">
-              {selectedInspiration || record?.directionKind === "manual" ? (
-                <div className="space-y-2">
-                  {record?.directionKind === "manual" ? (
-                    <div className="rounded-lg border border-border px-3 py-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Dirección personalizada
-                      </p>
-                      <p className="mt-1 text-[13px] font-medium">
-                        {spec.signal ?? "Sin señal todavía"}
-                      </p>
-                    </div>
-                  ) : null}
-                  {selectedStructural ? (
-                    <div className="rounded-lg border border-border px-3 py-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Estructura
-                      </p>
-                      <p className="mt-1 text-[13px] font-medium">
-                        {selectedStructural.title}
-                      </p>
-                      {spec.structuralInspiration?.creativeMechanism || spec.creativeMechanism ? (
-                        <p className="mt-1 text-[12px] text-muted-foreground">
-                          Mecanismo:{" "}
-                          {spec.structuralInspiration?.creativeMechanism ?? spec.creativeMechanism}
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-0 text-xs"
+                      onClick={() => setShowLibrary((value) => !value)}
+                    >
+                      {showLibrary
+                        ? "Ocultar biblioteca completa"
+                        : "Explorar biblioteca completa"}
+                    </Button>
+                    {showLibrary ? (
+                      <SlotInspirationBrowse
+                        slotId={slot.id}
+                        onOpenReference={(key) => {
+                          setInspectingKey(key);
+                          setPane("inspiration");
+                        }}
+                      />
+                    ) : null}
+                    {associatedKeys.size > 0 ? (
+                      <div className="space-y-1 pt-2">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                          Asociadas a esta idea
                         </p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {selectedVisual && selectedVisual.key !== selectedStructural?.key ? (
-                    <div className="rounded-lg border border-border px-3 py-3">
-                      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Visual
-                      </p>
-                      <p className="mt-1 text-[13px] font-medium">{selectedVisual.title}</p>
-                    </div>
-                  ) : selectedVisual && selectedVisual.key === selectedStructural?.key ? (
-                    <p className="text-[12px] text-muted-foreground">
-                      La misma referencia cubre estructura y visual.
-                    </p>
-                  ) : null}
-                </div>
-              ) : (
-                <p className="text-[13px] text-muted-foreground">
-                  Todavía no elegiste una referencia para este slot.
-                </p>
-              )}
-            </StudioSection>
+                        {[...associatedKeys].map((key) => (
+                          <p key={key} className="text-[13px]">
+                            {getInspirationByKey(key, overrides)?.title ?? key}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </StudioSection>
+            ) : null}
 
             <StudioSection
               title="Slot spec"
-              description="Misión para Cursor. El Studio no genera copy."
+              description="Misión para Cursor cuando ya hay una dirección elegida. El Studio no escribe copy final."
             >
               <div className="space-y-2 rounded-lg border border-border px-3 py-3 text-[13px] leading-relaxed">
                 <p>
-                  {getSlotAccountLabel(slot, studioAccounts)} · {spec.date} {spec.time}
+                  {getSlotAccountLabel(slot, studioAccounts)} · {spec.date}{" "}
+                  {spec.time}
                 </p>
                 <p>
-                  {getContentRoleLabel(spec.roleId)} · {getSlotTopicLabel(slot)} ·{" "}
-                  {getPublicationTypeLabel(spec.productionTypeId)}
+                  {getContentRoleLabel(spec.roleId)} · {getSlotTopicLabel(slot)}{" "}
+                  · {getPublicationTypeLabel(spec.productionTypeId)}
                 </p>
-                {spec.recommendedCreativeFormats.length > 0 ? (
+                {idea ? (
+                  <p className="text-muted-foreground">Idea: {idea.title}</p>
+                ) : (
                   <p className="text-muted-foreground">
-                    Formatos creativos:{" "}
-                    {spec.recommendedCreativeFormats
-                      .map((format) => format.label)
-                      .join(" · ")}
+                    Elegí una propuesta creativa antes de preparar el spec.
                   </p>
-                ) : null}
+                )}
                 <p className="text-muted-foreground">
                   Brain: {spec.brainRefs.join(", ")}
                 </p>
@@ -422,11 +382,12 @@ export function SlotDetailSheet({
 
             <StudioSection
               title="Desarrollo creativo"
-              description="Cursor escribe las propuestas. Acá solo se elige."
+              description="Recién acá Cursor escribe copy, headline y prompts. Primero se elige la idea."
             >
               {candidates.length === 0 ? (
                 <p className="text-[13px] text-muted-foreground">
-                  Cuando el spec esté listo, pedile a Cursor: “Desarrollá propuestas para este slot.”
+                  Cuando haya una dirección elegida, pedile a Cursor: “Desarrollá
+                  esta dirección creativa.”
                 </p>
               ) : (
                 <div className="space-y-2">
@@ -457,7 +418,9 @@ export function SlotDetailSheet({
                           {proposal.concept}
                         </p>
                         {isSelected ? (
-                          <p className="mt-2 text-[12px] font-medium">Seleccionada</p>
+                          <p className="mt-2 text-[12px] font-medium">
+                            Seleccionada
+                          </p>
                         ) : (
                           <Button
                             type="button"

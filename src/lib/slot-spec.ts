@@ -1,9 +1,9 @@
 import { getAngleLabel } from "@/content/angles";
 import {
   cameraModeFromPresence,
-  cameraPresenceConstraint,
   cameraPresenceShortLabel,
 } from "@/content/camera-presence";
+import type { CreativeProposal } from "@/content/creative-proposals";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getFormatLabel } from "@/content/formats";
 import type { InspirationUseRole } from "@/content/inspiration-analysis";
@@ -28,6 +28,11 @@ import type {
   SlotSpecInspirationSlice,
   SlotSpecRecord,
 } from "@/content/slot-specs";
+import {
+  associateInspirationRef,
+  detachInspirationRef,
+  selectedCreativeProposal,
+} from "@/lib/creative-proposals";
 import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 import { usageForInspiration } from "@/lib/inspiration-usage";
 import { recommendCreativeFormats } from "@/lib/creative-format-recommendations";
@@ -49,17 +54,52 @@ export function hasSelectedInspiration(record: SlotSpecRecord | undefined) {
   return selectedInspirationKeys(record).length > 0;
 }
 
+export function hasSelectedCreativeProposal(
+  record: SlotSpecRecord | undefined,
+) {
+  return Boolean(
+    selectedCreativeProposal(
+      record?.creativeProposals,
+      record?.selectedCreativeProposalId,
+    ),
+  );
+}
+
+export function cloneSlotSpecRecord(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  patch: Partial<SlotSpecRecord> = {},
+): SlotSpecRecord {
+  return {
+    directionKind: record?.directionKind ?? "manual",
+    inspirationRef: record?.inspirationRef,
+    structuralInspirationRef: record?.structuralInspirationRef,
+    visualInspirationRef: record?.visualInspirationRef,
+    signal: record?.signal,
+    creativeMechanism: record?.creativeMechanism,
+    notes: record?.notes,
+    editorialDescription: record?.editorialDescription,
+    inspirationSearchBrief: record?.inspirationSearchBrief,
+    structuralSearchBrief: record?.structuralSearchBrief,
+    visualSearchBrief: record?.visualSearchBrief,
+    creativeProposals: record?.creativeProposals,
+    selectedCreativeProposalId: record?.selectedCreativeProposalId,
+    status: record?.status ?? "draft",
+    preparedAt: record?.preparedAt,
+    ...patch,
+    slotId,
+  };
+}
+
 export function isSpecReadyForCursor(record: SlotSpecRecord | undefined) {
   if (!record) return false;
   if (record.status !== "ready-for-cursor") return false;
-  if (record.directionKind === "inspiration") {
-    return hasSelectedInspiration(record);
-  }
-  return Boolean(record.signal?.trim());
+  return canPrepareSlotSpec(record);
 }
 
 export function canPrepareSlotSpec(record: SlotSpecRecord | undefined) {
   if (!record) return false;
+  if (hasSelectedCreativeProposal(record)) return true;
   if (record.directionKind === "inspiration") {
     return hasSelectedInspiration(record);
   }
@@ -196,6 +236,10 @@ export function assembleSlotSpec(
     cameraPresence: slot.cameraPresence,
     notes: record?.notes,
     editorialDescription: record?.editorialDescription,
+    selectedCreativeProposal: selectedCreativeProposal(
+      record?.creativeProposals,
+      record?.selectedCreativeProposalId,
+    ),
     status: record?.status ?? "draft",
   };
 }
@@ -207,22 +251,9 @@ export function applyInspirationSelection(
   role: InspirationUseRole,
   item?: InspirationFeedItem,
 ): SlotSpecRecord {
-  const next: SlotSpecRecord = {
-    slotId,
+  const next: SlotSpecRecord = cloneSlotSpecRecord(record, slotId, {
     directionKind: "inspiration",
-    inspirationRef: record?.inspirationRef,
-    structuralInspirationRef: record?.structuralInspirationRef,
-    visualInspirationRef: record?.visualInspirationRef,
-    signal: record?.signal,
-    creativeMechanism: record?.creativeMechanism,
-    notes: record?.notes,
-    editorialDescription: record?.editorialDescription,
-    inspirationSearchBrief: record?.inspirationSearchBrief,
-    structuralSearchBrief: record?.structuralSearchBrief,
-    visualSearchBrief: record?.visualSearchBrief,
-    status: record?.status ?? "draft",
-    preparedAt: record?.preparedAt,
-  };
+  });
 
   if (role === "structure" || role === "both") {
     next.structuralInspirationRef = key;
@@ -243,22 +274,47 @@ export function applyGeneratedSlotDescription(
   slotId: string,
   payload: SlotDescriptionPayload,
 ): SlotSpecRecord {
-  return {
-    slotId,
-    directionKind: record?.directionKind ?? "inspiration",
-    inspirationRef: record?.inspirationRef,
-    structuralInspirationRef: record?.structuralInspirationRef,
-    visualInspirationRef: record?.visualInspirationRef,
-    signal: record?.signal,
-    creativeMechanism: record?.creativeMechanism,
-    notes: record?.notes,
+  return cloneSlotSpecRecord(record, slotId, {
     editorialDescription: payload.editorialDescription,
-    inspirationSearchBrief: record?.inspirationSearchBrief,
     structuralSearchBrief: payload.structuralSearchBrief,
     visualSearchBrief: payload.visualSearchBrief,
-    status: record?.status ?? "draft",
-    preparedAt: record?.preparedAt,
-  };
+  });
+}
+
+export function applyGeneratedCreativeProposals(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  proposals: CreativeProposal[],
+): SlotSpecRecord {
+  return cloneSlotSpecRecord(record, slotId, {
+    creativeProposals: [...(record?.creativeProposals ?? []), ...proposals],
+  });
+}
+
+export function applySelectedCreativeProposal(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  proposalId: string,
+): SlotSpecRecord {
+  return cloneSlotSpecRecord(record, slotId, {
+    selectedCreativeProposalId: proposalId,
+  });
+}
+
+export function applyProposalInspirationRef(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  proposalId: string,
+  key: string,
+  attached: boolean,
+): SlotSpecRecord {
+  const proposals = (record?.creativeProposals ?? []).map((proposal) => {
+    if (proposal.id !== proposalId) return proposal;
+    return attached
+      ? associateInspirationRef(proposal, key)
+      : detachInspirationRef(proposal, key);
+  });
+  return cloneSlotSpecRecord(record, slotId, { creativeProposals: proposals });
 }
 
 const PLATFORM_LABELS: Record<string, string> = {
@@ -336,6 +392,8 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
         }
       : undefined);
 
+  const idea = spec.selectedCreativeProposal;
+  const proposalInspirationKeys = idea?.inspirationRefs ?? [];
   const lines = [
     `# CONTENT SPEC`,
     "",
@@ -349,41 +407,62 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     `- Tema: ${getSlotTopicLabel({ roleId: spec.roleId, topicId: spec.topicId, pillarId: spec.pillarId })}`,
     `- Pieza: ${getPublicationTypeLabel(spec.productionTypeId)}`,
     spec.cameraPresence
-      ? `- Producción: ${cameraPresenceShortLabel(spec.cameraPresence)}`
-      : "- Producción: —",
+      ? `- Cámara: ${cameraPresenceShortLabel(spec.cameraPresence)}`
+      : "- Cámara: —",
     "",
-    "## Formatos creativos recomendados",
-    "El formato creativo NO está programado en el calendario. Elegí uno de esta lista (ya filtrada por tipo de pieza y restricción de producción):",
-    ...(spec.recommendedCreativeFormats.length
-      ? spec.recommendedCreativeFormats.map(
-          (format) =>
-            `- ${format.label} (${format.id}): ${format.summary}`,
-        )
-      : ["- Sin formatos compatibles. Revisá la opción de producción."]),
+    ...(idea
+      ? [
+          "## Dirección creativa seleccionada",
+          `- Título: ${idea.title}`,
+          `- Idea: ${idea.idea}`,
+          `- Ángulo: ${idea.angle}`,
+          `- Mensaje: ${idea.message}`,
+          `- Concepto visual: ${idea.visualConcept}`,
+          "- Estructura:",
+          ...idea.structure.map((step, index) => `  ${index + 1}. ${step}`),
+          ...(idea.requiredAssets?.length
+            ? [
+                "- Assets:",
+                ...idea.requiredAssets.map((asset) => `  - ${asset}`),
+              ]
+            : ["- Assets: se puede generar por completo"]),
+          ...(proposalInspirationKeys.length
+            ? [
+                "- Referencias asociadas:",
+                ...proposalInspirationKeys.map(
+                  (key) =>
+                    `  - ${getInspirationByKey(key)?.title ?? key} (${key})`,
+                ),
+              ]
+            : []),
+        ]
+      : [
+          "## Dirección creativa",
+          "- Todavía no hay una propuesta creativa seleccionada.",
+        ]),
     spec.formatId
-      ? `- Legacy del slot: ${getFormatLabel(spec.formatId)} (no es obligatorio)`
+      ? `- Formato creativo legacy del slot: ${getFormatLabel(spec.formatId)} (no es obligatorio)`
       : "",
     ...(spec.editorialDescription
-      ? ["", "## Descripción editorial", spec.editorialDescription]
+      ? ["", "## Descripción editorial (legacy)", spec.editorialDescription]
       : []),
     "",
     ...referenceMarkdown(
-      "Referencia estructural",
+      "Referencia estructural (legacy)",
       structural,
       spec.structuralInspirationRef ||
         (!spec.visualInspirationRef ? spec.inspirationRef : undefined),
     ),
     "",
     ...referenceMarkdown(
-      "Referencia visual",
+      "Referencia visual (legacy)",
       visual,
       spec.visualInspirationRef ||
         (!spec.structuralInspirationRef ? spec.inspirationRef : undefined),
     ),
     "",
-    "## Cómo usarlas",
-    "La referencia estructural define el mecanismo narrativo.",
-    "La referencia visual define composición y lenguaje visual.",
+    "## Cómo usar las referencias",
+    "Las referencias asociadas a la propuesta son dirección visual o estructural.",
     "No copiar literalmente el contenido, marca, claims ni texto de las referencias.",
     "Adaptarlas al slot y al Mercantis Brain.",
     "",
@@ -400,52 +479,18 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     spec.status,
     "",
     "## Qué tiene que hacer Cursor",
-    "Desarrollar propuestas completas para este slot: ángulo, concepto, hook, narrativa, 2 a 4 formatos creativos (usar la lista filtrada de arriba), estructura, copy por slide/escena, CTA, caption y dirección visual.",
+    "Desarrollar la dirección creativa seleccionada: copy, headline, estructura definitiva, guion si aplica, CTA, caption y dirección visual de producción.",
     "No cambiar cuenta, plataformas, fecha, rol, tema ni opción de producción.",
+    "No reinventar la idea salvo que el spec lo pida. Profundizá esa propuesta.",
     "No sugerir talking head, vlog, entrevista, selfie ni grabación física si la producción es sin cámara.",
     "Sí se puede hacer video: motion graphics, screen recording, animación, IA, texto cinético, capturas.",
     "No inventar claims. Consultar el Mercantis Brain citado arriba.",
     "Guardar las propuestas en `src/content/proposals.ts` como `candidate`.",
-    "Setear `structuralSourceRef` y `visualSourceRef` (y `sourceRef` legacy) con las keys del spec.",
   ];
 
   return lines.join("\n");
 }
 
 export function cursorPromptForSpec(spec: SlotSpec) {
-  return `Desarrollá propuestas para este slot.\n\n${formatSlotSpecMarkdown(spec)}`;
-}
-
-export function cursorPromptForSlotDescription(spec: SlotSpec) {
-  const production = spec.cameraPresence
-    ? cameraPresenceConstraint(spec.cameraPresence)
-    : "Sin restricción de cámara declarada.";
-
-  return [
-    "Redactá la descripción editorial de este slot de contenido Mercantis.",
-    "",
-    "Requisitos:",
-    "- Guardá TRES campos en el SlotSpecRecord del slot, en el planning store del Studio.",
-    "",
-    "### editorialDescription",
-    "- 2 a 4 oraciones en español argentino, prosa continua y amigable.",
-    "- Sin listas, viñetas, guiones largos (—) ni prefijos del tipo \"Rol:\", \"Pilar:\" o \"Formato:\".",
-    "- Explicá qué hay que lograr con la pieza y cómo encajan rol, tema y opción de producción.",
-    "",
-    "### structuralSearchBrief",
-    "- 1 a 3 oraciones EXCLUSIVAMENTE sobre: hook deseado, estructura narrativa, beats, ritmo, mecanismo, tipo de desarrollo, payoff / CTA.",
-    "- No describir estética, cámara, composición ni paleta.",
-    "",
-    "### visualSearchBrief",
-    "- 1 a 3 oraciones EXCLUSIVAMENTE sobre: persona/producto/pantalla, cámara, composición, movimiento, setting, overlays, edición, lenguaje visual, ritmo visual.",
-    "- No describir el tema que debe tratar Mercantis salvo que sea imprescindible visualmente.",
-    "",
-    "- También podés dejar `inspirationSearchBrief` como fallback legacy (un párrafo corto), pero los dos briefs separados son la fuente principal.",
-    "- No inventes features, pricing, clientes ni claims. Consultá el Mercantis Brain.",
-    `- Producción: ${production}`,
-    "",
-    `Slot ID: ${spec.slotId}`,
-    "",
-    formatSlotSpecMarkdown(spec),
-  ].join("\n");
+  return `Desarrollá esta dirección creativa.\n\n${formatSlotSpecMarkdown(spec)}`;
 }

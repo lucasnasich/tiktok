@@ -14,11 +14,15 @@ import { getSlotTopicLabel, resolveSlotTopicId } from "@/content/role-topics";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
 import type { SlotSpecRecord } from "@/content/slot-specs";
+import type { CreativeProposal } from "@/content/creative-proposals";
+import type { ProductionOptionId } from "@/content/production-options";
+import { resolveSlotProductionType } from "@/content/planned-slots";
 import type { InspirationMetaOverride } from "@/lib/inspiration-overrides-store";
 import {
   usageForInspiration,
   type InspirationUsage,
 } from "@/lib/inspiration-usage";
+import { inspirationMatchesProduction, qualitativeInspirationBadges } from "@/lib/inspiration-production";
 
 export type { InspirationUsage } from "@/lib/inspiration-usage";
 export { formatInspirationUsage, usageForInspiration } from "@/lib/inspiration-usage";
@@ -62,6 +66,7 @@ export type RankedInspiration = {
   compatibility: number;
   usage: InspirationUsage;
   reasons: string[];
+  badges: string[];
   similarity?: number;
   confidence?: number;
   mode?: InspirationMatchMode;
@@ -75,6 +80,7 @@ export type InspirationMatchContext = {
   overrides?: Record<string, InspirationMetaOverride>;
   now?: number;
   limit?: number;
+  creativeProposal?: CreativeProposal;
 };
 
 function normalize(text: string) {
@@ -281,6 +287,60 @@ function cameraVisualAffinity(
   return 0.65;
 }
 
+function proposalAffinity(
+  item: InspirationFeedItem,
+  proposal?: CreativeProposal,
+) {
+  if (!proposal) return 0;
+  const text = haystack(item);
+  const tokens = normalize(
+    [
+      proposal.visualConcept,
+      proposal.idea,
+      proposal.angle,
+      proposal.message,
+      ...proposal.structure,
+    ].join(" "),
+  )
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length > 4);
+  if (tokens.length === 0) return 0;
+  const unique = [...new Set(tokens)];
+  const hits = unique.filter((token) => text.includes(token)).length;
+  return Math.min(0.35, hits / Math.max(8, unique.length));
+}
+
+function productionTypeOf(slot: PlanningSlot): ProductionOptionId {
+  return resolveSlotProductionType(slot);
+}
+
+function badgesForRanked(input: {
+  item: InspirationFeedItem;
+  slot: PlanningSlot;
+  mode?: InspirationMatchMode;
+  similarity?: number;
+  unused?: boolean;
+}): string[] {
+  const productionTypeId = productionTypeOf(input.slot);
+  const formatIds = new Set([
+    ...(input.item.formatIds ?? []),
+    ...(input.item.formatAffinities ?? []),
+  ]);
+  return qualitativeInspirationBadges({
+    productionMatch: inspirationMatchesProduction(
+      input.item,
+      productionTypeId,
+    ),
+    formatRelated: Boolean(
+      input.slot.formatId && formatIds.has(input.slot.formatId),
+    ),
+    visualSimilar: input.mode === "visual" && (input.similarity ?? 0) >= 0.72,
+    structureSimilar:
+      input.mode === "structure" && (input.similarity ?? 0) >= 0.72,
+    unused: input.unused,
+  });
+}
+
 export function rankHybridCandidates(
   context: InspirationMatchContext,
   candidates: InspirationMatchCandidate[],
@@ -302,6 +362,11 @@ export function rankHybridCandidates(
     for (const item of items) {
       if (seen.has(item.key)) continue;
       seen.add(item.key);
+      if (
+        !inspirationMatchesProduction(item, productionTypeOf(context.slot))
+      ) {
+        continue;
+      }
       const usage = usageForInspiration(item.key, context.proposals, specs, slots);
       const parts = affinityAndUsage(item, context.slot, usage, now);
       const formatRoleAffinity = normalizeAffinity(parts.affinity);
@@ -309,10 +374,11 @@ export function rankHybridCandidates(
         context.slot.cameraPresence,
         candidate.production?.cameraPresence,
       );
+      const ideaAffinity = proposalAffinity(item, context.creativeProposal);
       const affinity01 =
         mode === "visual"
-          ? formatRoleAffinity * 0.7 + camera * 0.3
-          : formatRoleAffinity;
+          ? formatRoleAffinity * 0.45 + camera * 0.2 + ideaAffinity * 0.35
+          : formatRoleAffinity * 0.55 + ideaAffinity * 0.45;
       const usage01 = normalizeUsage(usage, now);
       const similarity = clamp01(candidate.similarity);
       const confidence = clamp01(candidate.confidence ?? 1);
@@ -334,6 +400,13 @@ export function rankHybridCandidates(
         compatibility: Math.round(clamp01(score01) * 100),
         usage,
         reasons: reasons.slice(0, 2),
+        badges: badgesForRanked({
+          item,
+          slot: context.slot,
+          mode,
+          similarity,
+          unused: usage.count === 0,
+        }),
         similarity,
         confidence,
         mode,
@@ -366,15 +439,26 @@ export function rankInspirationsForSlot(
   const cap = ctx.limit ?? limit;
 
   return items
+    .filter((item) =>
+      inspirationMatchesProduction(item, productionTypeOf(ctx.slot)),
+    )
     .map((item) => {
       const usage = usageForInspiration(item.key, ctx.proposals, specs, slots);
       const { score, reasons } = scoreItem(item, ctx.slot, usage, now);
+      const ideaBoost = Math.round(
+        proposalAffinity(item, ctx.creativeProposal) * 40,
+      );
       return {
         item,
-        score,
-        compatibility: compatibilityPercent(score),
+        score: score + ideaBoost,
+        compatibility: compatibilityPercent(score + ideaBoost),
         usage,
         reasons,
+        badges: badgesForRanked({
+          item,
+          slot: ctx.slot,
+          unused: usage.count === 0,
+        }),
       };
     })
     .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))

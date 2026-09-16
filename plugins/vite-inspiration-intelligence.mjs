@@ -11,12 +11,11 @@ import {
   generateStructuredAnalysis,
 } from "../scripts/inspiration-gemini.mjs";
 import { loadBrainDocuments } from "../scripts/mercantis-brain-loader.mjs";
-import { buildFormatProductionPromptSection } from "../scripts/format-production-examples.mjs";
 import {
-  buildSlotDescriptionSchema,
-  buildSlotDescriptionUserPrompt,
-  normalizeSlotDescriptionPayload,
-} from "../scripts/slot-description-schema.mjs";
+  buildCreativeProposalsSchema,
+  buildCreativeProposalsUserPrompt,
+  normalizeCreativeProposalDrafts,
+} from "../scripts/creative-proposals-schema.mjs";
 import {
   resolveGeminiApiKey,
 } from "../scripts/load-studio-env.mjs";
@@ -24,6 +23,7 @@ import {
 const STATUS_PATH = "/__studio/inspiration-intelligence/status";
 const MATCH_PATH = "/__studio/inspiration-match";
 const SLOT_DESCRIPTION_PATH = "/__studio/slot-description";
+const CREATIVE_PROPOSALS_PATH = "/__studio/creative-proposals";
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -97,7 +97,8 @@ export function inspirationIntelligencePlugin(env = process.env) {
         if (
           url !== STATUS_PATH &&
           url !== MATCH_PATH &&
-          url !== SLOT_DESCRIPTION_PATH
+          url !== SLOT_DESCRIPTION_PATH &&
+          url !== CREATIVE_PROPOSALS_PATH
         ) {
           return next();
         }
@@ -111,7 +112,7 @@ export function inspirationIntelligencePlugin(env = process.env) {
           return;
         }
 
-        if (url === SLOT_DESCRIPTION_PATH) {
+        if (url === SLOT_DESCRIPTION_PATH || url === CREATIVE_PROPOSALS_PATH) {
           if (req.method !== "POST") {
             sendJson(res, 405, { error: "Method not allowed" });
             return;
@@ -146,13 +147,18 @@ export function inspirationIntelligencePlugin(env = process.env) {
               return;
             }
 
+            const generationMode =
+              body.generationMode === "more_like_this" ||
+              body.generationMode === "guided"
+                ? body.generationMode
+                : "free";
             const parsed = await generateStructuredAnalysis(ai, {
               contents: [
                 {
                   role: "user",
                   parts: [
                     {
-                      text: buildSlotDescriptionUserPrompt({
+                      text: buildCreativeProposalsUserPrompt({
                         slotId: body.slotId,
                         accountLabel: body.accountLabel,
                         accountId: body.accountId,
@@ -162,57 +168,54 @@ export function inspirationIntelligencePlugin(env = process.env) {
                         topicLabel: body.topicLabel || body.pillarLabel,
                         topicId: body.topicId || body.pillarId,
                         topicSummary: body.topicSummary || body.pillarSummary,
-                        pillarLabel: body.topicLabel || body.pillarLabel,
-                        pillarId: body.topicId || body.pillarId,
-                        pillarSummary: body.topicSummary || body.pillarSummary,
-                        formatLabel: body.formatLabel,
-                        formatId: body.formatId,
-                        formatSummary: body.formatSummary,
-                        publicationTypeLabel: body.publicationTypeLabel,
-                        recommendedCreativeFormats: Array.isArray(
-                          body.recommendedCreativeFormats,
-                        )
-                          ? body.recommendedCreativeFormats
-                          : [],
-                        formatProductionSection: buildFormatProductionPromptSection({
-                          formatId: body.formatId,
-                          formatLabel: body.formatLabel,
-                          formatSummary: body.formatSummary,
-                          cameraPresence: body.cameraPresence,
-                          cameraPresenceLabel: body.cameraPresenceLabel,
-                        }),
+                        productionTypeId:
+                          body.productionTypeId || body.publicationTypeId,
+                        productionTypeLabel:
+                          body.productionTypeLabel || body.publicationTypeLabel,
+                        productionTypeSummary: body.productionTypeSummary,
+                        productionTypeExample: body.productionTypeExample,
                         cameraPresenceLabel: body.cameraPresenceLabel,
                         cameraPresenceConstraint: body.cameraPresenceConstraint,
                         platforms: body.platforms,
                         date: body.date,
                         time: body.time,
-                        editorialConstraints: Array.isArray(body.editorialConstraints)
+                        editorialConstraints: Array.isArray(
+                          body.editorialConstraints,
+                        )
                           ? body.editorialConstraints
                           : [],
                         brainDocuments: documents,
                         missingBrainRefs: missing,
+                        generationMode,
+                        parentProposal: body.parentProposal,
+                        guidance: body.guidance,
                       }),
                     },
                   ],
                 },
               ],
-              schema: buildSlotDescriptionSchema(),
-              temperature: 0.35,
+              schema: buildCreativeProposalsSchema(),
+              temperature:
+                generationMode === "free"
+                  ? 0.95
+                  : generationMode === "more_like_this"
+                    ? 0.85
+                    : 0.8,
             });
-            const payload = normalizeSlotDescriptionPayload(parsed);
+            const drafts = normalizeCreativeProposalDrafts(parsed);
             sendJson(res, 200, {
               configured: true,
-              ...payload,
+              proposals: drafts,
               brainFiles: documents.map((doc) => doc.file),
               missingBrainRefs: missing,
             });
           } catch (error) {
-            console.error("[slot-description]", error);
+            console.error("[creative-proposals]", error);
             sendJson(res, 500, {
               configured: Boolean(apiKey()),
               error:
                 error?.message?.trim() ||
-                "Gemini no pudo generar la descripción del slot.",
+                "Gemini no pudo generar las propuestas creativas.",
             });
           }
           return;

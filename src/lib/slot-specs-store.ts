@@ -1,4 +1,5 @@
 import type { SlotDirectionKind, SlotSpecRecord, SlotSpecStatus } from "@/content/slot-specs";
+import { parseCreativeProposals } from "@/lib/creative-proposals";
 
 const DIRECTIONS: SlotDirectionKind[] = ["inspiration", "manual"];
 const STATUSES: SlotSpecStatus[] = ["draft", "ready-for-cursor"];
@@ -55,6 +56,11 @@ export function parseSlotSpecRecord(raw: unknown): SlotSpecRecord | undefined {
     visualInspirationRef:
       typeof value.visualInspirationRef === "string"
         ? value.visualInspirationRef
+        : undefined,
+    creativeProposals: parseCreativeProposals(value.creativeProposals),
+    selectedCreativeProposalId:
+      typeof value.selectedCreativeProposalId === "string"
+        ? value.selectedCreativeProposalId
         : undefined,
     status,
     preparedAt: typeof value.preparedAt === "string" ? value.preparedAt : undefined,

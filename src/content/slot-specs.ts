@@ -1,4 +1,5 @@
 import type { CameraMode, CameraPresenceMode } from "@/content/camera-presence";
+import type { CreativeProposal } from "@/content/creative-proposals";
 import type { PlanningPlatform } from "@/content/planning-accounts";
 import type { ContentRoleId } from "@/content/content-roles";
 import type { InspirationMaterialType } from "@/content/inspiration-taxonomy";
@@ -43,6 +44,9 @@ export type SlotSpecRecord = {
   inspirationSearchBrief?: string;
   structuralSearchBrief?: string;
   visualSearchBrief?: string;
+  /** Propuestas creativas de Gemini. Source of truth de la ideación. */
+  creativeProposals?: CreativeProposal[];
+  selectedCreativeProposalId?: string;
   status: SlotSpecStatus;
   preparedAt?: string;
 };
@@ -105,5 +109,6 @@ export type SlotSpec = {
   cameraPresence?: CameraPresenceMode;
   notes?: string[];
   editorialDescription?: string;
+  selectedCreativeProposal?: CreativeProposal;
   status: SlotSpecStatus;
 };

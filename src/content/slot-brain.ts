@@ -57,8 +57,8 @@ export function editorialConstraintsForSlot(
   );
   const constraints = [
     `Prioridad ${role}: no cambiar el rol del slot.`,
-    `Hablar de ${topicLabel} sin cambiar de tema. El tema orienta el área; el ángulo lo definís al desarrollar.`,
-    `Respetar la pieza ${publicationType}: esa es la opción de producción asignada al slot. El formato creativo se elige al desarrollar, sin cambiar el tipo de pieza.`,
+    `Hablar de ${topicLabel} sin cambiar de tema. El tema orienta el área; el ángulo se define al idear la pieza.`,
+    `Respetar la pieza ${publicationType}: esa es la opción de producción asignada al slot. No cambiar el tipo de pieza.`,
     "No inventar features, pricing, clientes, métricas, historia ni roadmap.",
     "Consultar el Mercantis Brain. Si algo no está: marcarlo como desconocido.",
     "Respetar estados live / in-development / planned / vision / internal. Nunca promover información internal, métricas no verificadas, deuda técnica ni roadmap no lanzado a copy público.",

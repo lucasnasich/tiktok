@@ -139,3 +139,29 @@ export function recommendCreativeFormats(input: {
   scored.sort((a, b) => b.score - a.score || a.label.localeCompare(b.label));
   return scored.slice(0, limit);
 }
+
+/**
+ * Catálogo filtrado por incompatibilidad productiva real.
+ * Sin ranking por rol. No autoselecciona. Para orientar, no para la 1ra generación.
+ */
+export function listCompatibleCreativeFormats(input: {
+  productionTypeId: ProductionOptionId;
+  cameraMode?: string;
+}): Array<{ id: string; label: string; summary: string }> {
+  return formats
+    .filter((format) => {
+      if (!isFormatCompatibleWithProduction(format.id, input.cameraMode)) {
+        return false;
+      }
+      return isFormatCompatibleWithProductionOption(
+        format.id,
+        input.productionTypeId,
+      );
+    })
+    .map((format) => ({
+      id: format.id,
+      label: format.label,
+      summary: format.summary,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}

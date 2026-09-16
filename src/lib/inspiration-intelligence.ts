@@ -1,7 +1,9 @@
 import { cameraPresenceConstraint, cameraPresenceShortLabel } from "@/content/camera-presence";
 import { getContentRoleLabel, getContentRoleSummary } from "@/content/content-roles";
+import type { CreativeGenerationMode, CreativeProposal, CreativeProposalDraft, CreativeProposalGuidance } from "@/content/creative-proposals";
 import { getFormatById, getFormatLabel } from "@/content/formats";
 import { getPublicationTypeLabel } from "@/content/publication-types";
+import { getProductionOption } from "@/content/production-options";
 import {
   resolveSlotPublicationType,
   type PlanningSlot,
@@ -14,15 +16,15 @@ import type {
 import { INSPIRATION_HYBRID_WEIGHTS } from "@/content/inspiration-match-config";
 import { getSlotTopicLabel, getSlotTopicSummary } from "@/content/role-topics";
 import type {
-  SlotDescriptionPayload,
   SlotSpec,
   SlotSpecRecord,
 } from "@/content/slot-specs";
+import { getInspirationByKey } from "@/content/inspiration-feed";
 
 export const INSPIRATION_INTELLIGENCE_STATUS_API =
   "/__studio/inspiration-intelligence/status";
 export const INSPIRATION_MATCH_API = "/__studio/inspiration-match";
-export const SLOT_DESCRIPTION_API = "/__studio/slot-description";
+export const CREATIVE_PROPOSALS_API = "/__studio/creative-proposals";
 
 export function structuralBriefOf(record: SlotSpecRecord | undefined) {
   return record?.structuralSearchBrief || record?.inspirationSearchBrief || "";
@@ -32,43 +34,42 @@ export function visualBriefOf(record: SlotSpecRecord | undefined) {
   return record?.visualSearchBrief || record?.inspirationSearchBrief || "";
 }
 
-export function buildStructureQuery(slot: PlanningSlot, record?: SlotSpecRecord) {
+export function buildStructureQuery(
+  slot: PlanningSlot,
+  record?: SlotSpecRecord,
+  proposal?: CreativeProposal,
+) {
   const brief = structuralBriefOf(record).trim();
   const parts: string[] = [];
-  if (brief) {
+  if (proposal) {
+    parts.push(proposal.idea, proposal.angle, proposal.structure.join("\n"));
+  } else if (brief) {
     parts.push(brief, brief);
-  }
-  if (record?.editorialDescription?.trim()) {
-    parts.push(record.editorialDescription.trim());
+    if (record?.editorialDescription?.trim()) {
+      parts.push(record.editorialDescription.trim());
+    }
   }
   parts.push(
     `Pieza: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
   );
-  if (slot.formatId) {
-    parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
-  }
-  parts.push(`Rol: ${getContentRoleLabel(slot.roleId)}`);
-  parts.push(`Tema: ${getSlotTopicLabel(slot)}`);
-  if (slot.cameraPresence) {
-    parts.push(
-      `Producción / cámara (si afecta la estructura): ${cameraPresenceShortLabel(slot.cameraPresence)}`,
-    );
-  }
   return parts.join("\n");
 }
 
-export function buildVisualQuery(slot: PlanningSlot, record?: SlotSpecRecord) {
+export function buildVisualQuery(
+  slot: PlanningSlot,
+  record?: SlotSpecRecord,
+  proposal?: CreativeProposal,
+) {
   const brief = visualBriefOf(record).trim();
   const parts: string[] = [];
-  if (brief) {
+  if (proposal) {
+    parts.push(proposal.visualConcept, proposal.idea);
+  } else if (brief) {
     parts.push(brief, brief);
   }
   parts.push(
     `Pieza: ${getPublicationTypeLabel(resolveSlotPublicationType(slot))}`,
   );
-  if (slot.formatId) {
-    parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
-  }
   if (slot.cameraPresence) {
     parts.push(`Cámara: ${cameraPresenceShortLabel(slot.cameraPresence)}`);
     parts.push(cameraPresenceConstraint(slot.cameraPresence));
@@ -140,17 +141,45 @@ export async function fetchInspirationMatches(input: {
   }
 }
 
-export async function fetchSlotDescription(input: {
+export async function fetchCreativeProposals(input: {
   spec: SlotSpec;
   accountLabel?: string;
+  generationMode?: CreativeGenerationMode;
+  parentProposal?: CreativeProposal;
+  guidance?: CreativeProposalGuidance;
   signal?: AbortSignal;
-}): Promise<SlotDescriptionPayload> {
+}): Promise<CreativeProposalDraft[]> {
   if (!import.meta.env.DEV) {
     throw new Error("Generar con Gemini solo está disponible en el Studio local.");
   }
 
   const spec = input.spec;
-  const response = await fetch(SLOT_DESCRIPTION_API, {
+  const production = getProductionOption(spec.productionTypeId);
+  const generationMode = input.generationMode ?? "free";
+  const parent = input.parentProposal;
+  const guidance = input.guidance;
+  const guidedFormats =
+    generationMode === "guided"
+      ? (guidance?.creativeFormatIds ?? []).map((id) => ({
+          id,
+          label: getFormatLabel(id),
+          summary: getFormatById(id)?.summary ?? "",
+        }))
+      : [];
+  const guidedInspiration =
+    generationMode === "guided"
+      ? (guidance?.inspirationRefs ?? []).map((key) => {
+          const item = getInspirationByKey(key);
+          return {
+            key,
+            title: item?.title ?? key,
+            signal: item?.signal,
+            creativeMechanism: item?.creativeMechanism,
+          };
+        })
+      : [];
+
+  const response = await fetch(CREATIVE_PROPOSALS_API, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -171,25 +200,10 @@ export async function fetchSlotDescription(input: {
         topicId: spec.topicId,
         pillarId: spec.pillarId,
       }),
-      pillarId: spec.topicId,
-      pillarLabel: getSlotTopicLabel({
-        roleId: spec.roleId,
-        topicId: spec.topicId,
-        pillarId: spec.pillarId,
-      }),
-      pillarSummary: getSlotTopicSummary({
-        roleId: spec.roleId,
-        topicId: spec.topicId,
-        pillarId: spec.pillarId,
-      }),
-      publicationTypeId: spec.publicationTypeId,
-      publicationTypeLabel: getPublicationTypeLabel(spec.publicationTypeId),
-      formatId: spec.formatId,
-      formatLabel: spec.formatId ? getFormatLabel(spec.formatId) : "",
-      formatSummary: spec.formatId
-        ? getFormatById(spec.formatId)?.summary ?? ""
-        : "",
-      recommendedCreativeFormats: spec.recommendedCreativeFormats,
+      productionTypeId: spec.productionTypeId,
+      productionTypeLabel: production?.label ?? spec.productionTypeId,
+      productionTypeSummary: production?.summary ?? "",
+      productionTypeExample: production?.example ?? "",
       cameraPresence: spec.cameraPresence,
       cameraPresenceLabel: spec.cameraPresence
         ? cameraPresenceShortLabel(spec.cameraPresence)
@@ -202,15 +216,35 @@ export async function fetchSlotDescription(input: {
       time: spec.time,
       brainRefs: spec.brainRefs,
       editorialConstraints: spec.editorialConstraints,
+      generationMode,
+      parentProposal: parent
+        ? {
+            title: parent.title,
+            idea: parent.idea,
+            angle: parent.angle,
+            message: parent.message,
+            visualConcept: parent.visualConcept,
+            structure: parent.structure,
+          }
+        : undefined,
+      guidance:
+        generationMode === "guided"
+          ? {
+              creativeFormats: guidedFormats,
+              inspirationRefs: guidedInspiration,
+              instruction: guidance?.instruction,
+            }
+          : undefined,
     }),
     signal: input.signal,
   });
 
   const data = (await response.json().catch(() => null)) as
-    | (Partial<SlotDescriptionPayload> & {
+    | {
         configured?: boolean;
         error?: string;
-      })
+        proposals?: CreativeProposalDraft[];
+      }
     | null;
 
   if (data?.configured === false) {
@@ -221,16 +255,13 @@ export async function fetchSlotDescription(input: {
   }
   if (!response.ok) {
     throw new Error(
-      data?.error?.trim() || "Gemini no pudo generar la descripción del slot.",
+      data?.error?.trim() || "Gemini no pudo generar las propuestas creativas.",
     );
   }
-  const editorialDescription = data?.editorialDescription?.trim() ?? "";
-  const structuralSearchBrief = data?.structuralSearchBrief?.trim() ?? "";
-  const visualSearchBrief = data?.visualSearchBrief?.trim() ?? "";
-  if (!editorialDescription || !structuralSearchBrief || !visualSearchBrief) {
-    throw new Error("Gemini no devolvió los tres campos requeridos.");
+  if (!Array.isArray(data?.proposals) || data.proposals.length !== 5) {
+    throw new Error("Gemini no devolvió cinco propuestas.");
   }
-  return { editorialDescription, structuralSearchBrief, visualSearchBrief };
+  return data.proposals;
 }
 
 export { INSPIRATION_HYBRID_WEIGHTS };

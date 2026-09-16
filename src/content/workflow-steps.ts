@@ -20,7 +20,7 @@ export const WORKFLOW_STEPS: WorkflowStep[] = [
 
 Planificación decide: **Cuenta → Plataforma → Hora → Rol → Tema → Pieza de producción**.
 
-El usuario **no** vuelve a elegir esas variables al trabajar el slot. El **formato creativo** se propone después, al desarrollar.
+El usuario **no** vuelve a elegir esas variables al trabajar el slot. El **formato creativo** es orientación opcional al idear, no rotación del calendario.
 
 Los \`roleTargets\` del perfil gobiernan el mix **semanal**. Los temas se eligen dentro de cada rol según prioridad Alta / Media / Baja / No.
 
@@ -39,23 +39,21 @@ Esta planificación es **orgánica**. Ads es una iteración futura distinta.
   {
     id: "propuestas",
     title: "Propuestas",
-    summary: "El Studio arma el SlotSpec. Cursor desarrolla. El usuario elige.",
-    details: `El Studio **no genera** concepto, hook, storytelling ni copy.
+    summary: "Gemini explora ideas. Cursor desarrolla copy. El usuario elige.",
+    details: `El Studio **no genera** copy final, captions ni guiones.
 
 Flujo:
 
 1. Abrís un slot (sheet, calendario detrás).
-2. El Studio recomienda inspiración compatible.
-3. Elegís una referencia (\`Usar esta\`) o una dirección personalizada.
-4. El Studio ensambla el **SlotSpec** (misión + Brain + historial + restricciones).
+2. Gemini genera **5 propuestas creativas libres** (sin biblioteca de formatos).
+3. Podés elegir una, pedir **más como esta**, generar 5 nuevas o **orientar** con formatos/referencias/instrucción.
+4. Recién con una idea elegida buscás inspiración compatible con esa producción.
 5. \`Preparar para Cursor\` deja el spec en \`ready-for-cursor\`.
-6. Le pedís a Cursor: “Desarrollá propuestas para este slot.”
-7. Cursor escribe Proposals completas (concepto, hook, narrativa, copy, CTA, caption).
+6. Le pedís a Cursor: “Desarrollá esta dirección creativa.”
+7. Cursor escribe Proposals completas (copy, headline, CTA, caption).
 8. Elegís una. Queda lista para ensamblar en Figma.
 
 Mercantis Brain es contexto **obligatorio**, no una fuente de señal.
-
-Una Proposal ya no es solo concepto + hook: puede traer todo el contenido textual de la pieza.
 
 **Output:** propuesta seleccionada lista para ensamblaje.`,
   },

@@ -21,9 +21,7 @@ Este proyecto gestiona el workflow de contenido de Mercantis (TikTok y creativos
 - **FIGMA** = ensamblaje final.
 - **BUFFER** = publicación/programación.
 
-El Studio no genera ideas, hooks, storytelling, copy ni captions. Eso lo hace Cursor cuando el usuario se lo pide.
-
-El Studio llama Gemini solo para preparar el SlotSpec (descripción editorial + briefs de búsqueda). No escribe Proposals ni ejecuta Cursor desde la app.
+El Studio llama Gemini para explorar propuestas creativas (idea, ángulo, concepto visual, estructura). No escribe copy final, captions ni Proposals de desarrollo. Eso lo hace Cursor cuando el usuario se lo pide.
 
 ## Mercantis Brain (`knowledge/mercantis/`)
 
@@ -33,7 +31,7 @@ Fuente de verdad sobre **la empresa Mercantis** (producto, historia, marca, pric
 
 Cuando el usuario pide desarrollar un slot:
 
-1. Leer el SlotSpec (PlanningSlot + inspiración + historial + restricciones).
+1. Leer el SlotSpec (PlanningSlot + propuesta creativa elegida + inspiración opcional + historial + restricciones).
 2. Consultar `knowledge/mercantis/README.md`.
 3. Abrir **sólo** los documentos citados en `brainRefs`.
 4. Usar `knowledge/mercantis/MASTER.md` cuando haga falta contexto transversal o haya ambigüedad.
@@ -68,13 +66,13 @@ En el sidebar: **Inspiración** (primera sección) → Referencias y Competidore
 Navegación del Studio (no reorganizar): `Inspiración → Planificación → Propuestas → Producción`
 
 1. Configurar el perfil (piloto: Mercantis oficial) y dejar que el motor complete el calendario (`planned-slots.ts` + generador). Mix de roles **semanal** según `roleTargets`.
-2. Click en un slot abre SlotDetailSheet. Elegir inspiración. El Studio arma el SlotSpec. Pedirle a Cursor que desarrolle.
+2. Click en un slot abre SlotDetailSheet. Gemini genera propuestas creativas libres. El usuario elige una idea, opcionalmente busca inspiración, y el Studio arma el SlotSpec. Pedirle a Cursor que desarrolle.
 3. Cursor escribe Proposals completas. El usuario selecciona una.
 4. El usuario ensambla en Figma con copy de Cursor + visuales + sistema Mercantis.
 5. Buffer programa. Métricas cuando el post estuvo un tiempo live.
 
 Planificación → Cuenta · Plataforma · Hora · Rol · Tema · Pieza de producción 
-SlotSpec → Inspiración + Brain + restricciones + formatos creativos recomendados 
+SlotSpec → propuesta creativa elegida + Brain + restricciones + inspiración opcional 
 Cursor → Proposal (concepto, hook, narrativa, formato creativo, copy, CTA, caption) 
 Una pieza = un slot con `platforms[]` (no duplicar por red).
 
@@ -86,8 +84,8 @@ El detalle de Slot, Inspiración y Proposal abre en Sheet lateral. Deep links: `
 - **Tema** (de qué, dentro del rol): `src/content/role-topics.ts` — taxonomía compatible por rol. No hay pilares globales.
 - **Opción de producción** (qué pieza concreta fabricamos): `src/content/production-options.ts` — imagen única, carrusel, Remotion, demo, etc. Lo decide cada generación de slots, no el perfil.
 - **Restricción de cámara**: `src/content/camera-presence.ts` — `faceless` / `camera_allowed`. Sin cámara ≠ sin video. También se elige en cada generación.
-- **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Cursor
-- **Formato creativo** (cómo ejecutamos la pieza): `src/content/formats.ts` — biblioteca consultable al desarrollar; no se rota en el perfil.
+- **Ángulo** (cómo contamos): `src/content/angles.ts` — lo propone Gemini en las propuestas creativas y Cursor al desarrollar
+- **Formato creativo** (cómo ejecutamos la pieza): `src/content/formats.ts` — biblioteca para orientar generaciones posteriores; no condiciona la primera exploración.
 
 Los temas legacy de `planning-pillars.ts` migran a `roleTopicPreferences` vía `LEGACY_PILLAR_TO_TOPICS`.
 

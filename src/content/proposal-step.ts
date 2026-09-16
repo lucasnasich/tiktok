@@ -4,10 +4,10 @@ export const PROPOSAL_SIGNAL_EXAMPLE =
 export { angles } from "@/content/angles";
 
 export const PROPOSAL_FINAL_FORMULA =
-  "PlanningSlot + inspiración elegida + Mercantis Brain → SlotSpec → Cursor desarrolla Proposals";
+  "PlanningSlot + propuesta creativa elegida + Mercantis Brain → SlotSpec → Cursor desarrolla Proposals";
 
 export const PROPOSAL_FINAL_EXAMPLE =
-  "Slot Educación / Inventario / Tier list + ejemplo de ranking + dolores/stock → Cursor entrega 3 propuestas con copy completo → el usuario selecciona una.";
+  "Slot Educación / Inventario / Imagen única + idea elegida + dolores/stock → Cursor entrega propuestas con copy completo → el usuario selecciona una.";
 
 export const PROPOSAL_CARD_FIELDS = [
   "Slot",
