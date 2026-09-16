@@ -1,7 +1,7 @@
 import { SlotPublicationLed } from "@/components/planning/SlotPublicationLed";
 import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import type { PlanningSlot } from "@/content/planned-slots";
 import { useProposals } from "@/hooks/use-proposals";
 import { deriveSlotPublicationLed } from "@/lib/slot-workflow";
@@ -27,7 +27,7 @@ export function PlanningSlotChip({
 }) {
   const { proposals } = useProposals();
   const publicationLed = deriveSlotPublicationLed(slot, proposals);
-  const label = `${getContentRoleLabel(slot.roleId)} · ${getPlanningPillarLabel(slot.pillarId)}`;
+  const label = `${getContentRoleLabel(slot.roleId)} · ${getSlotTopicLabel(slot)}`;
   const className = cn(
     "flex w-full min-w-0 items-center gap-1 px-2 py-1 text-left text-[10px] font-medium leading-tight",
     ROLE_CHIP_CLASS[normalizeRoleId(slot.roleId)],
@@ -40,7 +40,7 @@ export function PlanningSlotChip({
         {showAccount
           ? `${getPlanningAccountLabel(slot.accountId).split(" ")[0]} · `
           : null}
-        {getPlanningPillarLabel(slot.pillarId)}
+        {getSlotTopicLabel(slot)}
       </span>
     </>
   );

@@ -14,7 +14,7 @@ import {
   type InspirationOrigin,
 } from "@/content/inspiration-taxonomy";
 import { getPlanningAccount, getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel, resolveSlotTopicId } from "@/content/role-topics";
 import {
   resolveSlotPublicationType,
   type PlanningSlot,
@@ -147,6 +147,7 @@ export function assembleSlotSpec(
     date: slot.date,
     time: slot.time,
     roleId: slot.roleId,
+    topicId: resolveSlotTopicId(slot),
     pillarId: slot.pillarId,
     publicationTypeId,
     formatId: slot.formatId,
@@ -344,7 +345,7 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     "",
     "## Misión",
     `- Rol: ${getContentRoleLabel(spec.roleId)}`,
-    `- Pilar: ${getPlanningPillarLabel(spec.pillarId)}`,
+    `- Tema: ${getSlotTopicLabel({ roleId: spec.roleId, topicId: spec.topicId, pillarId: spec.pillarId })}`,
     `- Tipo de publicación: ${getPublicationTypeLabel(spec.publicationTypeId)}`,
     spec.cameraPresence
       ? `- Producción: ${cameraPresenceShortLabel(spec.cameraPresence)}`
@@ -399,7 +400,7 @@ export function formatSlotSpecMarkdown(spec: SlotSpec): string {
     "",
     "## Qué tiene que hacer Cursor",
     "Desarrollar propuestas completas para este slot: ángulo, concepto, hook, narrativa, 2 a 4 formatos creativos (usar la lista filtrada de arriba), estructura, copy por slide/escena, CTA, caption y dirección visual.",
-    "No cambiar cuenta, plataformas, fecha, rol, pilar ni tipo de publicación.",
+    "No cambiar cuenta, plataformas, fecha, rol, tema ni tipo de publicación.",
     "No sugerir talking head, vlog, entrevista, selfie ni grabación física si la producción es sin cámara.",
     "Sí se puede hacer video: motion graphics, screen recording, animación, IA, texto cinético, capturas.",
     "No inventar claims. Consultar el Mercantis Brain citado arriba.",

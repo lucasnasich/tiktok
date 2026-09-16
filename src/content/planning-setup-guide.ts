@@ -1,11 +1,8 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import { formats, type Format } from "@/content/formats";
+import type { TopicPriority } from "@/content/role-topics";
 
-export type PlanningSetupStepId =
-  | "profile"
-  | "roles"
-  | "pillars"
-  | "publication";
+export type PlanningSetupStepId = "profile" | "roles" | "publication";
 
 export type PlanningSetupStep = {
   id: PlanningSetupStepId;
@@ -25,16 +22,9 @@ export const PLANNING_SETUP_STEPS: PlanningSetupStep[] = [
   {
     id: "roles",
     label: "Roles",
-    title: "Roles del contenido",
+    title: "Roles y temas",
     intro:
-      "El rol es el mundo editorial de la pieza: proceso, educación, producto, marca, evidencia o comunidad. Un CTA puede aparecer en cualquiera; no define el rol.",
-  },
-  {
-    id: "pillars",
-    label: "Pilares",
-    title: "Pilares editoriales",
-    intro:
-      "El pilar responde de qué hablamos — el tema editorial recurrente. Sirve para detectar saturación o huecos en la semana.",
+      "El rol es el mundo editorial. El tema es el área concreta de la que vamos a hablar dentro de ese rol. Un CTA puede aparecer en cualquiera; no define el rol.",
   },
   {
     id: "publication",
@@ -96,14 +86,18 @@ export const ROLE_GUIDES: Record<ContentRoleId, RoleGuide> = {
   },
 };
 
-export type PillarPriority = "alta" | "media" | "baja" | "no";
+/** Legacy alias: las prioridades de tema usan la misma escala. */
+export type PillarPriority = TopicPriority;
 
-export const PILLAR_PRIORITY_WEIGHT: Record<PillarPriority, number> = {
-  alta: 30,
-  media: 15,
-  baja: 5,
-  no: 0,
-};
+export const TOPIC_PRIORITY_OPTIONS: Array<{
+  value: TopicPriority;
+  label: string;
+}> = [
+  { value: "alta", label: "Alta" },
+  { value: "media", label: "Media" },
+  { value: "baja", label: "Baja" },
+  { value: "no", label: "No" },
+];
 
 /** Todos los formatos creativos del estudio — source of truth: `formats.ts`. */
 export function getSetupFormats(): Format[] {

@@ -9,20 +9,17 @@ import {
   type ContentRoleId,
 } from "@/content/content-roles";
 import type { PlanningAccount } from "@/content/planning-accounts";
-import {
-  DEFAULT_PILLAR_TARGETS_OFFICIAL,
-  DEFAULT_PUBLICATION_TYPE_TARGETS,
-} from "@/content/planning-defaults";
+import { DEFAULT_PUBLICATION_TYPE_TARGETS } from "@/content/planning-defaults";
 import {
   resolveSlotPublicationType,
   type PlanningSlot,
 } from "@/content/planned-slots";
-import { normalizePillarId } from "@/content/planning-pillars";
 import {
-  compatiblePillarTargets,
-  hasPositiveTargets,
-  ROLE_PILLAR_FALLBACKS,
-} from "@/content/slot-compatibility";
+  ROLE_TOPIC_FALLBACKS,
+  resolveSlotTopicId,
+  topicTargetsForRole,
+} from "@/content/role-topics";
+import { hasPositiveTargets } from "@/content/slot-compatibility";
 import {
   isPublicationTypeAllowedForProduction,
   isPublicationTypeCompatibleWithPlatforms,
@@ -48,11 +45,11 @@ export type GenerateSlotsInput = {
 type CountMap = Record<string, number>;
 
 type GeneratorContext = {
-  pillarCounts: CountMap;
+  topicCounts: CountMap;
   publicationTypeCounts: CountMap;
-  lastPillar: string | null;
+  lastTopic: string | null;
   lastPublicationType: string | null;
-  pillarStreak: number;
+  topicStreak: number;
 };
 
 function stableHash(input: string): number {
@@ -154,11 +151,11 @@ function roleStreakForAccount(
 
 function initContext(slots: PlanningSlot[]): GeneratorContext {
   const context: GeneratorContext = {
-    pillarCounts: {},
+    topicCounts: {},
     publicationTypeCounts: {},
-    lastPillar: null,
+    lastTopic: null,
     lastPublicationType: null,
-    pillarStreak: 0,
+    topicStreak: 0,
   };
 
   const ordered = [...slots].sort(
@@ -169,16 +166,16 @@ function initContext(slots: PlanningSlot[]): GeneratorContext {
   );
 
   for (const slot of ordered) {
-    increment(context.pillarCounts, normalizePillarId(slot.pillarId));
+    const topicId = resolveSlotTopicId(slot);
+    increment(context.topicCounts, topicId);
     const publicationTypeId = resolveSlotPublicationType(slot);
     increment(context.publicationTypeCounts, publicationTypeId);
 
-    const pillarId = normalizePillarId(slot.pillarId);
-    if (pillarId === context.lastPillar) {
-      context.pillarStreak += 1;
+    if (topicId === context.lastTopic) {
+      context.topicStreak += 1;
     } else {
-      context.lastPillar = pillarId;
-      context.pillarStreak = 1;
+      context.lastTopic = topicId;
+      context.topicStreak = 1;
     }
 
     context.lastPublicationType = publicationTypeId;
@@ -210,6 +207,10 @@ export function pickWeeklyRole(
     const actual = counts[id] ?? 0;
     let deficit = expected - actual;
 
+    if (!hasPositiveTargets(topicTargetsForRole(account.roleTopicPreferences, id))) {
+      deficit -= 2000;
+    }
+
     if (id === lastRole && streak >= maxStreak && entries.length > 1) {
       deficit -= 1000;
     }
@@ -229,39 +230,38 @@ function pickFromTargets(
   targets: Record<string, number>,
   counts: CountMap,
   context: GeneratorContext,
-  kind: "pillar" | "publicationType",
+  kind: "topic" | "publicationType",
   seed: string,
   limits: PlanningAccount["repetitionLimits"],
 ): string {
   const entries = Object.entries(targets).filter(([, weight]) => weight > 0);
   if (entries.length === 0) {
-    const fallback =
-      kind === "publicationType"
-        ? DEFAULT_PUBLICATION_TYPE_TARGETS
-        : DEFAULT_PILLAR_TARGETS_OFFICIAL;
-    if (targets === fallback) {
-      return kind === "publicationType" ? "short_video" : "producto-mercantis";
+    if (kind === "publicationType") {
+      if (targets === DEFAULT_PUBLICATION_TYPE_TARGETS) return "short_video";
+      return pickFromTargets(
+        DEFAULT_PUBLICATION_TYPE_TARGETS,
+        counts,
+        context,
+        kind,
+        seed,
+        limits,
+      );
     }
-    return pickFromTargets(
-      fallback,
-      counts,
-      context,
-      kind,
-      seed,
-      limits,
-    );
+    return entries[0]?.[0] ?? "producto_en_construccion";
   }
 
   const maxSameType = limits.maxSamePublicationTypeInPeriod ?? 3;
+  const maxSameTopic =
+    limits.maxConsecutiveSameTopic ?? limits.maxConsecutiveSamePillar;
 
   const scored = entries
     .map(([id, target]) => {
       const actual = counts[id] ?? 0;
       let score = actual / target;
 
-      if (kind === "pillar") {
-        if (id === context.lastPillar) {
-          score += context.pillarStreak >= limits.maxConsecutiveSamePillar ? 2 : 0.35;
+      if (kind === "topic") {
+        if (id === context.lastTopic) {
+          score += context.topicStreak >= maxSameTopic ? 2 : 0.35;
         }
       }
 
@@ -280,20 +280,24 @@ function pickFromTargets(
   return scored[0]?.id ?? entries[0][0];
 }
 
-function resolveCompatiblePillarTargets(
-  targets: Record<string, number>,
+function pickTopicForRole(
+  account: PlanningAccount,
   roleId: ContentRoleId,
-): Record<string, number> {
-  const filtered = compatiblePillarTargets(targets, roleId);
-  if (hasPositiveTargets(filtered)) return filtered;
-
-  const fromDefaults = compatiblePillarTargets(
-    DEFAULT_PILLAR_TARGETS_OFFICIAL,
-    roleId,
+  context: GeneratorContext,
+  seed: string,
+): string {
+  const targets = topicTargetsForRole(account.roleTopicPreferences, roleId);
+  if (!hasPositiveTargets(targets)) {
+    return ROLE_TOPIC_FALLBACKS[roleId];
+  }
+  return pickFromTargets(
+    targets,
+    context.topicCounts,
+    context,
+    "topic",
+    seed,
+    account.repetitionLimits,
   );
-  if (hasPositiveTargets(fromDefaults)) return fromDefaults;
-
-  return { [ROLE_PILLAR_FALLBACKS[roleId]]: 1 };
 }
 
 function resolveCompatiblePublicationTypeTargets(
@@ -389,14 +393,7 @@ export function generateMissingSlots({
         const roleId = pickWeeklyRole(account, workingSlots, weekStart, seed);
         if (!roleId) break;
 
-        const pillarId = pickFromTargets(
-          resolveCompatiblePillarTargets(account.pillarTargets, roleId),
-          context.pillarCounts,
-          context,
-          "pillar",
-          seed,
-          account.repetitionLimits,
-        );
+        const topicId = pickTopicForRole(account, roleId, context, seed);
         const publicationTypeId = pickFromTargets(
           resolveCompatiblePublicationTypeTargets(account),
           context.publicationTypeCounts,
@@ -413,7 +410,7 @@ export function generateMissingSlots({
           accountId: account.id,
           platforms: [...account.platforms],
           roleId,
-          pillarId,
+          topicId,
           publicationTypeId,
           status: "pendiente",
           distributionType: "organic",
@@ -430,14 +427,14 @@ export function generateMissingSlots({
         generated.push(slot);
         workingSlots.push(slot);
 
-        increment(context.pillarCounts, pillarId);
+        increment(context.topicCounts, topicId);
         increment(context.publicationTypeCounts, publicationTypeId);
 
-        if (pillarId === context.lastPillar) {
-          context.pillarStreak += 1;
+        if (topicId === context.lastTopic) {
+          context.topicStreak += 1;
         } else {
-          context.lastPillar = pillarId;
-          context.pillarStreak = 1;
+          context.lastTopic = topicId;
+          context.topicStreak = 1;
         }
 
         context.lastPublicationType = publicationTypeId;

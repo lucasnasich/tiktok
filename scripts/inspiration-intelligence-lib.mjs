@@ -126,7 +126,7 @@ export function buildStructureQuery({
   if (editorialDescription?.trim()) parts.push(editorialDescription.trim());
   if (formatLabel) parts.push(`Formato: ${formatLabel}`);
   if (roleLabel) parts.push(`Rol: ${roleLabel}`);
-  if (pillarLabel) parts.push(`Pilar: ${pillarLabel}`);
+  if (pillarLabel) parts.push(`Tema: ${pillarLabel}`);
   if (cameraPresenceLabel) {
     parts.push(`Producción / cámara (si afecta la estructura): ${cameraPresenceLabel}`);
   }

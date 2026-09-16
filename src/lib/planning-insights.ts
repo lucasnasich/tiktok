@@ -6,8 +6,12 @@ import {
   getPlanningAccountLabel,
   type PlanningAccount,
 } from "@/content/planning-accounts";
-import { getPlanningPillarLabel, normalizePillarId, normalizePillarTargets } from "@/content/planning-pillars";
 import { getPublicationTypeLabel } from "@/content/publication-types";
+import {
+  getSlotTopicLabel,
+  resolveSlotTopicId,
+  topicTargetsForRole,
+} from "@/content/role-topics";
 import {
   resolveSlotPublicationType,
   slotMatchesAccount,
@@ -105,19 +109,28 @@ function detectTargetDrift(
     }
   }
 
-  const pillarCounts = countBy(periodSlots, (slot) =>
-    normalizePillarId(slot.pillarId),
-  );
-  for (const [pillarId, targetPercent] of Object.entries(
-    normalizePillarTargets(account.pillarTargets),
+  const topicCounts = countBy(periodSlots, (slot) => resolveSlotTopicId(slot));
+  for (const [roleId, targetPercent] of Object.entries(
+    normalizeRoleTargets(account.roleTargets),
   )) {
-    const actual = ((pillarCounts.get(pillarId) ?? 0) / total) * 100;
-    if (targetPercent > 0 && actual === 0 && total >= 7) {
+    if (!targetPercent) continue;
+    const topicWeights = topicTargetsForRole(
+      account.roleTopicPreferences,
+      roleId,
+    );
+    const altaTopics = Object.entries(topicWeights)
+      .filter(([, weight]) => weight >= 30)
+      .map(([topicId]) => topicId);
+    if (altaTopics.length === 0 || total < 10) continue;
+    const missingAlta = altaTopics.find(
+      (topicId) => (topicCounts.get(topicId) ?? 0) === 0,
+    );
+    if (missingAlta) {
       insights.push({
-        id: `${account.id}-pillar-missing-${pillarId}`,
+        id: `${account.id}-topic-missing-${roleId}-${missingAlta}`,
         kind: "gap",
         accountId: account.id,
-        message: `Falta pilar ${getPlanningPillarLabel(pillarId)} en el período (${account.label})`,
+        message: `Poco ${getSlotTopicLabel({ roleId, topicId: missingAlta })} en el período (${account.label})`,
       });
     }
   }
@@ -143,7 +156,7 @@ function detectTargetDrift(
   return insights;
 }
 
-function detectPillarStreaks(
+function detectTopicStreaks(
   periodSlots: PlanningSlot[],
   account: PlanningAccount,
 ): PlanningInsight[] {
@@ -156,25 +169,28 @@ function detectPillarStreaks(
         a.id.localeCompare(b.id),
     );
 
-  let streakPillar: string | null = null;
+  let streakTopic: string | null = null;
   let streakLength = 0;
+  const maxStreak =
+    account.repetitionLimits.maxConsecutiveSameTopic ??
+    account.repetitionLimits.maxConsecutiveSamePillar;
 
   for (const slot of ordered) {
-    const pillarId = normalizePillarId(slot.pillarId);
-    if (pillarId === streakPillar) {
+    const topicId = resolveSlotTopicId(slot);
+    if (topicId === streakTopic) {
       streakLength += 1;
     } else {
-      streakPillar = pillarId;
+      streakTopic = topicId;
       streakLength = 1;
     }
 
-    if (streakLength > account.repetitionLimits.maxConsecutiveSamePillar) {
+    if (streakLength > maxStreak) {
       return [
         {
-          id: `${account.id}-pillar-streak-${pillarId}`,
+          id: `${account.id}-topic-streak-${topicId}`,
           kind: "warning",
           accountId: account.id,
-          message: `Demasiados posts seguidos sobre ${getPlanningPillarLabel(pillarId)} (${account.label})`,
+          message: `Demasiados posts seguidos sobre ${getSlotTopicLabel(slot)} (${account.label})`,
         },
       ];
     }
@@ -242,7 +258,7 @@ export function computePlanningInsights({
         periodSlots.filter((slot) => slotMatchesAccount(slot, account.id)),
       ),
     );
-    insights.push(...detectPillarStreaks(periodSlots, account));
+    insights.push(...detectTopicStreaks(periodSlots, account));
     insights.push(...detectAngleVariety(periodSlots, account));
 
     const expectedPieces = rangeDates.filter((date) =>

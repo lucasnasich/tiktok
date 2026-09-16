@@ -11,7 +11,7 @@ function sharedSlotFingerprint(slot: PlanningSlot): string {
     slot.date,
     slot.time,
     slot.roleId,
-    slot.pillarId,
+    slot.topicId ?? slot.pillarId ?? "",
     slot.publicationTypeId ?? slot.formatId ?? "",
   ].join("|");
 }

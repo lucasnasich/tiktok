@@ -131,9 +131,9 @@ const educacionPillars = compatiblePillarTargets(
   "educacion",
 );
 assert.equal(educacionPillars["producto-mercantis"], undefined);
-assert.ok(educacionPillars.emprendimiento > 0);
 assert.ok(educacionPillars["automatizacion-ia"] > 0);
 assert.ok(educacionPillars["operacion-gestion"] > 0);
+assert.ok(educacionPillars["ventas-atencion"] > 0);
 
 const evidenciaFormats = compatibleFormatTargets(officialFormatMix, {
   roleId: "evidencia",
@@ -172,7 +172,7 @@ for (const [formatId, pillars] of Object.entries(BLOCKED_PILLARS_BY_FORMAT)) {
 }
 
 assert.equal(ROLE_FORMAT_FALLBACKS.educacion, "pizarra");
-assert.equal(ROLE_PILLAR_FALLBACKS.educacion, "operacion-gestion");
+assert.equal(ROLE_PILLAR_FALLBACKS.educacion, "inventario_stock");
 assert.equal(ROLE_FORMAT_FALLBACKS.evidencia, "testimonio-cliente");
 assert.notEqual(ROLE_PILLAR_FALLBACKS.educacion, "producto-mercantis");
 

@@ -21,7 +21,10 @@ import {
   studioAccountToPlanningBase,
   type PlanningStudioAccount,
 } from "@/content/planning-studio-accounts";
-import { normalizeFormatTargets } from "@/content/formats";
+import {
+  normalizeRoleTopicPreferences,
+  type RoleTopicPreferences,
+} from "@/content/role-topics";
 import { normalizePillarTargets } from "@/content/planning-pillars";
 import {
   normalizePublicationTypeTargets,
@@ -44,19 +47,17 @@ import {
   buildMercantisOfficialCuratedSettings,
   fillOfficialEditorialGaps,
   MERCANTIS_OFICIAL_CURATED_FORMAT_IDS,
-  officialPillarPriorities,
 } from "@/content/planning-presets";
-import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
 import {
   preferRicherSettings,
   settingsRichness,
 } from "@/lib/planning-settings-richness";
+import { normalizeFormatTargets } from "@/content/formats";
 import {
   isWizardDraftProfileId,
   WIZARD_DRAFT_SESSION_KEY,
   type PlanningWizardSession,
 } from "@/lib/planning-wizard-session";
-import type { PillarPriority } from "@/content/planning-setup-guide";
 import {
   applyRhythmToPlanningAccount,
   type PlanningRhythm,
@@ -74,6 +75,7 @@ export type PlanningAccountOverride = {
   activeDays?: number[];
   timeSlots?: string[];
   roleTargets?: Partial<Record<ContentRoleId, number>>;
+  roleTopicPreferences?: RoleTopicPreferences;
   pillarTargets?: Record<string, number>;
   formatTargets?: Record<string, number>;
   publicationTypeTargets?: Partial<Record<PublicationTypeId, number>>;
@@ -141,6 +143,10 @@ function migrateAccountOverride(
       : settings.publicationTypeTargets,
     cameraMode: cameraModeFromPresence(
       settings.cameraMode ?? settings.cameraPresence ?? DEFAULT_CAMERA_MODE,
+    ),
+    roleTopicPreferences: normalizeRoleTopicPreferences(
+      settings.roleTopicPreferences,
+      settings.pillarTargets,
     ),
     alternateRoles: settings.alternateRoles
       ? [
@@ -350,6 +356,10 @@ function migrateLegacyStore(data: LegacyPlanningConfigStore): PlanningConfigStor
         ...profile,
         settings: {
           ...profile.settings,
+          roleTopicPreferences: normalizeRoleTopicPreferences(
+            profile.settings.roleTopicPreferences,
+            profile.settings.pillarTargets,
+          ),
           pillarTargets: profile.settings.pillarTargets
             ? normalizePillarTargets(profile.settings.pillarTargets)
             : undefined,
@@ -546,18 +556,22 @@ function normalizeProfileSettingsList(
     profiles.map((profile) => ({
       ...profile,
       accountTypes: [...PROFILE_ACCOUNT_TYPES],
-      settings: {
-        ...profile.settings,
-        pillarTargets: profile.settings.pillarTargets
-          ? normalizePillarTargets(profile.settings.pillarTargets)
-          : undefined,
-        formatTargets: profile.settings.formatTargets
-          ? normalizeFormatTargets(profile.settings.formatTargets)
-          : undefined,
-        roleTargets: profile.settings.roleTargets
-          ? normalizeRoleTargets(profile.settings.roleTargets)
-          : undefined,
-      },
+        settings: {
+          ...profile.settings,
+          roleTopicPreferences: normalizeRoleTopicPreferences(
+            profile.settings.roleTopicPreferences,
+            profile.settings.pillarTargets,
+          ),
+          pillarTargets: profile.settings.pillarTargets
+            ? normalizePillarTargets(profile.settings.pillarTargets)
+            : undefined,
+          formatTargets: profile.settings.formatTargets
+            ? normalizeFormatTargets(profile.settings.formatTargets)
+            : undefined,
+          roleTargets: profile.settings.roleTargets
+            ? normalizeRoleTargets(profile.settings.roleTargets)
+            : undefined,
+        },
     })),
   );
 }
@@ -640,6 +654,8 @@ function restoreOfficialProfileForAccount(
   const curated = buildMercantisOfficialCuratedSettings();
   const restoredSettings = preferRicherSettings(profile.settings, {
     ...curated,
+    roleTopicPreferences:
+      profile.settings.roleTopicPreferences ?? curated.roleTopicPreferences,
     pillarTargets:
       Object.keys(profile.settings.pillarTargets ?? {}).length > 0
         ? profile.settings.pillarTargets
@@ -649,15 +665,6 @@ function restoreOfficialProfileForAccount(
   });
 
   const session = store.wizardSessions[accountId];
-  const pillarPriorities: Record<string, PillarPriority> =
-    session && Object.keys(session.pillarPriorities).length > 0
-      ? session.pillarPriorities
-      : Object.fromEntries(
-          getPlanningPillarsForAccount(accountId).map((pillar) => [
-            pillar.id,
-            officialPillarPriorities()[pillar.id] ?? "no",
-          ]),
-        );
 
   const profiles = store.profiles.map((item) =>
     item.id === profileId ? { ...item, settings: restoredSettings } : item,
@@ -669,9 +676,9 @@ function restoreOfficialProfileForAccount(
         [accountId]: {
           ...session,
           settings: restoredSettings,
-          pillarPriorities,
+          pillarPriorities: session.pillarPriorities ?? {},
           selectedFormatIds: [...MERCANTIS_OFICIAL_CURATED_FORMAT_IDS],
-          stepIndex: 4,
+          stepIndex: Math.min(session.stepIndex, 2),
         },
       }
     : store.wizardSessions;
@@ -862,6 +869,10 @@ export function parsePlanningConfigStore(raw: unknown): PlanningConfigStore {
 export function accountToOverride(account: PlanningAccount): PlanningAccountOverride {
   return {
     roleTargets: normalizeRoleTargets(account.roleTargets),
+    roleTopicPreferences: normalizeRoleTopicPreferences(
+      account.roleTopicPreferences,
+      account.pillarTargets,
+    ),
     pillarTargets: { ...account.pillarTargets },
     publicationTypeTargets: { ...account.publicationTypeTargets },
     cameraMode: account.cameraMode,

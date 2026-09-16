@@ -15,7 +15,7 @@ import {
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import {
   getSlotPublicationTypeShortLabel,
   type PlanningSlot,
@@ -36,7 +36,7 @@ function slotBrief(slot: PlanningSlot): string {
   return [
     getPlanningAccountLabel(slot.accountId),
     getContentRoleLabel(slot.roleId),
-    getPlanningPillarLabel(slot.pillarId),
+    getSlotTopicLabel(slot),
     getSlotPublicationTypeShortLabel(slot),
   ].join(" · ");
 }

@@ -10,7 +10,7 @@ import {
   type InspirationFeedItem,
 } from "@/content/inspiration-feed";
 import { INSPIRATION_HYBRID_WEIGHTS, INSPIRATION_MATCH_WEIGHTS } from "@/content/inspiration-match-config";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel, resolveSlotTopicId } from "@/content/role-topics";
 import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
 import type { SlotSpecRecord } from "@/content/slot-specs";
@@ -32,21 +32,28 @@ const ROLE_KEYWORDS: Record<ContentRoleId, string[]> = {
   comunidad: ["pregunta", "opin", "comentario", "comunidad", "te consume", "me pregunt", "respond"],
 };
 
-const PILLAR_KEYWORDS: Record<string, string[]> = {
-  "ventas-atencion": ["whatsapp", "consulta", "venta", "atención", "chat", "cliente"],
-  "inventario-stock": ["stock", "inventario", "faltante", "reposición"],
-  "pedidos-logistica": ["pedido", "envío", "logística", "retiro"],
-  "pagos-cobros": ["pago", "cobro", "cobrar", "plata"],
-  "catalogo-ecommerce": ["catálogo", "tienda", "ecommerce", "producto"],
-  "operacion-gestion": ["planilla", "excel", "caos", "operar", "desorden"],
-  "marketing-crecimiento": ["clientes", "crecimiento", "ads", "campaña"],
-  "automatizacion-ia": ["ia", "automat", "agente", "manual"],
-  "equipo-sucursales": ["equipo", "empleado", "sucursal"],
-  "clientes-fidelizacion": ["fidel", "recompra", "postventa"],
-  "numeros-negocio": ["margen", "número", "ticket", "rentab"],
-  "producto-mercantis": ["feature", "demo", "funcionalidad", "software"],
-  emprendimiento: ["emprender", "negocio", "dueño"],
-  "mercado-tendencias": ["tendencia", "mercado", "noticia"],
+const TOPIC_KEYWORDS: Record<string, string[]> = {
+  ventas_atencion: ["whatsapp", "consulta", "venta", "atención", "chat"],
+  inventario_stock: ["stock", "inventario", "faltante", "reposición"],
+  pedidos_logistica: ["pedido", "envío", "logística", "retiro"],
+  pagos_cobros: ["pago", "cobro", "cobrar", "plata"],
+  catalogo_ecommerce: ["catálogo", "tienda", "ecommerce", "ficha"],
+  operacion_gestion: ["planilla", "excel", "caos", "operar", "desorden"],
+  conversion_trafico: ["conversión", "tráfico", "clientes", "campaña"],
+  automatizacion_ia: ["ia", "automat", "agente", "manual"],
+  equipo_delegacion: ["equipo", "empleado", "deleg"],
+  clientes_fidelizacion: ["fidel", "recompra", "postventa"],
+  numeros_negocio: ["margen", "número", "ticket", "métrica"],
+  digitalizacion_sistemas: ["excel", "whatsapp", "planilla", "fragment"],
+  stock_variantes: ["stock", "variante", "sku"],
+  ia_catalogo: ["ia", "catálogo", "import", "título"],
+  whatsapp: ["whatsapp", "chat", "consulta"],
+  casos_clientes: ["cliente", "caso", "testimonio"],
+  dolores_operativos: ["stock", "pedido", "whatsapp", "caos"],
+  sistema_operativo_negocio: ["sistema", "operar", "negocio"],
+  simplicidad_vs_complejidad: ["simple", "complej", "erp"],
+  producto_en_construccion: ["feature", "lanzamos", "constru"],
+  crecimiento_distribucion: ["tiktok", "contenido", "distrib"],
 };
 
 export type RankedInspiration = {
@@ -134,14 +141,19 @@ function scoreItem(
     // afinidad declarada a otros formatos: no suma, no inventa match
   }
 
-  if (item.pillarAffinities?.includes(slot.pillarId)) {
+  const topicId = resolveSlotTopicId(slot);
+  const topicLabel = getSlotTopicLabel(slot);
+  if (
+    item.pillarAffinities?.includes(topicId) ||
+    (slot.pillarId && item.pillarAffinities?.includes(slot.pillarId))
+  ) {
     score += w.pillarAffinity;
-    reasons.push(`Afín a ${getPlanningPillarLabel(slot.pillarId)}`);
+    reasons.push(`Afín a ${topicLabel}`);
   } else {
-    const pillarHits = keywordHits(text, PILLAR_KEYWORDS[slot.pillarId] ?? []);
-    if (pillarHits > 0) {
-      score += Math.min(w.pillarKeywordCap, pillarHits * w.pillarKeyword);
-      reasons.push(`Afín a ${getPlanningPillarLabel(slot.pillarId)}`);
+    const topicHits = keywordHits(text, TOPIC_KEYWORDS[topicId] ?? []);
+    if (topicHits > 0) {
+      score += Math.min(w.pillarKeywordCap, topicHits * w.pillarKeyword);
+      reasons.push(`Afín a ${topicLabel}`);
     }
   }
 

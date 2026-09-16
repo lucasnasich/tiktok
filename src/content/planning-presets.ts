@@ -14,7 +14,10 @@ import {
   DEFAULT_ROLE_TARGETS_OFFICIAL,
   DEFAULT_TIME_SLOTS,
 } from "@/content/planning-defaults";
-import type { PillarPriority } from "@/content/planning-setup-guide";
+import {
+  cloneDefaultRoleTopicPreferences,
+  normalizeRoleTopicPreferences,
+} from "@/content/role-topics";
 import { normalizePercentTargets } from "@/lib/planning-percent";
 
 export type RoleMixPreset = {
@@ -79,6 +82,7 @@ export const VARIETY_PRESETS: VarietyPreset[] = [
     hint: "Cambia de rol y pilar más seguido.",
     limits: {
       maxConsecutiveSamePillar: 1,
+      maxConsecutiveSameTopic: 1,
       maxSameFormatInPeriod: 2,
       maxSameRoleInRow: 1,
     },
@@ -89,6 +93,7 @@ export const VARIETY_PRESETS: VarietyPreset[] = [
     hint: "Deja repetir lo que funciona un poco más.",
     limits: {
       maxConsecutiveSamePillar: 3,
+      maxConsecutiveSameTopic: 3,
       maxSameFormatInPeriod: 5,
       maxSameRoleInRow: 3,
     },
@@ -162,7 +167,7 @@ function hasPositiveTargets(targets: Record<string, number> | undefined) {
   return Object.values(targets ?? {}).some((value) => (value ?? 0) > 0);
 }
 
-/** Completa pilares/formatos vacíos del piloto oficial si el mix de roles ya existe. */
+/** Completa temas y tipos de publicación vacíos del piloto oficial si el mix de roles ya existe. */
 export function fillOfficialEditorialGaps(
   account: PlanningAccount,
 ): PlanningAccount {
@@ -170,6 +175,10 @@ export function fillOfficialEditorialGaps(
   if (!hasEditorialMix(account)) return account;
   return {
     ...account,
+    roleTopicPreferences: normalizeRoleTopicPreferences(
+      account.roleTopicPreferences,
+      account.pillarTargets,
+    ),
     pillarTargets: hasPositiveTargets(account.pillarTargets)
       ? account.pillarTargets
       : { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
@@ -181,17 +190,6 @@ export function fillOfficialEditorialGaps(
     cameraMode: account.cameraMode ?? DEFAULT_CAMERA_MODE,
     formatTargets: account.formatTargets,
   };
-}
-
-export function officialPillarPriorities(): Record<string, PillarPriority> {
-  const result: Record<string, PillarPriority> = {};
-  for (const [id, value] of Object.entries(DEFAULT_PILLAR_TARGETS_OFFICIAL)) {
-    if (value >= 18) result[id] = "alta";
-    else if (value >= 10) result[id] = "media";
-    else if (value > 0) result[id] = "baja";
-    else result[id] = "no";
-  }
-  return result;
 }
 
 export function officialFormatIds(): string[] {
@@ -239,6 +237,7 @@ export function buildMercantisOfficialCuratedSettings(): PlanningAccountOverride
     activeDays: [...DEFAULT_ACTIVE_DAYS],
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
+    roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
     publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
     cameraMode: DEFAULT_CAMERA_MODE,
@@ -255,6 +254,7 @@ export function buildOfficialRecommendedSettings(): PlanningAccountOverride {
     activeDays: [...DEFAULT_ACTIVE_DAYS],
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: { ...DEFAULT_ROLE_TARGETS_OFFICIAL },
+    roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: { ...DEFAULT_PILLAR_TARGETS_OFFICIAL },
     publicationTypeTargets: { ...DEFAULT_PUBLICATION_TYPE_TARGETS },
     cameraMode: DEFAULT_CAMERA_MODE,

@@ -5,6 +5,7 @@ import {
   DEFAULT_REPETITION_LIMITS,
   DEFAULT_TIME_SLOTS,
 } from "@/content/planning-defaults";
+import { cloneDefaultRoleTopicPreferences } from "@/content/role-topics";
 import type {
   PlanningAccount,
   PlanningAccountType,
@@ -167,6 +168,7 @@ export function studioAccountToPlanningBase(
     activeDays: [...DEFAULT_ACTIVE_DAYS],
     timeSlots: [...DEFAULT_TIME_SLOTS],
     roleTargets: {},
+    roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
     pillarTargets: {},
     publicationTypeTargets: {},
     cameraMode: DEFAULT_CAMERA_MODE,

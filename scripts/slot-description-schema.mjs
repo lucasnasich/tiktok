@@ -1,7 +1,8 @@
 export const SLOT_DESCRIPTION_PROMPT = `Prepará este slot de contenido Mercantis. No escribas copy final, hooks literales para publicar, captions ni propuestas.
 
 Regla madre: EL TIPO DE PUBLICACIÓN DEFINE LA PIEZA. EL FORMATO CREATIVO SE ELIGE DESPUÉS.
-- El pilar dice de qué habla la pieza.
+- El rol dice qué función editorial cumple la pieza.
+- El tema dice de qué área concreta hablamos dentro de ese rol. No predefine el ángulo.
 - El tipo de publicación dice qué asset nativo hay que producir (imagen, carrusel, reel o story).
 - El formato creativo NO está asignado en el calendario. Hay una lista recomendada ya filtrada por producción.
 - La cámara es una restricción dura: sin cámara ≠ sin video. No pedir talking head, vlog, entrevista ni grabación física si la producción es faceless.
@@ -12,8 +13,8 @@ Tenés que devolver JSON con exactamente tres campos:
 
 1. editorialDescription — 2 a 4 oraciones en español argentino, prosa continua y amigable.
    - Explicá qué pieza hay que crear y qué intención editorial tiene.
-   - Encajá rol, pilar, tipo de publicación, cuenta y producción.
-   - Sin listas, viñetas, guiones largos (—) ni prefijos del tipo "Rol:", "Pilar:" o "Formato:".
+   - Encajá rol, tema, tipo de publicación, cuenta y producción.
+   - Sin listas, viñetas, guiones largos (—) ni prefijos del tipo "Rol:", "Tema:" o "Formato:".
    - No inventes features, pricing, clientes, métricas, historia, roadmap ni claims.
    - Si un dato no está en el Mercantis Brain citado: no lo completes.
 
@@ -24,14 +25,14 @@ Tenés que devolver JSON con exactamente tres campos:
    - PROHIBIDO pedir una persona a cámara si la producción es sin cámara.
 
 3. visualSearchBrief — 1 a 3 oraciones EXCLUSIVAMENTE sobre el lenguaje visual de ESTE tipo de publicación × ESTA producción.
-   - Derivá el sujeto visual del tipo de pieza y de un formato creativo permitido, no del pilar.
+   - Derivá el sujeto visual del tipo de pieza y de un formato creativo permitido, no del tema.
    - Sin cámara: placas, motion (incluida animación tipo Remotion), screen recording, layouts, quotes, ratings, UI (chat, notas, reseñas, Google), B-roll generado. Nadie a cuadro.
    - Cámara permitida: se puede un presentador, pero no es obligatorio.
    - “Pantalla” no significa capturas de Mercantis salvo que el formato sea screen recording.
    - PROHIBIDO hablar del tema comercial salvo que sea visualmente imprescindible.
 
 Usá el menú de ejemplos de producción y la lista de formatos recomendados como familia de caminos. Elegí uno compatible y adaptalo. No copies literal.
-No cambies cuenta, rol, pilar, tipo de publicación ni restricciones de cámara.
+No cambies cuenta, rol, tema, tipo de publicación ni restricciones de cámara.
 No sugieras talking head, vlog, entrevista o selfie si la producción es sin cámara.
 No generes propuestas, ángulos ni copy publicable.
 `;
@@ -80,6 +81,9 @@ export function buildSlotDescriptionUserPrompt({
   roleLabel,
   roleId,
   roleSummary,
+  topicLabel,
+  topicId,
+  topicSummary,
   pillarLabel,
   pillarId,
   pillarSummary,
@@ -131,8 +135,8 @@ export function buildSlotDescriptionUserPrompt({
         : "—"
     }`,
     `- Rol: ${roleLabel || roleId || "—"}${roleSummary ? ` — ${roleSummary}` : ""}`,
-    `- Pilar: ${pillarLabel || pillarId || "—"}${
-      pillarSummary ? ` — ${pillarSummary}` : ""
+    `- Tema: ${topicLabel || topicId || pillarLabel || pillarId || "—"}${
+      topicSummary || pillarSummary ? ` — ${topicSummary || pillarSummary}` : ""
     }`,
     `- Tipo de publicación: ${publicationTypeLabel || "—"}`,
     `- Formatos creativos recomendados: ${

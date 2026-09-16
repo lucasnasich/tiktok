@@ -1,9 +1,21 @@
 import type { PlanningProfile } from "@/content/planning-profiles";
+import type { RoleTopicPreferences } from "@/content/role-topics";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import type { PlanningWizardSession } from "@/lib/planning-wizard-session";
 
 function countPositiveTargets(targets?: Record<string, number>): number {
   return Object.values(targets ?? {}).filter((value) => (value ?? 0) > 0).length;
+}
+
+function countEnabledTopics(prefs?: RoleTopicPreferences): number {
+  if (!prefs) return 0;
+  let count = 0;
+  for (const roleMap of Object.values(prefs)) {
+    for (const priority of Object.values(roleMap ?? {})) {
+      if (priority && priority !== "no") count += 1;
+    }
+  }
+  return count;
 }
 
 export function settingsRichness(settings: PlanningAccountOverride): number {
@@ -12,12 +24,12 @@ export function settingsRichness(settings: PlanningAccountOverride): number {
       1000 +
     countPositiveTargets(settings.publicationTypeTargets as Record<string, number>) *
       100 +
-    countPositiveTargets(settings.pillarTargets) +
+    countEnabledTopics(settings.roleTopicPreferences) +
     countPositiveTargets(settings.formatTargets)
   );
 }
 
-/** No deja que un autosave vacío pise roles, pilares o formatos ya elegidos. */
+/** No deja que un autosave vacío pise roles, temas o formatos ya elegidos. */
 export function preferRicherSettings(
   current: PlanningAccountOverride,
   incoming: PlanningAccountOverride,
@@ -41,6 +53,10 @@ export function preferRicherSettings(
         ? incoming.publicationTypeTargets
         : current.publicationTypeTargets,
     cameraMode: incoming.cameraMode ?? current.cameraMode,
+    roleTopicPreferences:
+      countEnabledTopics(incoming.roleTopicPreferences) > 0
+        ? incoming.roleTopicPreferences
+        : current.roleTopicPreferences,
     pillarTargets:
       countPositiveTargets(incoming.pillarTargets) > 0
         ? incoming.pillarTargets
@@ -87,9 +103,5 @@ export function preferRicherWizardSession(
       incoming.selectedFormatIds.length > 0
         ? incoming.selectedFormatIds
         : current.selectedFormatIds,
-    pillarPriorities:
-      Object.keys(incoming.pillarPriorities).length > 0
-        ? incoming.pillarPriorities
-        : current.pillarPriorities,
   };
 }

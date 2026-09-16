@@ -76,7 +76,7 @@ const prompt = buildSlotDescriptionUserPrompt({
   brainDocuments: [{ file: "marca.md", content: "Cuenta oficial seria." }],
   missingBrainRefs: ["no-existe.md"],
 });
-assert.ok(prompt.includes("Mercantis"));
+assert.ok(prompt.includes("- Tema: Clientes"));
 assert.ok(prompt.includes("structuralSearchBrief"));
 assert.ok(prompt.includes("### marca.md"));
 assert.ok(prompt.includes("Cuenta oficial seria."));

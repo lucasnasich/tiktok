@@ -4,50 +4,24 @@ import {
 } from "./camera-presence.ts";
 import { formatRequiresCamera } from "./format-capabilities.ts";
 import { normalizeRoleId, type ContentRoleId } from "./content-roles.ts";
+import {
+  isTopicCompatibleWithRole,
+  mapLegacyPillarToTopic,
+  ROLE_TOPIC_FALLBACKS,
+} from "./role-topics.ts";
 
 /**
- * Compatibilidad entre rol, pilar, formato y producción.
+ * Compatibilidad entre rol, tema, formato y producción.
  *
- * Solo se bloquea lo que los expertos tratan como mismatch de etapa
- * (el equivalente a pedir agua seca): el formato o el pilar no pueden
- * cumplir el trabajo del rol. Lo suboptimal se deja pasar.
- *
- * Fuentes:
- * - Eugene Schwartz, *Breakthrough Advertising* (5 stages of awareness):
- *   unaware = interrupt/educar, sin producto; testimonials y case studies
- *   = product-aware; offers/scarcity = most-aware.
- *   Aplicación moderna: https://adquisition.ai/blog/strategy/awareness-levels-ad-creative
- *   https://hawky.ai/blog/customer-awareness-stages
- * - Funnel TOFU / MOFU / BOFU: awareness = explainers y video corto;
- *   case studies en consideración; testimonials, demos y ofertas al cerrar.
- *   https://funnel.io/blog/tofu-mofu-bofu
- *   https://www.bulldozer-collective.com/articles/tofu-mofu-bofu
- *   https://hive19.co.uk/blog/marketing/tofu-mofu-bofu-marketing-conversion-funnel/
- * - TikTok cold vs warm: hook de problema o demo para audiencia fría;
- *   testimonial flash para retargeting, no como substituto de alcance.
- *   https://www.mbadv.agency/tiktok-ads/creative-best-practices
- *   https://joinflare.app/blog/tiktok-ugc-hook-examples
- * - Escasez en discovery se lee como spam; social proof de cliente nombra
- *   producto y pide familiaridad de marca.
- *   https://www.digitalapplied.com/blog/social-proof-trust-signals-2026-conversion-placement-framework
- *   https://www.growthsuite.net/blog/perfect-timing-when-to-introduce-urgency-in-customer-journey
- * - Pilares = temas (Sprout). El mismo tema puede vivir en varias etapas,
- *   pero el pilar `producto-mercantis` de este studio es features/demos.
- *   https://sproutsocial.com/insights/social-media-content-pillars/
- *   https://www.tenspeed.io/blog/content-marketing-framework
- *
- * Mapeo de roles del studio:
- *   educacion        → enseñar (TOFU–MOFU); el alcance es transversal
- *   producto         → demo / product-aware
- *   evidencia        → prueba social / MOFU–BOFU
- *   build_in_public  → proceso interno; no es oferta ni testimonio de cliente
- *   marca            → posicionamiento (no prueba ni oferta)
- *   comunidad        → conversación (el CTA no define el rol)
+ * El tema tiene que pertenecer al rol. El formato no puede contradecir
+ * el trabajo del rol ni la restricción de cámara.
  */
 
 export type SlotCompatibilityInput = {
   roleId: ContentRoleId;
-  pillarId: string;
+  topicId?: string;
+  /** Legacy: pilar global. Se resuelve a topic si hace falta. */
+  pillarId?: string;
   formatId: string;
   cameraPresence?: CameraPresenceMode;
 };
@@ -118,14 +92,16 @@ export const ROLE_FORMAT_FALLBACKS: Record<ContentRoleId, string> = {
   comunidad: "tier-list",
 };
 
-export const ROLE_PILLAR_FALLBACKS: Record<ContentRoleId, string> = {
-  educacion: "operacion-gestion",
-  producto: "producto-mercantis",
-  evidencia: "clientes-fidelizacion",
-  build_in_public: "emprendimiento",
-  marca: "emprendimiento",
-  comunidad: "emprendimiento",
-};
+export const ROLE_PILLAR_FALLBACKS: Record<ContentRoleId, string> =
+  ROLE_TOPIC_FALLBACKS;
+
+export function isPillarCompatibleWithRole(
+  roleId: ContentRoleId | string,
+  pillarId: string,
+): boolean {
+  if (isTopicCompatibleWithRole(roleId, pillarId)) return true;
+  return Boolean(mapLegacyPillarToTopic(roleId, pillarId));
+}
 
 function blockedSet(ids: readonly string[] | undefined): Set<string> {
   return new Set(ids ?? []);
@@ -157,15 +133,6 @@ export function isFormatCompatibleWithRole(
   );
 }
 
-export function isPillarCompatibleWithRole(
-  roleId: ContentRoleId | string,
-  pillarId: string,
-): boolean {
-  return !blockedSet(BLOCKED_PILLARS_BY_ROLE[normalizeRoleId(roleId)]).has(
-    pillarId,
-  );
-}
-
 export function isFormatCompatibleWithPillar(
   formatId: string,
   pillarId: string,
@@ -184,10 +151,11 @@ export function isFormatCompatibleWithCamera(
 export function isSlotComboCompatible(
   input: SlotCompatibilityInput,
 ): boolean {
+  const topicOrPillar = input.topicId ?? input.pillarId ?? "";
   return (
     isFormatCompatibleWithRole(input.roleId, input.formatId) &&
-    isPillarCompatibleWithRole(input.roleId, input.pillarId) &&
-    isFormatCompatibleWithPillar(input.formatId, input.pillarId) &&
+    isPillarCompatibleWithRole(input.roleId, topicOrPillar) &&
+    isFormatCompatibleWithPillar(input.formatId, topicOrPillar) &&
     isFormatCompatibleWithCamera(input.formatId, input.cameraPresence)
   );
 }
@@ -196,9 +164,11 @@ export function compatiblePillarTargets(
   targets: Record<string, number>,
   roleId: ContentRoleId | string,
 ): Record<string, number> {
-  return omitBlockedTargets(
-    targets,
-    blockedSet(BLOCKED_PILLARS_BY_ROLE[normalizeRoleId(roleId)]),
+  return Object.fromEntries(
+    Object.entries(targets).filter(
+      ([id, weight]) =>
+        (weight ?? 0) > 0 && isPillarCompatibleWithRole(roleId, id),
+    ),
   );
 }
 

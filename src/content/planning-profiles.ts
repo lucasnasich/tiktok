@@ -21,6 +21,10 @@ import {
 import { normalizeFormatTargets } from "@/content/formats";
 import { normalizePillarTargets } from "@/content/planning-pillars";
 import { normalizePublicationTypeTargets } from "@/content/publication-types";
+import {
+  cloneDefaultRoleTopicPreferences,
+  normalizeRoleTopicPreferences,
+} from "@/content/role-topics";
 import type { PlanningAccountOverride } from "@/lib/planning-config-store";
 import { isWizardDraftProfileId } from "@/lib/planning-wizard-session";
 
@@ -41,6 +45,7 @@ export type PlanningProfile = {
 function accountToSettings(account: PlanningAccount): PlanningAccountOverride {
   return {
     roleTargets: { ...account.roleTargets },
+    roleTopicPreferences: account.roleTopicPreferences,
     pillarTargets: { ...account.pillarTargets },
     publicationTypeTargets: { ...account.publicationTypeTargets },
     cameraMode: account.cameraMode,
@@ -91,6 +96,10 @@ export function profileSettingsToAccount(
       ...baseAccount.roleTargets,
       ...settings.roleTargets,
     }),
+    roleTopicPreferences: normalizeRoleTopicPreferences(
+      settings.roleTopicPreferences ?? baseAccount.roleTopicPreferences,
+      settings.pillarTargets ?? baseAccount.pillarTargets,
+    ),
     pillarTargets: normalizePillarTargets({
       ...baseAccount.pillarTargets,
       ...settings.pillarTargets,
@@ -144,6 +153,7 @@ export function createProfileDraft(
       accountToSettings({
         ...templateAccount,
         roleTargets: {} as Partial<Record<ContentRoleId, number>>,
+        roleTopicPreferences: cloneDefaultRoleTopicPreferences(),
         pillarTargets: {},
         publicationTypeTargets: {},
         cameraMode: DEFAULT_CAMERA_MODE,

@@ -12,7 +12,7 @@ import type {
   InspirationMatchMode,
 } from "@/content/inspiration-analysis";
 import { INSPIRATION_HYBRID_WEIGHTS } from "@/content/inspiration-match-config";
-import { getPlanningPillarLabel, getPlanningPillarSummary } from "@/content/planning-pillars";
+import { getSlotTopicLabel, getSlotTopicSummary } from "@/content/role-topics";
 import type {
   SlotDescriptionPayload,
   SlotSpec,
@@ -48,7 +48,7 @@ export function buildStructureQuery(slot: PlanningSlot, record?: SlotSpecRecord)
     parts.push(`Formato creativo legacy: ${getFormatLabel(slot.formatId)}`);
   }
   parts.push(`Rol: ${getContentRoleLabel(slot.roleId)}`);
-  parts.push(`Pilar: ${getPlanningPillarLabel(slot.pillarId)}`);
+  parts.push(`Tema: ${getSlotTopicLabel(slot)}`);
   if (slot.cameraPresence) {
     parts.push(
       `Producción / cámara (si afecta la estructura): ${cameraPresenceShortLabel(slot.cameraPresence)}`,
@@ -98,6 +98,7 @@ export async function fetchInspirationMatches(input: {
   formatId?: string;
   roleId?: string;
   pillarId?: string;
+  topicId?: string;
   cameraPresence?: string;
   signal?: AbortSignal;
 }): Promise<{ configured: boolean; candidates: InspirationMatchCandidate[] }> {
@@ -115,6 +116,7 @@ export async function fetchInspirationMatches(input: {
         formatId: input.formatId,
         roleId: input.roleId,
         pillarId: input.pillarId,
+        topicId: input.topicId,
         cameraPresence: input.cameraPresence,
       }),
       signal: input.signal,
@@ -158,9 +160,28 @@ export async function fetchSlotDescription(input: {
       roleId: spec.roleId,
       roleLabel: getContentRoleLabel(spec.roleId),
       roleSummary: getContentRoleSummary(spec.roleId),
-      pillarId: spec.pillarId,
-      pillarLabel: getPlanningPillarLabel(spec.pillarId),
-      pillarSummary: getPlanningPillarSummary(spec.pillarId),
+      topicId: spec.topicId,
+      topicLabel: getSlotTopicLabel({
+        roleId: spec.roleId,
+        topicId: spec.topicId,
+        pillarId: spec.pillarId,
+      }),
+      topicSummary: getSlotTopicSummary({
+        roleId: spec.roleId,
+        topicId: spec.topicId,
+        pillarId: spec.pillarId,
+      }),
+      pillarId: spec.topicId,
+      pillarLabel: getSlotTopicLabel({
+        roleId: spec.roleId,
+        topicId: spec.topicId,
+        pillarId: spec.pillarId,
+      }),
+      pillarSummary: getSlotTopicSummary({
+        roleId: spec.roleId,
+        topicId: spec.topicId,
+        pillarId: spec.pillarId,
+      }),
       publicationTypeId: spec.publicationTypeId,
       publicationTypeLabel: getPublicationTypeLabel(spec.publicationTypeId),
       formatId: spec.formatId,

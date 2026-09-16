@@ -7,7 +7,7 @@ import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel } from "@/content/content-roles";
 import { getInspirationByKey } from "@/content/inspiration-feed";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import {
   getSlotPublicationTypeShortLabel,
   type PlanningSlot,
@@ -81,8 +81,8 @@ export function ProposalDetailSheet({
                   value={getContentRoleLabel(slot.roleId)}
                 />
                 <StudioBriefRow
-                  label="Pilar"
-                  value={getPlanningPillarLabel(slot.pillarId)}
+                  label="Tema"
+                  value={getSlotTopicLabel(slot)}
                 />
                 <StudioBriefRow
                   label="Tipo de publicación"

@@ -1,6 +1,7 @@
 import type { ContentRoleId } from "@/content/content-roles";
 import type { CameraMode } from "@/content/camera-presence";
 import type { PublicationTypeId } from "@/content/publication-types";
+import type { RoleTopicPreferences } from "@/content/role-topics";
 import {
   getSlotAccountIds,
   type DistributionType,
@@ -18,6 +19,7 @@ export type PlanningAccountType = "official" | "satellite";
 
 export type RepetitionLimits = {
   maxConsecutiveSamePillar: number;
+  maxConsecutiveSameTopic?: number;
   /** Legacy: ya no se usa para programar formatos creativos. */
   maxSameFormatInPeriod: number;
   maxSameRoleInRow: number;
@@ -36,6 +38,9 @@ export type PlanningAccount = {
   timeSlots: string[];
   /** Porcentaje objetivo por rol (suma ~100). */
   roleTargets: Partial<Record<ContentRoleId, number>>;
+  /** Preferencias de tema por rol. Source of truth editorial junto a roleTargets. */
+  roleTopicPreferences: RoleTopicPreferences;
+  /** Legacy: mix global de pilares. Ya no gobierna el calendario. */
   pillarTargets: Record<string, number>;
   publicationTypeTargets: Partial<Record<PublicationTypeId, number>>;
   cameraMode: CameraMode;

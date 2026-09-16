@@ -4,7 +4,7 @@ import { PlatformIcon } from "@/components/icons/platform-icon";
 import { getAngleLabel } from "@/content/angles";
 import { getContentRoleLabel, normalizeRoleId } from "@/content/content-roles";
 import { getPlanningAccountLabel } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import {
   DISTRIBUTION_TYPE_LABELS,
@@ -117,7 +117,7 @@ export function PlanningSlotCard({
           <SlotPublicationLed status={publicationLed} />
           <SlotPlatformIcons platforms={displayPlatforms} />
           <p className="min-w-0 truncate text-[12px] font-medium leading-snug text-foreground">
-            {getPlanningPillarLabel(slot.pillarId)}
+            {getSlotTopicLabel(slot)}
           </p>
         </div>
         <p className="mt-0.5 truncate text-[11px] leading-snug text-muted-foreground">
@@ -163,7 +163,7 @@ export function PlanningSlotCard({
         <SlotPublicationLed status={publicationLed} />
         <SlotPlatformIcons platforms={displayPlatforms} />
         <p className="min-w-0 text-[14px] font-medium leading-snug tracking-tight text-foreground">
-          {getPlanningPillarLabel(slot.pillarId)}
+          {getSlotTopicLabel(slot)}
         </p>
       </div>
 

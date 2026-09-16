@@ -244,7 +244,7 @@ export function PlanningCalendarSetup({
           </CardHeader>
           <CardContent className="text-center">
             <p className="text-[13px] leading-relaxed text-muted-foreground">
-            El perfil define roles, pilares, tipos de publicación y restricciones
+            El perfil define roles, temas por rol, tipos de publicación y restricciones
             de producción. Después lo asociás a las cuentas al generar el
             calendario.
             </p>

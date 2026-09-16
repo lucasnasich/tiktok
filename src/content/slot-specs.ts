@@ -74,7 +74,9 @@ export type SlotSpec = {
   date: string;
   time: string;
   roleId: ContentRoleId;
-  pillarId: string;
+  topicId: string;
+  /** Legacy: pilar global. Los specs nuevos usan `topicId`. */
+  pillarId?: string;
   publicationTypeId: PublicationTypeId;
   /** Legacy: formato creativo rígido. Los slots nuevos no lo traen. */
   formatId?: string;

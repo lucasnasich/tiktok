@@ -20,7 +20,7 @@ La navegación del sidebar no cambia:
 
 El detalle de entidades (slot, referencia, propuesta) abre en **Sheet** lateral, con el listado/calendario detrás.
 
-Planificación decide: Cuenta → Plataforma → Hora → Rol → Pilar → Formato.  
+Planificación decide: Cuenta → Plataforma → Hora → Rol → Tema → Tipo de publicación.  
 El SlotSpec combina eso + inspiración elegida + Mercantis Brain.  
 Cursor desarrolla las Proposals. El usuario selecciona una.
 
@@ -28,9 +28,10 @@ Cursor desarrolla las Proposals. El usuario selecciona una.
 
 | Capa | Pregunta | Source of truth | Quién decide |
 |------|----------|-----------------|--------------|
-| Rol | ¿Qué mundo editorial cubre esta pieza? | `src/content/content-roles.ts` | Planificación |
-| Pilar | ¿De qué hablamos? | `src/content/planning-pillars.ts` | Planificación |
-| Formato | ¿Cómo lo mostramos? | `src/content/formats.ts` | Planificación |
+| Rol | ¿Qué función editorial cumple esta pieza? | `src/content/content-roles.ts` | Planificación |
+| Tema | ¿De qué área concreta hablamos dentro de ese rol? | `src/content/role-topics.ts` | Planificación |
+| Tipo de publicación | ¿Qué pieza nativa vamos a producir? | `src/content/publication-types.ts` | Planificación |
+| Formato creativo | ¿Cómo ejecutamos la pieza? | `src/content/formats.ts` | Cursor, al desarrollar |
 | Ángulo | ¿Cómo lo contamos? | `src/content/angles.ts` | Cursor, en la Proposal |
 
 Hechos sobre Mercantis (producto, marca, claims): `knowledge/mercantis/` — contexto obligatorio para Cursor, no una fuente de señal.

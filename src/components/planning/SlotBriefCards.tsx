@@ -1,4 +1,5 @@
 import {
+  TagIcon,
   UserSoundIcon,
   VideoCameraIcon,
   VideoCameraSlashIcon,
@@ -8,13 +9,12 @@ import type { ReactNode } from "react";
 import { PlatformIcon } from "@/components/icons/platform-icon";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
 import { PublicationTypeIcon } from "@/components/planning/publication-type-icons";
-import { PlanningPillarIcon } from "@/components/planning/planning-pillar-icons";
 import {
   cameraPresenceShortLabel,
   type CameraPresenceMode,
 } from "@/content/camera-presence";
 import { getContentRoleLabel, normalizeRoleId, type ContentRoleId } from "@/content/content-roles";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import {
   getSlotPublicationTypeShortLabel,
   resolveSlotPublicationType,
@@ -201,11 +201,9 @@ export function SlotBriefCards({
           }
         />
         <BriefHighlightCard
-          label="Pilar"
-          value={getPlanningPillarLabel(slot.pillarId)}
-          icon={
-            <PlanningPillarIcon pillarId={slot.pillarId} className="size-4" />
-          }
+          label="Tema"
+          value={getSlotTopicLabel(slot)}
+          icon={<TagIcon className="size-4" />}
           className={PILLAR_CARD_CLASS}
           iconShellClassName={PILLAR_ICON_SHELL_CLASS}
         />

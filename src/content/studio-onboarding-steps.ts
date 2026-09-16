@@ -24,7 +24,7 @@ export const STUDIO_ONBOARDING_STEPS: StudioOnboardingStep[] = [
   {
     id: "perfil",
     title: "Configurar perfil editorial",
-    summary: "Definí ritmo, mix de roles, pilares, tipos de publicación y restricciones de producción para Mercantis oficial.",
+    summary: "Definí ritmo, mix de roles, temas por rol, tipos de publicación y restricciones de producción para Mercantis oficial.",
     detail:
       "Sin perfil activo el calendario queda vacío. Completá el asistente en Configuración y guardá el perfil.",
     href: "/planificacion/configuracion",
@@ -33,7 +33,7 @@ export const STUDIO_ONBOARDING_STEPS: StudioOnboardingStep[] = [
   {
     id: "calendario",
     title: "Revisar el calendario",
-    summary: "Confirmá que aparecen slots con cuenta, hora, rol, pilar y tipo de publicación.",
+    summary: "Confirmá que aparecen slots con cuenta, hora, rol, tema y tipo de publicación.",
     detail:
       "El motor completa huecos según tu perfil. Todavía no hay copy ni ideas — solo el marco editorial.",
     href: "/planificacion",

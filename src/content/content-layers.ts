@@ -1,12 +1,18 @@
 /**
  * Capas del contenido — no mezclar.
  * Source of truth de roles: content-roles.ts
- * Source of truth de pilares: planning-pillars.ts
+ * Source of truth de temas por rol: role-topics.ts
+ * Source of truth de tipos de publicación: publication-types.ts
  * Source of truth de ángulos: angles.ts
- * Source of truth de formatos: formats.ts
+ * Source of truth de formatos creativos: formats.ts
  */
 
-export type ContentLayerId = "rol" | "pilar" | "angulo" | "formato";
+export type ContentLayerId =
+  | "rol"
+  | "tema"
+  | "tipo_publicacion"
+  | "angulo"
+  | "formato";
 
 export type ContentLayer = {
   id: ContentLayerId;
@@ -19,14 +25,20 @@ export const CONTENT_LAYERS: ContentLayer[] = [
   {
     id: "rol",
     label: "Rol",
-    question: "¿Qué mundo editorial cubre esta pieza?",
+    question: "¿Qué función editorial cumple esta pieza?",
     sourceFile: "src/content/content-roles.ts",
   },
   {
-    id: "pilar",
-    label: "Pilar",
-    question: "¿De qué hablamos?",
-    sourceFile: "src/content/planning-pillars.ts",
+    id: "tema",
+    label: "Tema",
+    question: "¿De qué área concreta hablamos dentro de ese rol?",
+    sourceFile: "src/content/role-topics.ts",
+  },
+  {
+    id: "tipo_publicacion",
+    label: "Tipo de publicación",
+    question: "¿Qué pieza nativa vamos a producir?",
+    sourceFile: "src/content/publication-types.ts",
   },
   {
     id: "angulo",
@@ -36,13 +48,13 @@ export const CONTENT_LAYERS: ContentLayer[] = [
   },
   {
     id: "formato",
-    label: "Formato",
-    question: "¿Cómo lo mostramos?",
+    label: "Formato creativo",
+    question: "¿Cómo ejecutamos la pieza?",
     sourceFile: "src/content/formats.ts",
   },
 ];
 
 export const CONTENT_LAYER_EXAMPLES = [
-  "Educación → Ventas y atención → Dolor → Captura de chat",
-  "Producto / Demostración → Automatización e IA → Storytelling → Demo",
+  "Educación → Inventario y stock → Imagen única → Dolor → Captura de chat",
+  "Producto / Demostración → Stock y variantes → Reel → Storytelling → Screen recording",
 ] as const;

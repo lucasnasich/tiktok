@@ -1,4 +1,5 @@
 import type { PlanningAccountType } from "@/content/planning-accounts";
+import { getRoleTopicLabelLoose } from "@/content/role-topics";
 
 export type PlanningPillar = {
   id: string;
@@ -147,6 +148,8 @@ export function normalizePillarTargets(
 }
 
 export function getPlanningPillarLabel(id: string): string {
+  const fromTopic = getRoleTopicLabelLoose(id);
+  if (fromTopic !== id) return fromTopic;
   return pillarById.get(normalizePillarId(id))?.label ?? id;
 }
 

@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from "react";
@@ -19,15 +18,11 @@ import {
   profileSettingsToAccount,
   type PlanningProfile,
 } from "@/content/planning-profiles";
+import { OFFICIAL_ROLE_MIX_PRESETS } from "@/content/planning-presets";
 import {
-  OFFICIAL_ROLE_MIX_PRESETS,
-} from "@/content/planning-presets";
-import { getPlanningPillarsForAccount } from "@/content/planning-pillars";
-import {
-  PILLAR_PRIORITY_WEIGHT,
   PLANNING_SETUP_STEPS,
   ROLE_GUIDES,
-  type PillarPriority,
+  TOPIC_PRIORITY_OPTIONS,
   type PlanningSetupStepId,
 } from "@/content/planning-setup-guide";
 import { CAMERA_MODE_OPTIONS } from "@/content/camera-presence";
@@ -39,18 +34,21 @@ import {
   publicationTypes,
   type PublicationTypeId,
 } from "@/content/publication-types";
-import { accountToOverride } from "@/lib/planning-config-store";
 import {
-  normalizePercentTargets,
-  sumPercentTargets,
-} from "@/lib/planning-percent";
+  activeRolesHaveTopics,
+  cloneDefaultRoleTopicPreferences,
+  getTopicsForRole,
+  normalizeRoleTopicPreferences,
+  roleHasEnabledTopic,
+  topicPrioritySummary,
+  type TopicPriority,
+} from "@/content/role-topics";
+import { accountToOverride } from "@/lib/planning-config-store";
+import { sumPercentTargets } from "@/lib/planning-percent";
 import { settingsRichness } from "@/lib/planning-settings-richness";
 import { ContentRoleIcon } from "@/components/planning/content-role-icons";
-import { PlanningPillarIcon } from "@/components/planning/planning-pillar-icons";
 import { PublicationTypeIcon } from "@/components/planning/publication-type-icons";
 import {
-  buildMergedWizardAccount,
-  buildPillarPrioritiesFromTargets,
   buildWizardSessionSnapshot,
   isWizardDraftProfileId,
   sessionToAccount,
@@ -135,8 +133,6 @@ type StepValidationContext = {
   draft: PlanningAccount;
   roleSum: number;
   publicationSum: number;
-  pillarPriorities: Record<string, PillarPriority>;
-  relevantPillarIds: string[];
   profileLabel: string;
 };
 
@@ -148,10 +144,12 @@ function isStepComplete(
     case "profile":
       return ctx.profileLabel.trim().length > 0;
     case "roles":
-      return Math.abs(ctx.roleSum - 100) <= 2;
-    case "pillars":
-      return ctx.relevantPillarIds.some(
-        (id) => (ctx.pillarPriorities[id] ?? "media") !== "no",
+      return (
+        Math.abs(ctx.roleSum - 100) <= 2 &&
+        activeRolesHaveTopics(
+          ctx.draft.roleTargets,
+          ctx.draft.roleTopicPreferences,
+        )
       );
     case "publication":
       return Math.abs(ctx.publicationSum - 100) <= 2;
@@ -255,11 +253,13 @@ function resolveWizardInitialState({
   if (!draft.cameraMode) {
     draft = { ...draft, cameraMode: DEFAULT_CAMERA_MODE };
   }
-
-  const pillarPriorities =
-    session && Object.keys(session.pillarPriorities).length > 0
-      ? session.pillarPriorities
-      : buildPillarPrioritiesFromTargets(draft);
+  draft = {
+    ...draft,
+    roleTopicPreferences: normalizeRoleTopicPreferences(
+      draft.roleTopicPreferences ?? cloneDefaultRoleTopicPreferences(),
+      draft.pillarTargets,
+    ),
+  };
 
   return {
     stepIndex: session
@@ -269,7 +269,6 @@ function resolveWizardInitialState({
     profileLabel:
       existingProfile?.label ?? session?.profileLabel ?? "Mi perfil editorial",
     draft,
-    pillarPriorities,
   };
 }
 
@@ -292,15 +291,8 @@ export function PlanningSetupWizard({
   const selectedProfileId = initialProfileId;
   const [profileLabel, setProfileLabel] = useState(initialState.profileLabel);
   const [draft, setDraft] = useState<PlanningAccount>(initialState.draft);
-  const [pillarPriorities, setPillarPriorities] = useState<
-    Record<string, PillarPriority>
-  >(initialState.pillarPriorities);
 
   const step = PLANNING_SETUP_STEPS[stepIndex];
-  const relevantPillars = useMemo(
-    () => getPlanningPillarsForAccount("profile-wizard", "official"),
-    [],
-  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -311,8 +303,6 @@ export function PlanningSetupWizard({
           profileLabel,
           stepIndex,
           draft,
-          pillarPriorities,
-          relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
         }),
       );
     }, 500);
@@ -321,19 +311,14 @@ export function PlanningSetupWizard({
   }, [
     draft,
     persistWizardDraft,
-    pillarPriorities,
     profileLabel,
-    relevantPillars,
     selectedProfileId,
     stepIndex,
   ]);
 
-  const updateDraft = useCallback(
-    (patch: Partial<PlanningAccount>) => {
-      setDraft((prev) => ({ ...prev, ...patch }));
-    },
-    [],
-  );
+  const updateDraft = useCallback((patch: Partial<PlanningAccount>) => {
+    setDraft((prev) => ({ ...prev, ...patch }));
+  }, []);
 
   const updateRoleTarget = useCallback((roleId: string, value: number) => {
     setDraft((prev) => ({
@@ -341,6 +326,22 @@ export function PlanningSetupWizard({
       roleTargets: { ...prev.roleTargets, [roleId]: value },
     }));
   }, []);
+
+  const updateTopicPriority = useCallback(
+    (roleId: ContentRoleId, topicId: string, priority: TopicPriority) => {
+      setDraft((prev) => ({
+        ...prev,
+        roleTopicPreferences: {
+          ...prev.roleTopicPreferences,
+          [roleId]: {
+            ...prev.roleTopicPreferences[roleId],
+            [topicId]: priority,
+          },
+        },
+      }));
+    },
+    [],
+  );
 
   const updatePublicationTypeTarget = useCallback(
     (typeId: PublicationTypeId, value: number) => {
@@ -355,22 +356,6 @@ export function PlanningSetupWizard({
     [],
   );
 
-  const applyPillarPriorities = useCallback(() => {
-    const weights: Record<string, number> = {};
-    for (const pillar of relevantPillars) {
-      const priority = pillarPriorities[pillar.id] ?? "media";
-      weights[pillar.id] = PILLAR_PRIORITY_WEIGHT[priority];
-    }
-    updateDraft({ pillarTargets: normalizePercentTargets(weights) });
-  }, [pillarPriorities, relevantPillars, updateDraft]);
-
-  const applyStepSideEffects = useCallback(
-    (fromStepId: PlanningSetupStepId) => {
-      if (fromStepId === "pillars") applyPillarPriorities();
-    },
-    [applyPillarPriorities],
-  );
-
   const goToStep = useCallback(
     (nextIndex: number) => {
       const clampedIndex = Math.min(
@@ -378,51 +363,30 @@ export function PlanningSetupWizard({
         PLANNING_SETUP_STEPS.length - 1,
       );
       if (clampedIndex === stepIndex) return;
-
-      applyStepSideEffects(step.id);
       setStepIndex(clampedIndex);
     },
-    [applyStepSideEffects, step.id, stepIndex],
+    [stepIndex],
   );
 
   const goNext = useCallback(() => {
-    applyStepSideEffects(step.id);
-
     if (stepIndex < PLANNING_SETUP_STEPS.length - 1) {
       setStepIndex((i) => i + 1);
       return;
     }
 
-    const mergedDraft = buildMergedWizardAccount(
-      draft,
-      pillarPriorities,
-      relevantPillars.map((pillar) => pillar.id),
-    );
-    onSave(mergedDraft, {
-      profileLabel: profileLabel.trim() || `Perfil · ${mergedDraft.label}`,
+    onSave(draft, {
+      profileLabel: profileLabel.trim() || `Perfil · ${draft.label}`,
       profileId:
         selectedProfileId && !isWizardDraftProfileId(selectedProfileId)
           ? selectedProfileId
           : undefined,
     });
     onComplete();
-  }, [
-    applyStepSideEffects,
-    draft,
-    onComplete,
-    onSave,
-    pillarPriorities,
-    profileLabel,
-    relevantPillars,
-    selectedProfileId,
-    step.id,
-    stepIndex,
-  ]);
+  }, [draft, onComplete, onSave, profileLabel, selectedProfileId, stepIndex]);
 
   const goBack = useCallback(() => {
-    applyStepSideEffects(step.id);
     setStepIndex((i) => Math.max(0, i - 1));
-  }, [applyStepSideEffects, step.id]);
+  }, []);
 
   const roleSum = sumPercentTargets(
     draft.roleTargets as Record<string, number>,
@@ -434,8 +398,6 @@ export function PlanningSetupWizard({
     draft,
     roleSum,
     publicationSum,
-    pillarPriorities,
-    relevantPillarIds: relevantPillars.map((pillar) => pillar.id),
     profileLabel,
   };
   const canAdvance = isStepComplete(step.id, stepValidation);
@@ -474,142 +436,167 @@ export function PlanningSetupWizard({
       {step.id === "roles" && (
         <div className="space-y-5">
           <GuideCallout>
-            Cada rol es un mundo editorial distinto. Los porcentajes
-            gobiernan la semana, no cada día. Un CTA puede aparecer en
-            cualquier pieza: no define el rol.
+            Cada rol es un mundo editorial distinto. Los porcentajes gobiernan
+            la semana. Después, para cada rol activo, elegí sobre qué áreas
+            concretas hablar: Alta / Media / Baja / No. Alta no significa
+            “siempre este tema”: es un peso relativo.
           </GuideCallout>
 
           <div className="flex flex-wrap gap-2">
-              {OFFICIAL_ROLE_MIX_PRESETS.map((preset) => (
-                <Button
-                  key={preset.id}
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => updateDraft({ roleTargets: preset.roleTargets })}
-                >
-                  {preset.label}
-                </Button>
-              ))}
+            {OFFICIAL_ROLE_MIX_PRESETS.map((preset) => (
+              <Button
+                key={preset.id}
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => updateDraft({ roleTargets: preset.roleTargets })}
+              >
+                {preset.label}
+              </Button>
+            ))}
           </div>
 
           <div className="space-y-3">
             {contentRoles.map((role) => {
-                const guide = ROLE_GUIDES[role.id];
-                const value = draft.roleTargets[role.id] ?? 0;
-                const tone = ROLE_WIZARD_TONE[role.id];
-                return (
-                  <Card key={role.id} size="sm" className={cn("ring-border/80", tone.card)}>
-                    <CardHeader className="gap-2">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex min-w-0 items-start gap-3">
-                          <div
-                            className={cn(
-                              "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                              tone.icon,
-                            )}
-                          >
-                            <ContentRoleIcon
-                              roleId={role.id}
-                              className="size-4"
-                            />
-                          </div>
-                          <div className="min-w-0 space-y-1">
-                            <CardTitle className="text-[15px]">
-                              {role.label}
-                            </CardTitle>
-                            <p className="text-[13px] text-muted-foreground">
-                              {role.summary}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <Input
-                            type="number"
-                            min={0}
-                            max={100}
-                            value={value}
-                            onChange={(e) =>
-                              updateRoleTarget(
-                                role.id,
-                                Number(e.target.value) || 0,
-                              )
-                            }
-                            className="h-7 w-16 text-center text-[13px]"
+              const guide = ROLE_GUIDES[role.id];
+              const value = draft.roleTargets[role.id] ?? 0;
+              const tone = ROLE_WIZARD_TONE[role.id];
+              const topics = getTopicsForRole(role.id);
+              const hasTopics = roleHasEnabledTopic(
+                draft.roleTopicPreferences,
+                role.id,
+              );
+              return (
+                <Card
+                  key={role.id}
+                  size="sm"
+                  className={cn("ring-border/80", tone.card)}
+                >
+                  <CardHeader className="gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div
+                          className={cn(
+                            "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                            tone.icon,
+                          )}
+                        >
+                          <ContentRoleIcon
+                            roleId={role.id}
+                            className="size-4"
                           />
-                          <span className="text-[13px] text-muted-foreground">
-                            %
-                          </span>
+                        </div>
+                        <div className="min-w-0 space-y-1">
+                          <CardTitle className="text-[15px]">
+                            {role.label}
+                          </CardTitle>
+                          <p className="text-[13px] text-muted-foreground">
+                            {role.summary}
+                          </p>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="space-y-2 pt-0 text-[13px] leading-relaxed text-muted-foreground">
-                      <p>
-                        <span className="font-medium text-foreground">
-                          Cuándo usarlo:{" "}
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <Input
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={value}
+                          onChange={(e) =>
+                            updateRoleTarget(
+                              role.id,
+                              Number(e.target.value) || 0,
+                            )
+                          }
+                          className="h-7 w-16 text-center text-[13px]"
+                        />
+                        <span className="text-[13px] text-muted-foreground">
+                          %
                         </span>
-                        {guide.cuandoUsar}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-3 pt-0 text-[13px] leading-relaxed text-muted-foreground">
+                    <p>
+                      <span className="font-medium text-foreground">
+                        Cuándo usarlo:{" "}
+                      </span>
+                      {guide.cuandoUsar}
+                    </p>
+                    <p>
+                      <span className="font-medium text-foreground">
+                        Ejemplo:{" "}
+                      </span>
+                      {guide.ejemplo}
+                    </p>
+                    <p className="text-[12px] italic">{guide.tip}</p>
+
+                    {value > 0 ? (
+                      <div className="space-y-3 border-t border-border/70 pt-3">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <p className="text-[13px] font-medium text-foreground">
+                            Temas de este rol
+                          </p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {topicPrioritySummary(
+                              draft.roleTopicPreferences,
+                              role.id,
+                            )}
+                          </p>
+                        </div>
+                        {!hasTopics ? (
+                          <p className="text-[12px] text-destructive">
+                            Activá al menos un tema distinto de “No”.
+                          </p>
+                        ) : null}
+                        <div className="space-y-3">
+                          {topics.map((topic) => (
+                            <div
+                              key={topic.id}
+                              className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"
+                            >
+                              <div className="min-w-0 sm:max-w-[58%]">
+                                <p className="text-[13px] font-medium text-foreground">
+                                  {topic.label}
+                                </p>
+                                <p className="text-[12px] leading-snug text-muted-foreground">
+                                  {topic.summary}
+                                </p>
+                              </div>
+                              <SingleChoice
+                                value={
+                                  draft.roleTopicPreferences[role.id]?.[
+                                    topic.id
+                                  ] ?? "media"
+                                }
+                                onChange={(priority) =>
+                                  updateTopicPriority(
+                                    role.id,
+                                    topic.id,
+                                    priority,
+                                  )
+                                }
+                                options={TOPIC_PRIORITY_OPTIONS}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="border-t border-border/70 pt-3 text-[12px]">
+                        Este rol queda en 0%: no se programa y no hace falta
+                        configurar temas.
                       </p>
-                      <p>
-                        <span className="font-medium text-foreground">
-                          Ejemplo:{" "}
-                        </span>
-                        {guide.ejemplo}
-                      </p>
-                      <p className="text-[12px] italic">{guide.tip}</p>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           <p className="text-[13px] text-muted-foreground">
             Suma actual: <strong>{roleSum}%</strong> — idealmente ~100%. Un rol
             en 0% no se programa; una pieza manual igual puede usarlo.
           </p>
-        </div>
-      )}
-
-      {step.id === "pillars" && (
-        <div className="space-y-3">
-          <GuideCallout>
-            Marcá la prioridad de cada tema. “Alta” no significa todos los días
-            — solo que el motor lo incluirá más seguido que un tema “bajo”.
-          </GuideCallout>
-          {relevantPillars.map((pillar) => (
-            <Card key={pillar.id} size="sm" className="ring-border/80">
-              <CardHeader className="gap-2">
-                <div className="flex items-start gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
-                    <PlanningPillarIcon pillarId={pillar.id} className="size-4" />
-                  </div>
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle className="text-[15px]">{pillar.label}</CardTitle>
-                    <p className="text-[13px] text-muted-foreground">
-                      {pillar.summary}
-                    </p>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <SingleChoice
-                  value={pillarPriorities[pillar.id] ?? "media"}
-                  onChange={(v) =>
-                    setPillarPriorities((prev) => ({
-                      ...prev,
-                      [pillar.id]: v as PillarPriority,
-                    }))
-                  }
-                  options={[
-                    { value: "alta", label: "Alta" },
-                    { value: "media", label: "Media" },
-                    { value: "baja", label: "Baja" },
-                    { value: "no", label: "No usar" },
-                  ]}
-                />
-              </CardContent>
-            </Card>
-          ))}
         </div>
       )}
 
@@ -733,4 +720,3 @@ export function PlanningSetupWizard({
     </div>
   );
 }
-

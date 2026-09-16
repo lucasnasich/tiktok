@@ -16,7 +16,7 @@ import {
   getPlanningAccount,
   getSlotAccountLabel,
 } from "@/content/planning-accounts";
-import { getPlanningPillarLabel } from "@/content/planning-pillars";
+import { getSlotTopicLabel } from "@/content/role-topics";
 import { getPublicationTypeLabel } from "@/content/publication-types";
 import {
   getSlotAccountIds,
@@ -25,7 +25,7 @@ import {
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
 import { PROPOSAL_STATUS_LABELS } from "@/content/proposals";
 import { SLOT_SPEC_STATUS_LABELS } from "@/content/slot-specs";
-import { signalPresetsForPillar } from "@/content/slot-signals";
+import { signalPresetsForTopic } from "@/content/slot-signals";
 import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
 import type { InspirationUseRole } from "@/content/inspiration-analysis";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
@@ -175,7 +175,7 @@ export function SlotDetailSheet({
         pane === "inspiration"
           ? inspecting?.title ?? "Referencia"
           : slot
-            ? getPlanningPillarLabel(slot.pillarId)
+            ? getSlotTopicLabel(slot)
             : "Slot"
       }
       onPrev={pane === "slot" ? onPrev : undefined}
@@ -297,7 +297,7 @@ export function SlotDetailSheet({
                       Escape hatch. El camino principal es elegir una referencia.
                     </p>
                     <div className="flex flex-wrap gap-1.5">
-                      {signalPresetsForPillar(slot.pillarId).map((preset) => (
+                      {signalPresetsForTopic(slot).map((preset) => (
                         <Button
                           key={preset.id}
                           type="button"
@@ -372,7 +372,7 @@ export function SlotDetailSheet({
                   {getSlotAccountLabel(slot, studioAccounts)} · {spec.date} {spec.time}
                 </p>
                 <p>
-                  {getContentRoleLabel(spec.roleId)} · {getPlanningPillarLabel(spec.pillarId)} ·{" "}
+                  {getContentRoleLabel(spec.roleId)} · {getSlotTopicLabel(slot)} ·{" "}
                   {getPublicationTypeLabel(spec.publicationTypeId)}
                 </p>
                 {spec.recommendedCreativeFormats.length > 0 ? (

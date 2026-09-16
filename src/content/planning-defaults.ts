@@ -14,6 +14,7 @@ export const DEFAULT_ACTIVE_DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 
 export const DEFAULT_REPETITION_LIMITS = {
   maxConsecutiveSamePillar: 2,
+  maxConsecutiveSameTopic: 2,
   maxSameFormatInPeriod: 3,
   maxSameRoleInRow: 2,
   maxSamePublicationTypeInPeriod: 3,

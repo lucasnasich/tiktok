@@ -122,7 +122,7 @@ assert.ok(
 );
 assert.ok(structureQuery.includes("Enseñar postventa"));
 assert.ok(structureQuery.includes("Rol: Educación"));
-assert.ok(structureQuery.includes("Pilar: Clientes"));
+assert.ok(structureQuery.includes("Tema: Clientes"));
 assert.ok(!visualQuery.includes("Enseñar postventa"), "visual no mete el tema editorial");
 assert.ok(!visualQuery.includes("Rol: Educación"), "visual no mete el rol");
 assert.ok(visualQuery.includes("Placas tipográficas"));

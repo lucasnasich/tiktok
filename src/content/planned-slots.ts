@@ -32,7 +32,10 @@ export type PlanningSlot = {
   accountId: string;
   platforms: PlanningPlatform[];
   roleId: ContentRoleId;
-  pillarId: string;
+  /** Área concreta dentro del rol. Source of truth editorial del slot. */
+  topicId?: string;
+  /** Legacy: pilar global. Los slots nuevos guardan el tema en `topicId`. */
+  pillarId?: string;
   /**
    * Tipo de publicación nativo (imagen, carrusel, reel, story).
    * En slots nuevos es la capa que decide el calendario.
