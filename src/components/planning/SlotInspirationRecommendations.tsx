@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { InspirationThumb } from "@/components/inspiration/InspirationDetailBody";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { CreativeProposal } from "@/content/creative-proposals";
 import { INSPIRATION_HYBRID_WEIGHTS } from "@/content/inspiration-match-config";
 import type { PlanningSlot } from "@/content/planned-slots";
@@ -241,7 +242,14 @@ export function SlotInspirationRecommendations({
   return (
     <div className="space-y-3">
       {loading ? (
-        <p className="text-[12px] text-muted-foreground">Buscando referencias…</p>
+        <div className="space-y-2" aria-live="polite">
+          <p className="text-[12px] text-muted-foreground">
+            Buscando referencias…
+          </p>
+          <Skeleton className="h-[4.5rem] w-full" />
+          <Skeleton className="h-[4.5rem] w-full" />
+          <Skeleton className="h-[4.5rem] w-full" />
+        </div>
       ) : null}
       {degradedReason ? (
         <p className="text-[12px] text-muted-foreground">{degradedReason}</p>

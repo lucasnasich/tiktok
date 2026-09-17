@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 
+import { deriveSlotWorkflowStatus } from "../src/lib/slot-workflow.ts";
+
 const W = {
   base: 10,
   sameFormat: 28,
@@ -30,17 +32,52 @@ const usedRecent = score({ formatMatch: true, uses: 3, recent: true });
 assert.equal(unusedMatch > usedRecent, true, "el uso reciente baja prioridad");
 assert.equal(clamp(unusedMatch, 0, 100) >= 40, true, "un match de formato unused es compatible");
 
-function deriveWorkflow({ specReady, candidates, selected }) {
-  if (selected) return "listo-para-ensamblar";
-  if (candidates > 0) return "elegir-propuesta";
-  if (specReady) return "listo-para-cursor";
-  return "falta-definir";
-}
+const idea = { id: "p1" };
 
-assert.equal(deriveWorkflow({ specReady: false, candidates: 0, selected: false }), "falta-definir");
-assert.equal(deriveWorkflow({ specReady: true, candidates: 0, selected: false }), "listo-para-cursor");
-assert.equal(deriveWorkflow({ specReady: true, candidates: 3, selected: false }), "elegir-propuesta");
-assert.equal(deriveWorkflow({ specReady: true, candidates: 3, selected: true }), "listo-para-ensamblar");
+assert.equal(deriveSlotWorkflowStatus(undefined), "elegir-idea");
+assert.equal(
+  deriveSlotWorkflowStatus({
+    slotId: "s",
+    directionKind: "manual",
+    status: "draft",
+  }),
+  "elegir-idea",
+);
+assert.equal(
+  deriveSlotWorkflowStatus({
+    slotId: "s",
+    directionKind: "manual",
+    status: "draft",
+    selectedCreativeProposalId: "p1",
+    creativeProposals: [idea],
+  }),
+  "elegir-inspiracion",
+  "idea elegida sin confirmar inspiración",
+);
+assert.equal(
+  deriveSlotWorkflowStatus({
+    slotId: "s",
+    directionKind: "manual",
+    status: "draft",
+    selectedCreativeProposalId: "p1",
+    creativeProposals: [idea],
+    inspirationConfirmed: false,
+  }),
+  "elegir-inspiracion",
+  "0 refs sin confirmar no es listo",
+);
+assert.equal(
+  deriveSlotWorkflowStatus({
+    slotId: "s",
+    directionKind: "manual",
+    status: "ready-for-cursor",
+    selectedCreativeProposalId: "p1",
+    creativeProposals: [idea],
+    inspirationConfirmed: true,
+  }),
+  "listo-para-producir",
+  "confirmado sin refs también es listo",
+);
 
 function usageCount(specSlots, proposalSlots) {
   return new Set([...specSlots, ...proposalSlots]).size;

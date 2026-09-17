@@ -1,31 +1,36 @@
-import { useEffect, useMemo, useState } from "react";
-import { ArrowLeftIcon, CopyIcon } from "@phosphor-icons/react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  CopyIcon,
+  DotsThreeIcon,
+} from "@phosphor-icons/react";
 
 import { InspirationDetailBody } from "@/components/inspiration/InspirationDetailBody";
 import { SlotBriefCards } from "@/components/planning/SlotBriefCards";
+import { SlotCreativeProposalCard } from "@/components/planning/SlotCreativeProposalCard";
 import { SlotCreativeProposals } from "@/components/planning/SlotCreativeProposals";
 import { SlotInspirationBrowse } from "@/components/planning/SlotInspirationBrowse";
 import { SlotInspirationRecommendations } from "@/components/planning/SlotInspirationRecommendations";
-import { StudioSection, StudioSheet } from "@/components/studio/StudioSheet";
-import { Badge } from "@/components/ui/badge";
+import {
+  SlotWorkflowStepper,
+  type SlotWorkflowStepId,
+  type SlotWorkflowStepState,
+} from "@/components/planning/SlotWorkflowStepper";
+import { StudioSheet } from "@/components/studio/StudioSheet";
 import { Button } from "@/components/ui/button";
-import { getAngleLabel } from "@/content/angles";
-import { getContentRoleLabel } from "@/content/content-roles";
-import { getInspirationByKey } from "@/content/inspiration-feed";
 import {
-  getPlanningAccount,
-  getSlotAccountLabel,
-} from "@/content/planning-accounts";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getSlotTopicLabel } from "@/content/role-topics";
-import { getPublicationTypeLabel } from "@/content/publication-types";
-import {
-  getSlotAccountIds,
-  type PlanningSlot,
-} from "@/content/planned-slots";
+import { getInspirationByKey } from "@/content/inspiration-feed";
+import { getSlotAccountLabel } from "@/content/planning-accounts";
+import type { PlanningSlot } from "@/content/planned-slots";
 import type { PlanningStudioAccount } from "@/content/planning-studio-accounts";
-import { PROPOSAL_STATUS_LABELS } from "@/content/proposals";
-import { SLOT_SPEC_STATUS_LABELS } from "@/content/slot-specs";
-import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
+import type { CreativeProposal } from "@/content/creative-proposals";
 import { useInspirationOverrides } from "@/hooks/use-inspiration-overrides";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
@@ -33,20 +38,14 @@ import { copyText } from "@/lib/clipboard";
 import { selectedCreativeProposal } from "@/lib/creative-proposals";
 import { usageForInspiration } from "@/lib/inspiration-usage";
 import {
-  proposalsForSlot,
-  selectedProposalForSlot,
-} from "@/lib/proposals-store";
-import {
   applyGeneratedCreativeProposals,
+  applyInspirationConfirmation,
   applyProposalInspirationRef,
   applySelectedCreativeProposal,
   assembleSlotSpec,
-  canPrepareSlotSpec,
   cursorPromptForSpec,
   formatSlotSpecMarkdown,
 } from "@/lib/slot-spec";
-import { deriveSlotWorkflowStatus } from "@/lib/slot-workflow";
-import { cn } from "@/lib/utils";
 
 export function SlotDetailSheet({
   slot,
@@ -69,22 +68,34 @@ export function SlotDetailSheet({
   prevDisabled?: boolean;
   nextDisabled?: boolean;
 }) {
-  const { proposals, selectProposal } = useProposals();
+  const { proposals } = useProposals();
   const { records, getRecord, upsertRecord } = useSlotSpecs();
   const { overrides } = useInspirationOverrides();
   const [pane, setPane] = useState<"slot" | "inspiration">("slot");
   const [inspectingKey, setInspectingKey] = useState<string | null>(null);
   const [showLibrary, setShowLibrary] = useState(false);
-  const [showInspirationSearch, setShowInspirationSearch] = useState(false);
   const [copied, setCopied] = useState<"spec" | "prompt" | null>(null);
+  const [editingIdea, setEditingIdea] = useState(false);
+  const [editingInspiration, setEditingInspiration] = useState(false);
+  const [ideaDetailOpen, setIdeaDetailOpen] = useState(false);
+  const [inspirationPreviewOpen, setInspirationPreviewOpen] = useState(false);
 
   useEffect(() => {
     setPane("slot");
     setInspectingKey(null);
     setShowLibrary(false);
-    setShowInspirationSearch(false);
     setCopied(null);
+    setEditingIdea(false);
+    setEditingInspiration(false);
+    setIdeaDetailOpen(false);
+    setInspirationPreviewOpen(false);
   }, [slot?.id]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = window.setTimeout(() => setCopied(null), 2500);
+    return () => window.clearTimeout(timeout);
+  }, [copied]);
 
   const record = slot ? getRecord(slot.id) : undefined;
   const specRecords = useMemo(() => Object.values(records), [records]);
@@ -92,20 +103,38 @@ export function SlotDetailSheet({
     record?.creativeProposals,
     record?.selectedCreativeProposalId,
   );
-
-  const selected = slot
-    ? selectedProposalForSlot(proposals, slot.id)
-    : undefined;
-  const candidates = slot ? proposalsForSlot(proposals, slot.id) : [];
-  const workflow = slot
-    ? deriveSlotWorkflowStatus(slot.id, record, proposals)
-    : "falta-definir";
+  const hasIdea = Boolean(idea);
+  const inspirationDone = Boolean(record?.inspirationConfirmed);
+  const associatedKeys = idea?.inspirationRefs ?? [];
+  const refCount = associatedKeys.length;
   const spec = slot
     ? assembleSlotSpec(slot, record, proposals, specRecords, slots, overrides)
     : undefined;
   const inspecting = inspectingKey
     ? getInspirationByKey(inspectingKey, overrides)
     : undefined;
+
+  const ideaOpen = !hasIdea || editingIdea;
+  const inspirationOpen =
+    hasIdea && !ideaOpen && (!inspirationDone || editingInspiration);
+  const productionOpen =
+    hasIdea && inspirationDone && !ideaOpen && !inspirationOpen;
+
+  const stepperStates: Record<SlotWorkflowStepId, SlotWorkflowStepState> = {
+    idea: ideaOpen ? "active" : hasIdea ? "complete" : "pending",
+    inspiration: inspirationOpen
+      ? "active"
+      : inspirationDone
+        ? "complete"
+        : hasIdea
+          ? "pending"
+          : "pending",
+    production: productionOpen
+      ? "active"
+      : inspirationDone && !ideaOpen && !inspirationOpen
+        ? "complete"
+        : "pending",
+  };
 
   function associateInspiration(key: string, attached = true) {
     if (!slot || !record?.selectedCreativeProposalId) return;
@@ -122,6 +151,42 @@ export function SlotDetailSheet({
     setInspectingKey(null);
   }
 
+  function selectIdea(proposalId: string) {
+    if (!slot) return;
+    upsertRecord(applySelectedCreativeProposal(record, slot.id, proposalId));
+    setEditingIdea(false);
+    setIdeaDetailOpen(false);
+    setEditingInspiration(false);
+    setInspirationPreviewOpen(false);
+    setShowLibrary(false);
+  }
+
+  function confirmInspiration() {
+    if (!slot) return;
+    upsertRecord(applyInspirationConfirmation(record, slot.id, true));
+    setEditingInspiration(false);
+    setInspirationPreviewOpen(false);
+  }
+
+  function openStep(id: SlotWorkflowStepId) {
+    if (id === "idea") {
+      setEditingIdea(true);
+      setEditingInspiration(false);
+      setIdeaDetailOpen(false);
+      return;
+    }
+    if (id === "inspiration" && hasIdea) {
+      setEditingIdea(false);
+      setEditingInspiration(true);
+      setInspirationPreviewOpen(false);
+      return;
+    }
+    if (id === "production" && inspirationDone) {
+      setEditingIdea(false);
+      setEditingInspiration(false);
+    }
+  }
+
   async function copySpec() {
     if (!spec) return;
     const ok = await copyText(formatSlotSpecMarkdown(spec));
@@ -133,18 +198,6 @@ export function SlotDetailSheet({
     const ok = await copyText(cursorPromptForSpec(spec));
     if (ok) setCopied("prompt");
   }
-
-  function prepareForCursor() {
-    if (!slot || !record) return;
-    upsertRecord({
-      ...record,
-      status: "ready-for-cursor",
-      preparedAt: new Date().toISOString(),
-    });
-  }
-
-  const canPrepare = canPrepareSlotSpec(record);
-  const associatedKeys = new Set(idea?.inspirationRefs ?? []);
 
   return (
     <StudioSheet
@@ -159,7 +212,7 @@ export function SlotDetailSheet({
       title={
         pane === "inspiration"
           ? inspecting?.title ?? "Referencia"
-          : slot
+            : slot
             ? getSlotTopicLabel(slot)
             : "Slot"
       }
@@ -197,254 +250,325 @@ export function SlotDetailSheet({
               onUse={() =>
                 associateInspiration(
                   inspecting.key,
-                  !associatedKeys.has(inspecting.key),
+                  !associatedKeys.includes(inspecting.key),
                 )
               }
             />
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge variant="secondary">
-                {SLOT_WORKFLOW_STATUS_LABELS[workflow]}
-              </Badge>
-              {SLOT_SPEC_STATUS_LABELS[spec.status] !==
-              SLOT_WORKFLOW_STATUS_LABELS[workflow] ? (
-                <Badge variant="outline">
-                  {SLOT_SPEC_STATUS_LABELS[spec.status]}
-                </Badge>
-              ) : null}
-            </div>
-
             <SlotBriefCards slot={slot} studioAccounts={studioAccounts} />
-
-            <SlotCreativeProposals
-              spec={spec}
-              record={record}
-              accountLabel={getSlotAccountLabel(slot, studioAccounts)}
-              overrides={overrides}
-              onGenerated={(next) => {
-                upsertRecord(
-                  applyGeneratedCreativeProposals(record, slot.id, next),
-                );
+            <SlotWorkflowStepper
+              states={stepperStates}
+              enabled={{
+                idea: true,
+                inspiration: hasIdea,
+                production: inspirationDone,
               }}
-              onSelect={(proposalId) => {
-                upsertRecord(
-                  applySelectedCreativeProposal(record, slot.id, proposalId),
-                );
-                setShowInspirationSearch(false);
-              }}
+              onSelect={openStep}
             />
 
-            {idea ? (
-              <StudioSection
-                title="Dirección seleccionada"
-                description={idea.title}
+            {ideaOpen ? (
+              <StepFrame
+                index={1}
+                title="Idea"
+                description="Gemini explora qué se puede hacer con este slot. Elegí una dirección."
               >
-                <p className="text-[13px] leading-relaxed">{idea.idea}</p>
-                <p className="text-[12px] text-muted-foreground">
-                  {idea.message}
-                </p>
-              </StudioSection>
+                <SlotCreativeProposals
+                  spec={spec}
+                  record={record}
+                  accountLabel={getSlotAccountLabel(slot, studioAccounts)}
+                  overrides={overrides}
+                  onGenerated={(next) => {
+                    upsertRecord(
+                      applyGeneratedCreativeProposals(record, slot.id, next),
+                    );
+                  }}
+                  onSelect={selectIdea}
+                />
+              </StepFrame>
+            ) : idea ? (
+              <CompactIdeaStep
+                idea={idea}
+                detailOpen={ideaDetailOpen}
+                onToggleDetail={() => setIdeaDetailOpen((value) => !value)}
+                onChange={() => {
+                  setEditingIdea(true);
+                  setIdeaDetailOpen(false);
+                }}
+              />
             ) : null}
 
-            {idea ? (
-              <StudioSection
+            {inspirationOpen && idea ? (
+              <StepFrame
+                index={2}
                 title="Inspiración"
-                description="Después de elegir una idea. Primero filtro por tipo de pieza; después afinidad con el concepto visual."
+                description="Elegí referencias visuales o estructurales para desarrollar esta idea."
               >
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={showInspirationSearch ? "outline" : "default"}
-                  onClick={() =>
-                    setShowInspirationSearch((value) => !value)
-                  }
-                >
-                  {showInspirationSearch
-                    ? "Ocultar referencias"
-                    : "Buscar inspiración para esta idea"}
-                </Button>
-                {showInspirationSearch ? (
-                  <div className="space-y-3 pt-3">
-                    <p className="text-[12px] font-medium">
-                      Referencias sugeridas
-                    </p>
-                    <SlotInspirationRecommendations
-                      slot={slot}
-                      record={record}
-                      proposal={idea}
-                      proposals={proposals}
-                      specs={specRecords}
-                      slots={slots}
-                      overrides={overrides}
+                <div className="space-y-3">
+                  <p className="text-[12px] font-medium">Referencias sugeridas</p>
+                  <SlotInspirationRecommendations
+                    slot={slot}
+                    record={record}
+                    proposal={idea}
+                    proposals={proposals}
+                    specs={specRecords}
+                    slots={slots}
+                    overrides={overrides}
+                    onOpenReference={(key) => {
+                      setInspectingKey(key);
+                      setPane("inspiration");
+                    }}
+                    onAssociate={(key, attached) =>
+                      associateInspiration(key, attached)
+                    }
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-0 text-xs"
+                    onClick={() => setShowLibrary((value) => !value)}
+                  >
+                    {showLibrary
+                      ? "Ocultar biblioteca"
+                      : "Explorar biblioteca"}
+                  </Button>
+                  {showLibrary ? (
+                    <SlotInspirationBrowse
+                      slotId={slot.id}
                       onOpenReference={(key) => {
                         setInspectingKey(key);
                         setPane("inspiration");
                       }}
-                      onAssociate={(key, attached) =>
-                        associateInspiration(key, attached)
-                      }
                     />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-0 text-xs"
-                      onClick={() => setShowLibrary((value) => !value)}
-                    >
-                      {showLibrary
-                        ? "Ocultar biblioteca completa"
-                        : "Explorar biblioteca completa"}
+                  ) : null}
+                  {refCount > 0 ? (
+                    <AssociatedRefsList
+                      keys={associatedKeys}
+                      overrides={overrides}
+                    />
+                  ) : null}
+                  <div className="pt-1">
+                    <Button type="button" size="sm" onClick={confirmInspiration}>
+                      {refCount > 0
+                        ? "Continuar con estas referencias"
+                        : "Continuar sin inspiración"}
                     </Button>
-                    {showLibrary ? (
-                      <SlotInspirationBrowse
-                        slotId={slot.id}
-                        onOpenReference={(key) => {
-                          setInspectingKey(key);
-                          setPane("inspiration");
-                        }}
-                      />
-                    ) : null}
-                    {associatedKeys.size > 0 ? (
-                      <div className="space-y-1 pt-2">
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                          Asociadas a esta idea
-                        </p>
-                        {[...associatedKeys].map((key) => (
-                          <p key={key} className="text-[13px]">
-                            {getInspirationByKey(key, overrides)?.title ?? key}
-                          </p>
-                        ))}
-                      </div>
-                    ) : null}
                   </div>
-                ) : null}
-              </StudioSection>
+                </div>
+              </StepFrame>
+            ) : hasIdea && inspirationDone && !ideaOpen ? (
+              <CompactInspirationStep
+                refCount={refCount}
+                keys={associatedKeys}
+                overrides={overrides}
+                previewOpen={inspirationPreviewOpen}
+                onTogglePreview={() =>
+                  setInspirationPreviewOpen((value) => !value)
+                }
+                onChange={() => {
+                  setEditingInspiration(true);
+                  setInspirationPreviewOpen(false);
+                }}
+              />
             ) : null}
 
-            <StudioSection
-              title="Slot spec"
-              description="Misión para Cursor cuando ya hay una dirección elegida. El Studio no escribe copy final."
-            >
-              <div className="space-y-2 rounded-lg border border-border px-3 py-3 text-[13px] leading-relaxed">
-                <p>
-                  {getSlotAccountLabel(slot, studioAccounts)} · {spec.date}{" "}
-                  {spec.time}
-                </p>
-                <p>
-                  {getContentRoleLabel(spec.roleId)} · {getSlotTopicLabel(slot)}{" "}
-                  · {getPublicationTypeLabel(spec.productionTypeId)}
-                </p>
-                {idea ? (
-                  <p className="text-muted-foreground">Idea: {idea.title}</p>
-                ) : (
-                  <p className="text-muted-foreground">
-                    Elegí una propuesta creativa antes de preparar el spec.
+            {productionOpen && idea ? (
+              <StepFrame index={3} title="Producción">
+                <div className="space-y-3 rounded-lg border border-border px-3 py-3">
+                  <p className="flex items-center gap-1.5 text-[13px] font-medium">
+                    <CheckIcon className="size-3.5" weight="bold" />
+                    Spec listo para producir
                   </p>
-                )}
-                <p className="text-muted-foreground">
-                  Brain: {spec.brainRefs.join(", ")}
-                </p>
-                <ul className="list-disc space-y-1 pl-4 text-[12px] text-muted-foreground">
-                  {spec.editorialConstraints.slice(0, 4).map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-                {getSlotAccountIds(slot).some(
-                  (id) =>
-                    getPlanningAccount(id, studioAccounts)?.type === "official",
-                ) ? (
-                  <p className="text-[12px] text-muted-foreground">
-                    Cuenta piloto: Mercantis oficial.
+                  <div className="space-y-1 text-[13px] leading-relaxed">
+                    <p>
+                      <span className="text-muted-foreground">Idea: </span>
+                      {idea.title}
+                    </p>
+                    <p>
+                      <span className="text-muted-foreground">Inspiración: </span>
+                      {refCount > 0
+                        ? `${refCount} referencia${refCount === 1 ? "" : "s"}`
+                        : "Sin referencias"}
+                    </p>
+                  </div>
+                  <p className="text-[12px] leading-relaxed text-muted-foreground">
+                    Copia al portapapeles el prompt completo con la idea,
+                    estructura, referencias y contexto necesario para producir
+                    esta pieza en Cursor.
                   </p>
-                ) : null}
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                <Button
-                  type="button"
-                  size="sm"
-                  disabled={!canPrepare || spec.status === "ready-for-cursor"}
-                  onClick={prepareForCursor}
-                >
-                  Preparar para Cursor
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={copySpec}>
-                  <CopyIcon className="size-3.5" />
-                  {copied === "spec" ? "Spec copiado" : "Copiar spec"}
-                </Button>
-                <Button type="button" size="sm" variant="outline" onClick={copyPrompt}>
-                  <CopyIcon className="size-3.5" />
-                  {copied === "prompt" ? "Pedido copiado" : "Copiar pedido a Cursor"}
-                </Button>
-              </div>
-            </StudioSection>
-
-            <StudioSection
-              title="Desarrollo creativo"
-              description="Recién acá Cursor escribe copy, headline y prompts. Primero se elige la idea."
-            >
-              {candidates.length === 0 ? (
-                <p className="text-[13px] text-muted-foreground">
-                  Cuando haya una dirección elegida, pedile a Cursor: “Desarrollá
-                  esta dirección creativa.”
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {candidates.map((proposal, index) => {
-                    const isSelected = proposal.status === "selected";
-                    return (
-                      <div
-                        key={proposal.id}
-                        className={cn(
-                          "rounded-lg border px-3 py-3",
-                          isSelected
-                            ? "border-primary bg-primary/5"
-                            : "border-border",
-                        )}
-                      >
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                          Propuesta {String.fromCharCode(65 + index)}
-                          {proposal.angleId
-                            ? ` · ${getAngleLabel(proposal.angleId)}`
-                            : ""}
-                          {" · "}
-                          {PROPOSAL_STATUS_LABELS[proposal.status]}
-                        </p>
-                        <p className="mt-1.5 text-[14px] font-medium leading-snug">
-                          {proposal.hook}
-                        </p>
-                        <p className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
-                          {proposal.concept}
-                        </p>
-                        {isSelected ? (
-                          <p className="mt-2 text-[12px] font-medium">
-                            Seleccionada
-                          </p>
-                        ) : (
-                          <Button
-                            type="button"
-                            size="sm"
-                            className="mt-2 h-7 text-xs"
-                            onClick={() => selectProposal(proposal.id)}
-                          >
-                            Seleccionar
-                          </Button>
-                        )}
-                      </div>
-                    );
-                  })}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <Button type="button" size="sm" onClick={copyPrompt}>
+                      <CopyIcon className="size-3.5" />
+                      {copied === "prompt"
+                        ? "Pedido copiado ✓"
+                        : "Copiar pedido para Cursor"}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label="Más acciones"
+                        >
+                          <DotsThreeIcon className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={copySpec}>
+                          {copied === "spec" ? "Spec copiado" : "Copiar spec"}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              )}
-              {selected ? (
-                <p className="text-[12px] text-muted-foreground">
-                  Listo para ensamblar en Figma con el copy de Cursor.
-                </p>
-              ) : null}
-            </StudioSection>
+              </StepFrame>
+            ) : null}
           </div>
         )
       ) : null}
     </StudioSheet>
+  );
+}
+
+function StepFrame({
+  index,
+  title,
+  description,
+  children,
+}: {
+  index: number;
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <p className="text-[13px] font-medium">
+          {index}. {title}
+        </p>
+        {description ? (
+          <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function CompactIdeaStep({
+  idea,
+  detailOpen,
+  onToggleDetail,
+  onChange,
+}: {
+  idea: CreativeProposal;
+  detailOpen: boolean;
+  onToggleDetail: () => void;
+  onChange: () => void;
+}) {
+  return (
+    <section className="space-y-2">
+      <p className="text-[13px] font-medium">✓ 1. Idea</p>
+      <div className="rounded-lg border border-border px-3 py-3">
+        <p className="text-[14px] font-medium leading-snug">{idea.title}</p>
+        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          {idea.idea}
+        </p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={onToggleDetail}
+          >
+            {detailOpen ? "Ocultar detalle" : "Ver detalle"}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={onChange}>
+            Cambiar idea
+          </Button>
+        </div>
+      </div>
+      {detailOpen ? (
+        <SlotCreativeProposalCard
+          proposal={idea}
+          selected
+          showActions={false}
+        />
+      ) : null}
+    </section>
+  );
+}
+
+function CompactInspirationStep({
+  refCount,
+  keys,
+  overrides,
+  previewOpen,
+  onTogglePreview,
+  onChange,
+}: {
+  refCount: number;
+  keys: string[];
+  overrides: Parameters<typeof getInspirationByKey>[1];
+  previewOpen: boolean;
+  onTogglePreview: () => void;
+  onChange: () => void;
+}) {
+  return (
+    <section className="space-y-2">
+      <p className="text-[13px] font-medium">✓ 2. Inspiración</p>
+      <div className="rounded-lg border border-border px-3 py-3">
+        <p className="text-[13px] leading-relaxed">
+          {refCount > 0
+            ? `${refCount} referencia${refCount === 1 ? "" : "s"} seleccionada${refCount === 1 ? "" : "s"}`
+            : "Sin referencias"}
+        </p>
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {refCount > 0 ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={onTogglePreview}
+            >
+              {previewOpen ? "Ocultar" : "Ver"}
+            </Button>
+          ) : null}
+          <Button type="button" size="sm" variant="ghost" onClick={onChange}>
+            Cambiar
+          </Button>
+        </div>
+      </div>
+      {previewOpen && refCount > 0 ? (
+        <AssociatedRefsList keys={keys} overrides={overrides} />
+      ) : null}
+    </section>
+  );
+}
+
+function AssociatedRefsList({
+  keys,
+  overrides,
+}: {
+  keys: string[];
+  overrides: Parameters<typeof getInspirationByKey>[1];
+}) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        Asociadas a esta idea
+      </p>
+      {keys.map((key) => (
+        <p key={key} className="text-[13px]">
+          {getInspirationByKey(key, overrides)?.title ?? key}
+        </p>
+      ))}
+    </div>
   );
 }

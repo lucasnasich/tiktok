@@ -47,6 +47,11 @@ export type SlotSpecRecord = {
   /** Propuestas creativas de Gemini. Source of truth de la ideación. */
   creativeProposals?: CreativeProposal[];
   selectedCreativeProposalId?: string;
+  /**
+   * El usuario confirmó el paso de inspiración (con refs o explícitamente sin ellas).
+   * Distinto de `inspirationRefs.length === 0`, que también cubre “todavía no eligió”.
+   */
+  inspirationConfirmed?: boolean;
   status: SlotSpecStatus;
   preparedAt?: string;
 };

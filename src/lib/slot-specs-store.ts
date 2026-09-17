@@ -62,6 +62,8 @@ export function parseSlotSpecRecord(raw: unknown): SlotSpecRecord | undefined {
       typeof value.selectedCreativeProposalId === "string"
         ? value.selectedCreativeProposalId
         : undefined,
+    inspirationConfirmed:
+      value.inspirationConfirmed === true ? true : undefined,
     status,
     preparedAt: typeof value.preparedAt === "string" ? value.preparedAt : undefined,
   };

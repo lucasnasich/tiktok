@@ -1,12 +1,10 @@
 export type SlotWorkflowStatus =
-  | "falta-definir"
-  | "listo-para-cursor"
-  | "elegir-propuesta"
-  | "listo-para-ensamblar";
+  | "elegir-idea"
+  | "elegir-inspiracion"
+  | "listo-para-producir";
 
 export const SLOT_WORKFLOW_STATUS_LABELS: Record<SlotWorkflowStatus, string> = {
-  "falta-definir": "Falta definir",
-  "listo-para-cursor": "Listo para Cursor",
-  "elegir-propuesta": "Elegir propuesta",
-  "listo-para-ensamblar": "Listo para ensamblar",
+  "elegir-idea": "Elegir idea",
+  "elegir-inspiracion": "Elegir inspiración",
+  "listo-para-producir": "Listo para producir",
 };

@@ -6,9 +6,13 @@ import assert from "node:assert/strict";
 import { parseSlotSpecRecord } from "../src/lib/slot-specs-store.ts";
 import {
   applyGeneratedCreativeProposals,
+  applyInspirationConfirmation,
+  applyProposalInspirationRef,
   applySelectedCreativeProposal,
   canPrepareSlotSpec,
   hasSelectedCreativeProposal,
+  isInspirationConfirmed,
+  isSpecReadyForCursor,
 } from "../src/lib/slot-spec.ts";
 import { materializeCreativeProposals } from "../src/lib/creative-proposals.ts";
 import { inspirationMatchesProduction } from "../src/lib/inspiration-production.ts";
@@ -45,6 +49,68 @@ const selected = applySelectedCreativeProposal(
 );
 assert.equal(canPrepareSlotSpec(selected), true);
 assert.equal(hasSelectedCreativeProposal(selected), true);
+assert.equal(isInspirationConfirmed(selected), false);
+assert.equal(isSpecReadyForCursor(selected), false);
+
+const confirmedEmpty = applyInspirationConfirmation(selected, "slot-1", true);
+assert.equal(isInspirationConfirmed(confirmedEmpty), true);
+assert.equal(isSpecReadyForCursor(confirmedEmpty), true);
+assert.equal(
+  confirmedEmpty.creativeProposals?.[0]?.inspirationRefs?.length ?? 0,
+  0,
+  "se puede confirmar sin referencias",
+);
+
+const withRef = applyProposalInspirationRef(
+  confirmedEmpty,
+  "slot-1",
+  generated[0].id,
+  "ref-a",
+  true,
+);
+assert.equal(isInspirationConfirmed(withRef), false, "agregar refs exige reconfirmar");
+assert.deepEqual(withRef.creativeProposals?.[0]?.inspirationRefs, ["ref-a"]);
+
+const reconfirmed = applyInspirationConfirmation(withRef, "slot-1", true);
+assert.equal(isSpecReadyForCursor(reconfirmed), true);
+
+const switched = applySelectedCreativeProposal(
+  reconfirmed,
+  "slot-1",
+  generated[1].id,
+);
+assert.equal(switched.selectedCreativeProposalId, generated[1].id);
+assert.equal(
+  isInspirationConfirmed(switched),
+  false,
+  "cambiar idea resetea la confirmación",
+);
+assert.deepEqual(
+  switched.creativeProposals?.find((item) => item.id === generated[0].id)
+    ?.inspirationRefs,
+  ["ref-a"],
+  "las refs de la idea anterior se conservan",
+);
+assert.equal(
+  switched.creativeProposals?.find((item) => item.id === generated[1].id)
+    ?.inspirationRefs,
+  undefined,
+);
+
+const sameIdea = applySelectedCreativeProposal(
+  reconfirmed,
+  "slot-1",
+  generated[0].id,
+);
+assert.equal(
+  isInspirationConfirmed(sameIdea),
+  true,
+  "re-elegir la misma idea no resetea la confirmación",
+);
+
+const parsedConfirmed = parseSlotSpecRecord(reconfirmed);
+assert.equal(parsedConfirmed?.inspirationConfirmed, true);
+assert.equal(parsedConfirmed?.creativeProposals?.length, 5);
 
 const parsed = parseSlotSpecRecord({
   ...selected,

@@ -20,7 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { SLOT_WORKFLOW_STATUS_LABELS } from "@/content/slot-workflow";
 import { useProposals } from "@/hooks/use-proposals";
 import { useSlotSpecs } from "@/hooks/use-slot-specs";
-import { selectedProposalForSlot } from "@/lib/proposals-store";
+import { selectedCreativeProposal } from "@/lib/creative-proposals";
 import {
   deriveSlotPublicationLed,
   deriveSlotWorkflowStatus,
@@ -79,8 +79,12 @@ export function PlanningSlotCard({
 }) {
   const { proposals } = useProposals();
   const { getRecord } = useSlotSpecs();
-  const selected = selectedProposalForSlot(proposals, slot.id);
-  const workflow = deriveSlotWorkflowStatus(slot.id, getRecord(slot.id), proposals);
+  const record = getRecord(slot.id);
+  const idea = selectedCreativeProposal(
+    record?.creativeProposals,
+    record?.selectedCreativeProposalId,
+  );
+  const workflow = deriveSlotWorkflowStatus(record);
   const publicationLed = deriveSlotPublicationLed(slot, proposals);
   const distributionType = getSlotDistributionType(slot);
   const displayPlatforms = getSlotDisplayPlatforms(
@@ -177,9 +181,9 @@ export function PlanningSlotCard({
           {getSlotPublicationTypeShortLabel(slot)}
           {slot.angleId ? ` · ${getAngleLabel(slot.angleId)}` : ""}
         </p>
-        {selected ? (
+        {idea ? (
           <p className="text-[12px] leading-relaxed text-muted-foreground">
-            Propuesta: {selected.hook}
+            Idea: {idea.title}
           </p>
         ) : (
           <p className="text-[12px] text-muted-foreground">

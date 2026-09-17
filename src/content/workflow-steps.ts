@@ -39,23 +39,21 @@ Esta planificación es **orgánica**. Ads es una iteración futura distinta.
   {
     id: "propuestas",
     title: "Propuestas",
-    summary: "Gemini explora ideas. Cursor desarrolla copy. El usuario elige.",
+    summary: "Gemini explora ideas. Cursor desarrolla copy a partir del spec.",
     details: `El Studio **no genera** copy final, captions ni guiones.
 
 Flujo:
 
 1. Abrís un slot (sheet, calendario detrás).
 2. Gemini genera **5 propuestas creativas libres** (sin biblioteca de formatos).
-3. Podés elegir una, pedir **más como esta**, generar 5 nuevas o **orientar** con formatos/referencias/instrucción.
-4. Recién con una idea elegida buscás inspiración compatible con esa producción.
-5. \`Preparar para Cursor\` deja el spec en \`ready-for-cursor\`.
-6. Le pedís a Cursor: “Desarrollá esta dirección creativa.”
-7. Cursor escribe Proposals completas (copy, headline, CTA, caption).
-8. Elegís una. Queda lista para ensamblar en Figma.
+3. Elegís una idea. El explorador se colapsa y se abre **Inspiración**.
+4. Asociás referencias o continuás sin ellas. La inspiración no es obligatoria.
+5. El spec se ensambla solo. Copiá el **pedido para Cursor**.
+6. Cursor desarrolla esa dirección creativa (copy, headline, CTA, caption).
 
 Mercantis Brain es contexto **obligatorio**, no una fuente de señal.
 
-**Output:** propuesta seleccionada lista para ensamblaje.`,
+**Output:** spec listo para producir.`,
   },
   {
     id: "produccion",

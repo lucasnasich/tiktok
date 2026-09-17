@@ -84,6 +84,7 @@ export function cloneSlotSpecRecord(
     visualSearchBrief: record?.visualSearchBrief,
     creativeProposals: record?.creativeProposals,
     selectedCreativeProposalId: record?.selectedCreativeProposalId,
+    inspirationConfirmed: record?.inspirationConfirmed,
     status: record?.status ?? "draft",
     preparedAt: record?.preparedAt,
     ...patch,
@@ -91,19 +92,16 @@ export function cloneSlotSpecRecord(
   };
 }
 
+export function isInspirationConfirmed(record: SlotSpecRecord | undefined) {
+  return record?.inspirationConfirmed === true;
+}
+
 export function isSpecReadyForCursor(record: SlotSpecRecord | undefined) {
-  if (!record) return false;
-  if (record.status !== "ready-for-cursor") return false;
-  return canPrepareSlotSpec(record);
+  return hasSelectedCreativeProposal(record) && isInspirationConfirmed(record);
 }
 
 export function canPrepareSlotSpec(record: SlotSpecRecord | undefined) {
-  if (!record) return false;
-  if (hasSelectedCreativeProposal(record)) return true;
-  if (record.directionKind === "inspiration") {
-    return hasSelectedInspiration(record);
-  }
-  return Boolean(record.signal?.trim());
+  return hasSelectedCreativeProposal(record);
 }
 
 function usageSlice(
@@ -296,8 +294,24 @@ export function applySelectedCreativeProposal(
   slotId: string,
   proposalId: string,
 ): SlotSpecRecord {
+  const ideaChanged = record?.selectedCreativeProposalId !== proposalId;
   return cloneSlotSpecRecord(record, slotId, {
     selectedCreativeProposalId: proposalId,
+    ...(ideaChanged
+      ? { inspirationConfirmed: false, status: "draft" as const }
+      : {}),
+  });
+}
+
+export function applyInspirationConfirmation(
+  record: SlotSpecRecord | undefined,
+  slotId: string,
+  confirmed: boolean,
+): SlotSpecRecord {
+  return cloneSlotSpecRecord(record, slotId, {
+    inspirationConfirmed: confirmed,
+    status: confirmed ? "ready-for-cursor" : "draft",
+    ...(confirmed ? { preparedAt: new Date().toISOString() } : {}),
   });
 }
 
@@ -308,13 +322,24 @@ export function applyProposalInspirationRef(
   key: string,
   attached: boolean,
 ): SlotSpecRecord {
+  const current = (record?.creativeProposals ?? []).find(
+    (proposal) => proposal.id === proposalId,
+  );
+  const alreadyAttached = Boolean(current?.inspirationRefs?.includes(key));
+  if (attached === alreadyAttached) {
+    return cloneSlotSpecRecord(record, slotId);
+  }
   const proposals = (record?.creativeProposals ?? []).map((proposal) => {
     if (proposal.id !== proposalId) return proposal;
     return attached
       ? associateInspirationRef(proposal, key)
       : detachInspirationRef(proposal, key);
   });
-  return cloneSlotSpecRecord(record, slotId, { creativeProposals: proposals });
+  return cloneSlotSpecRecord(record, slotId, {
+    creativeProposals: proposals,
+    inspirationConfirmed: false,
+    status: "draft",
+  });
 }
 
 const PLATFORM_LABELS: Record<string, string> = {

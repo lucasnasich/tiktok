@@ -2,8 +2,11 @@ import type { PlanningSlot } from "@/content/planned-slots";
 import type { Proposal } from "@/content/proposals";
 import type { SlotSpecRecord } from "@/content/slot-specs";
 import type { SlotWorkflowStatus } from "@/content/slot-workflow";
-import { proposalsForSlot, selectedProposalForSlot } from "@/lib/proposals-store";
-import { isSpecReadyForCursor } from "@/lib/slot-spec";
+import { proposalsForSlot } from "@/lib/proposals-store";
+import {
+  hasSelectedCreativeProposal,
+  isInspirationConfirmed,
+} from "@/lib/slot-spec";
 
 export type SlotPublicationLed = "pending" | "scheduled" | "published";
 
@@ -25,18 +28,9 @@ export function deriveSlotPublicationLed(
 }
 
 export function deriveSlotWorkflowStatus(
-  slotId: string,
   record: SlotSpecRecord | undefined,
-  proposals: Proposal[],
 ): SlotWorkflowStatus {
-  if (selectedProposalForSlot(proposals, slotId)) {
-    return "listo-para-ensamblar";
-  }
-  if (proposalsForSlot(proposals, slotId).length > 0) {
-    return "elegir-propuesta";
-  }
-  if (isSpecReadyForCursor(record)) {
-    return "listo-para-cursor";
-  }
-  return "falta-definir";
+  if (!hasSelectedCreativeProposal(record)) return "elegir-idea";
+  if (!isInspirationConfirmed(record)) return "elegir-inspiracion";
+  return "listo-para-producir";
 }

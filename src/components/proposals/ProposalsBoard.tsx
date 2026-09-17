@@ -109,7 +109,7 @@ export function ProposalsBoard({
 }) {
   const [proposalId, setProposalId] = useSheetSearchParam("proposal");
   const { proposals, selectProposal } = useProposals();
-  const { records } = useSlotSpecs();
+  const { getRecord } = useSlotSpecs();
 
   const slotById = useMemo(
     () => new Map(slots.map((slot) => [slot.id, slot])),
@@ -156,11 +156,7 @@ export function ProposalsBoard({
           <h2 className="text-[15px] font-medium tracking-tight">Propuestas por slot</h2>
           {grouped.map(([planSlotId, slotProposals]) => {
             const slot = slotById.get(planSlotId);
-            const workflow = deriveSlotWorkflowStatus(
-              planSlotId,
-              records[planSlotId],
-              proposals,
-            );
+            const workflow = deriveSlotWorkflowStatus(getRecord(planSlotId));
             return (
               <div key={planSlotId} className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">

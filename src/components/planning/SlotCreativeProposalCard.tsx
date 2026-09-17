@@ -10,14 +10,16 @@ export function SlotCreativeProposalCard({
   proposal,
   selected,
   busy,
+  showActions = true,
   onSelect,
   onMoreLikeThis,
 }: {
   proposal: CreativeProposal;
   selected: boolean;
   busy?: boolean;
-  onSelect: () => void;
-  onMoreLikeThis: () => void;
+  showActions?: boolean;
+  onSelect?: () => void;
+  onMoreLikeThis?: () => void;
 }) {
   return (
     <article
@@ -73,22 +75,24 @@ export function SlotCreativeProposalCard({
         </p>
       )}
 
-      <div className="flex flex-wrap gap-1.5 pt-1">
-        {selected ? null : (
-          <Button type="button" size="sm" disabled={busy} onClick={onSelect}>
-            Elegir
+      {showActions ? (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {selected ? null : (
+            <Button type="button" size="sm" disabled={busy} onClick={onSelect}>
+              Elegir
+            </Button>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={onMoreLikeThis}
+          >
+            Más como esta
           </Button>
-        )}
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={busy}
-          onClick={onMoreLikeThis}
-        >
-          Más como esta
-        </Button>
-      </div>
+        </div>
+      ) : null}
     </article>
   );
 }

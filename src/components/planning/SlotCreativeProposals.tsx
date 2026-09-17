@@ -3,7 +3,6 @@ import { SparkleIcon } from "@phosphor-icons/react";
 
 import { SlotCreativeGuidancePanel } from "@/components/planning/SlotCreativeGuidancePanel";
 import { SlotCreativeProposalCard } from "@/components/planning/SlotCreativeProposalCard";
-import { StudioSection } from "@/components/studio/StudioSheet";
 import { Button } from "@/components/ui/button";
 import {
   CREATIVE_PROPOSAL_COUNT,
@@ -122,10 +121,7 @@ export function SlotCreativeProposals({
   }
 
   return (
-    <StudioSection
-      title="Propuestas creativas"
-      description="Gemini explora qué se puede hacer con este slot. La primera generación es libre: sin biblioteca de formatos."
-    >
+    <div className="space-y-3">
       {hasProposals ? (
         <div className="space-y-3">
           <div className="flex flex-wrap gap-1.5">
@@ -247,6 +243,6 @@ export function SlotCreativeProposals({
           ) : null}
         </div>
       )}
-    </StudioSection>
+    </div>
   );
 }

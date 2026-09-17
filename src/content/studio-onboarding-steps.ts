@@ -44,7 +44,7 @@ export const STUDIO_ONBOARDING_STEPS: StudioOnboardingStep[] = [
     title: "Preparar un slot para Cursor",
     summary: "Elegí una idea con Gemini y dejá el SlotSpec listo para Cursor.",
     detail:
-      "Abrí un slot, generá propuestas creativas, elegí una dirección y recién ahí buscá inspiración si hace falta. Después marcá el spec como listo.",
+      "Abrí un slot, generá propuestas creativas, elegí una idea y confirmá inspiración (o continuá sin referencias). El spec queda listo para copiar a Cursor.",
     href: "/planificacion",
     hrefLabel: "Abrir un slot",
   },
